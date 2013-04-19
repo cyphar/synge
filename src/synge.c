@@ -258,6 +258,7 @@ error_code tokenise_string(char *string, stack *ret) {
 					type = argsep;
 					break;
 				default:
+					free(s);
 					return UNKNOWN_TOKEN;
 			}
 			push_valstack(get_onechar(s+i), type, ret);
@@ -268,9 +269,11 @@ error_code tokenise_string(char *string, stack *ret) {
 			i += strlen(funcname->name) - 1;
 		}
 		else { /* unknown token */
+			free(s);
 			return UNKNOWN_TOKEN;
 		}
 	}
+	free(s);
 	if(!stack_size(ret)) return EMPTY_STACK;
 	/* debugging */
 	print_stack(ret);
@@ -354,8 +357,9 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 				break;
 			case func:
 				if(stack_size(tmpstack) < 1)
-					return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
-				arg[0] = *(double *) pop_stack(tmpstack).val;
+					return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
+				arg[0] = *(double *) top_stack(tmpstack).val;
+				free(pop_stack(tmpstack).val);
 				result = malloc(sizeof(double));
 
 				*result = ((function *)stackp.val)->get(arg[0]);
@@ -365,9 +369,12 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 			case multop:
 			case expop:
 				if(stack_size(tmpstack) < 2)
-					return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
-				arg[1] = *(double *) pop_stack(tmpstack).val;
-				arg[0] = *(double *) pop_stack(tmpstack).val;
+					return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
+				arg[1] = *(double *) top_stack(tmpstack).val;
+				free(pop_stack(tmpstack).val);
+				arg[0] = *(double *) top_stack(tmpstack).val;
+				free(pop_stack(tmpstack).val);
+
 				result = malloc(sizeof(double));
 
 				switch(*(char *) stackp.val) {
@@ -392,17 +399,18 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 						*result = pow(arg[0], arg[1]);
 						break;
 					default:
-						return safe_free_stack(true, UNKNOWN_TOKEN, tmpstack, rpn);
+						return safe_free_stack(false, UNKNOWN_TOKEN, tmpstack, rpn);
 				}
 				push_valstack(result, number, tmpstack);
 				break;
 			default:
-				return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+				return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
 		}
 	}
 	if(stack_size(tmpstack) != 1)
-				return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+				return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
 	*ret = *(double *) top_stack(tmpstack).val;
+	free(pop_stack(tmpstack).val);
 	return safe_free_stack(false, SUCCESS, tmpstack);
 } /* eval_rpnstack() */
 
@@ -441,5 +449,5 @@ error_code compute_infix_string(char *string, double *result) {
 	else if((ecode = eval_rpnstack(rpn_stack, result)) != SUCCESS) /* evaluate postfix (or RPN) stack */
 		return ecode;
 	else
-		return safe_free_stack(true, ecode, rpn_stack);
+		return safe_free_stack(false, ecode, rpn_stack);
 } /* calculate_infix_string() */
