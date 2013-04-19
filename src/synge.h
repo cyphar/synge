@@ -31,5 +31,6 @@ typedef enum __errcode__ {
 	EMPTY_STACK
 } error_code;
 
-char *get_error_msg(error_code); /* return a string which describes the error code (DO NOT FREE) */
+int get_precision(double); /* returns minimum decimal precision needed to print number */
+char *get_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
 error_code compute_infix_string(char *, double *); /* takes an infix-style string and runs it through the "engine" */

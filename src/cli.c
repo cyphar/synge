@@ -103,7 +103,7 @@ int main(void) {
 		else {
 			double tmp = 0;
 			if(modf(result, &tmp) == 0.0) printf("\t\t= %.0f\n", result);
-			else printf("\t\t= %f\n", result);
+			else printf("\t\t= %.*f\n", get_precision(result), result);
 		}
 	}
 	if(cur_str) sfree(&cur_str);
