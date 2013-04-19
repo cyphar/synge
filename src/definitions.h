@@ -1,4 +1,4 @@
-/* Synge: A shunting-yard calculator "engine"
+/* Synge: A shunting-yard calculation "engine"
  * Copyright (C) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -26,7 +26,7 @@
 #define GTK_LICENSE	"Synge-GTK: A GTK+ gui wrapper for Synge\n" \
 			BASE_LICENSE
 
-#define BASE_LICENSE	"Synge: A shunting-yard calculator \"engine\"\n" \
+#define BASE_LICENSE	"Synge: A shunting-yard calculation \"engine\"\n" \
 			"Copyright (c) 2013 Cyphar\n" \
 			"\n" \
 			"Permission is hereby granted, free of charge, to any person obtaining a copy of\n" \
