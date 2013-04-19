@@ -41,7 +41,7 @@ DEPS = src/stack.h src/synge.h
 
 VERSION = 1.0.3
 CLI_VERSION = 1.0.0
-GTK_VERSION =
+GTK_VERSION = 1.0.0
 
 # Compile "production" engine and wrappers
 all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
