@@ -4,4 +4,5 @@ Things to fix/implement:
 	+ Variables (a = 1)
 	+ getopt command line options for cli
 	* More comments
+	* Generalise helper functions
 	+ Documentation
