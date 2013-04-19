@@ -23,7 +23,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "calculator.h"
+#include "synge.h"
 
 /* stack types */
 

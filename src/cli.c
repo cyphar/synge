@@ -27,7 +27,7 @@
 #include <math.h>
 
 #include "stack.h"
-#include "calculator.h"
+#include "synge.h"
 #include "definitions.h"
 
 #define ANSI_ERROR	"\x1b[1;31m"

@@ -7,11 +7,11 @@ SHR_LFLAGS = -lm
 CLI_LFLAGS =
 GTK_LFLAGS =
 
-SHR_SRC = src/stack.c src/calculator.c
+SHR_SRC = src/stack.c src/synge.c
 CLI_SRC = src/cli.c
 GTK_SRC = src/gtk.c
 
-DEPS = src/stack.h src/calculator.h
+DEPS = src/stack.h src/synge.h
 
 VERSION = 1.0.2
 CLI_VERSION = 1.0.0

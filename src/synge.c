@@ -28,12 +28,12 @@
 #include <string.h>
 
 #include "stack.h"
-#include "calculator.h"
+#include "synge.h"
 
 /* Operator Precedence
  * 4 Parenthesis
  * 3 Exponents, Roots (right associative)
- * 2 Multiplication, Division, Modulus (left associative)
+ * 2 Multiplication, Division, Modulo (left associative)
  * 1 Addition, Subtraction (left associative)
  */
 
