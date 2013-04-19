@@ -61,9 +61,10 @@ void init_stack(stack *); /* initialize the stack */
 void push_valstack(void *, s_type, stack *); /* push value and type to the top of the stack */
 void push_ststack(s_content, stack *); /* push struct to the top of the stack */
 
-s_content pop_stack(stack *); /* pops the top value on the stack */
-s_content top_stack(stack *); /* returns the top value on the stack */
+s_content *pop_stack(stack *); /* pops the top value on the stack */
+s_content *top_stack(stack *); /* returns the top value on the stack */
 
+void free_scontent(s_content *); /* frees and clears the stack content struct */
 void free_stack(stack *); /* frees and clears the stack */
 
 /* wrapper function for free_stack - frees malloc'd memory and free_stacks it */
