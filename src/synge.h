@@ -31,6 +31,17 @@ typedef enum __errcode__ {
 	EMPTY_STACK
 } error_code;
 
+typedef struct __synge_settings__ {
+	enum {
+		degrees,
+		radians
+	} angle;
+} synge_settings;
+
 int get_precision(double); /* returns minimum decimal precision needed to print number */
+
+synge_settings get_synge_settings(void); /* returns active settings */
+void set_synge_settings(synge_settings); /* set active settings to given settings */
+
 char *get_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
 error_code compute_infix_string(char *, double *); /* takes an infix-style string and runs it through the "engine" */

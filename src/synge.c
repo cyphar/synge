@@ -94,6 +94,22 @@ char *op_list[] = {
 	","
 };
 
+char *angle_infunc_list[] = {
+	"sin",
+	"cos",
+	"tan"
+};
+
+char *angle_outfunc_list[] = {
+	"asin",
+	"acos",
+	"atan"
+};
+
+synge_settings active_settings = {
+	degrees
+};
+
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
 void print_stack(stack *s) {
@@ -359,6 +375,35 @@ error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
 	return safe_free_stack(false, SUCCESS, infix_stack, op_stack);
 } /* populate_stack() */
 
+bool is_in_list(char *s, char **list) {
+	int i;
+	for(i = 0; i < length(list); i++)
+		if(!strncmp(list[i], s, strlen(list[i]))) return true;
+	return false;
+}
+
+double settings_to_rad(double in) {
+	switch(active_settings.angle) {
+		case degrees:
+			return deg2rad(in);
+		case radians:
+			return in;
+		default:
+			return 0.0;
+	}
+} /* settings_to_rad() */
+
+double rad_to_settings(double in) {
+	switch(active_settings.angle) {
+		case degrees:
+			return rad2deg(in);
+		case radians:
+			return in;
+		default:
+			return 0.0;
+	}
+} /* rad_to_settings() */
+
 error_code eval_rpnstack(stack *rpn, double *ret) {
 	stack *tmpstack = malloc(sizeof(stack));
 	init_stack(tmpstack);
@@ -379,9 +424,14 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 					return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
 				arg[0] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
+				if(is_in_list(((function *)stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
+					arg[0] = settings_to_rad(arg[0]);
 
 				result = malloc(sizeof(double));
 				*result = ((function *)stackp.val)->get(arg[0]);
+				if(is_in_list(((function *)stackp.val)->name, angle_outfunc_list)) /* convert radians to settings angles */
+					*result = rad_to_settings(*result);
+
 				push_valstack(result, number, tmpstack);
 				break;
 			case addop:
@@ -471,3 +521,11 @@ error_code compute_infix_string(char *string, double *result) {
 	else
 		return safe_free_stack(false, ecode, rpn_stack);
 } /* calculate_infix_string() */
+
+synge_settings get_synge_settings(void) {
+	return active_settings;
+} /* get_synge_settings() */
+
+void set_synge_settings(synge_settings new_settings) {
+	active_settings = new_settings;
+} /* set_synge_settings() */
