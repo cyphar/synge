@@ -2,5 +2,9 @@ Things to fix/implement:
 
 	+ GTK+ interface
 	+ Variables (a = 1)
+	+ Settings
+		> Degrees and Radians
+		> Verbosity?
+	+ getopt command line options for cli
 	* More comments
 	+ Documentation
