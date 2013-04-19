@@ -55,6 +55,7 @@ typedef struct __function__ {
 function func_list[] = {
 	{"abs",		 fabs},
 	{"sqrt",	 sqrt},
+	{"cbrt",	 cbrt},
 
 	{"floor",	floor},
 	{"ceil",	 ceil},
