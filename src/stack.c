@@ -24,7 +24,7 @@
 #include <stdarg.h>
 
 #include "stack.h"
-#include "calculator.h"
+#include "synge.h"
 
 void init_stack(stack *s) {
 	s->content = NULL;
