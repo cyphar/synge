@@ -1,4 +1,7 @@
 Things to fix/implement:
+
 	+ GTK+ interface
 	+ Variables (a = 1)
 	* Fix memory leak with (double *)s
+	* More comments
+	+ Documentation
