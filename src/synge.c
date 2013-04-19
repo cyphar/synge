@@ -37,6 +37,16 @@
  * 1 Addition, Subtraction (left associative)
  */
 
+#define PI 3.14159265358979323
+
+double deg2rad(double deg) {
+	return deg * (PI / 180.0);
+} /* deg2rad() */
+
+double rad2deg(double rad) {
+	return rad * (180.0 / PI);
+} /* rad2deg() */
+
 typedef struct __function__ {
 	char *name;
 	double (*get)(double);
@@ -52,10 +62,11 @@ function func_list[] = {
 	{"log10",	log10},
 	{"log",		  log},
 
+	{"deg2rad",   deg2rad},
+	{"rad2deg",   rad2deg},
 	{"sin",		  sin},
 	{"cos",		  cos},
 	{"tan",		  tan},
-
 	{"asin",	 asin},
 	{"acos",	 acos},
 	{"atan",	 atan}
@@ -67,8 +78,8 @@ typedef struct __special_number__ {
 } special_number;
 
 special_number number_list[] = {
-	{"pi",	3.14159265359},
-	{"e",	2.71828182845},
+	{"pi",	3.14159265358979323},
+	{"e",	2.71828182845904523},
 };
 
 char *op_list[] = {
@@ -127,6 +138,14 @@ char *replace(char *str, char *old, char *new) {
 
 	return ret;
 } /* replace() */
+
+int get_precision(double num) {
+	double tmp;
+	num = (1.0 + modf(num, &tmp)) * 10000000000000000;
+	while(fmod(num, 10) == 0.0 && num != 0.0)
+		num /= 10.0;
+	return num ? floor(log10(fabs(num))) : 0;
+} /* get_precision() */
 
 bool isonechar(char *ch) {
 	switch(*ch) {
