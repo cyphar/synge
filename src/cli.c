@@ -96,15 +96,9 @@ int main(void) {
 		else if(!strcmp("license", cur_str)) cli_license();
 		else if(!strcmp("warranty", cur_str)) cli_warranty();
 		else if(!strcmp("version", cur_str)) cli_version();
-		else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS) {
-			char *error_msg = get_error_msg(ecode);
-			printf("\t\t%s%s%s\n", ANSI_ERROR, error_msg, ANSI_CLEAR);
-		}
-		else {
-			double tmp = 0;
-			if(modf(result, &tmp) == 0.0) printf("\t\t= %.0f\n", result);
-			else printf("\t\t= %.*f\n", get_precision(result), result);
-		}
+		else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS)
+			printf("\t\t%s%s%s\n", ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+		else printf("\t\t= %.*f\n", get_precision(result), result);
 	}
 	if(cur_str) sfree(&cur_str);
 	return 0;
