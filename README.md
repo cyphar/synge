@@ -1,6 +1,6 @@
 Synge
 -----
-A shunting-yard calculator "engine" with GTK+ and Command Line wrappers
+A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers
 
 ## License ##
 ([MIT Licence](http://opensource.org/licenses/mit-license))

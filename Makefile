@@ -1,3 +1,27 @@
+# Synge: A shunting-yard calculation "engine"
+# Synge-CLI: A command-line wrapper for Synge
+# Synge-GTK: A GTK+ gui wrapper for Synge
+
+# Copyright (c) 2013 Cyphar
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# 1. The above copyright notice and this permission notice shall be included in 
+#    all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 CC ?= gcc
 EXEC_BASE = synge
 
@@ -17,37 +41,44 @@ VERSION = 1.0.2
 CLI_VERSION = 1.0.0
 GTK_VERSION =
 
+# Compile "production" engine and wrappers
 all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
 	make cli
 	make gtk
 
+# Compile "production" engine and command-line wrapper
 cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) $(CFLAGS) -o $(EXEC_BASE)-cli \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
 	strip $(EXEC_BASE)-cli
 
+# Compile "production" engine and gui wrapper
 gtk: $(SHR_SRC) $(GTK_SRC) $(DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) $(CFLAGS) -o $(EXEC_BASE)-gtk \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
 	strip $(EXEC_BASE)-gtk
 
+# Compile "debug" engine and wrappers
 debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
 	make debug-cli
 	make debug-gtk
 
+# Compile "debug" engine and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) $(CFLAGS) -o $(EXEC_BASE)-cli \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
 
+# Compile "debug" engine and gui wrapper
 debug-gtk: $(SHR_SRC) $(GTK) $(DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) $(CFLAGS) -o $(EXEC_BASE)-gtk \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
 
+# Clean working directory
 clean:
 	rm -f $(EXEC_BASE)-cli $(EXEC_BASE)-gtk

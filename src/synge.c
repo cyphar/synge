@@ -1,4 +1,4 @@
-/* Synge: A shunting-yard calculator "engine"
+/* Synge: A shunting-yard calculation "engine"
  * Copyright (C) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
