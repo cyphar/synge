@@ -48,28 +48,29 @@ void push_valstack(void *val, s_type tp, stack *s) {
 	s->content[s->top].tp = tp;
 } /* push_valstack() */
 
-s_content pop_stack(stack *s) {
-	s_content ret = {NULL, none};
-	if(s->top > -1 && s->content) {
-		ret = s->content[s->top--];
-		s->size--;
-	}
+s_content *pop_stack(stack *s) {
+	s_content *ret = NULL;
+	if(s->top > -1 && s->content)
+		ret = &s->content[s->top--];
 	return ret;
 } /* pop_stack() */
 
-s_content top_stack(stack *s) {
-	s_content ret = {NULL, none};
-	if(s->top > -1 && s->content) ret = s->content[s->top];
+s_content *top_stack(stack *s) {
+	s_content *ret = NULL;
+	if(s->top > -1 && s->content)
+		ret = &s->content[s->top];
 	return ret;
 } /* top_stack() */
 
+void free_scontent(s_content *s) {
+	if(s->tp == number) {
+		free(s->val);
+		s->val = NULL;
+		s->tp = none;
+	}
+} /* free_scontent() */
+
 void free_stack(stack *s) {
-	/*
-	 *int i;
-	 *for(i = 0; i < s->size; i++)
-	 *        if(s->content[i].tp == number)
-	 *                free(s->content[i].val);
-	 */
 	free(s->content);
 	s->content = NULL;
 	s->size = 0;
@@ -83,7 +84,8 @@ error_code usafe_free_stack(bool full_free, error_code ecode, stack *s, ...) {
 	va_start(ap, s);
 	do {
 		if(full_free)
-			for(i = 0; i < s->size; i++) if(s->content[i].tp == number) free(s->content[i].val);
+			for(i = 0; i < s->size; i++) 
+				if(s->content[i].tp == number) free_scontent(&s->content[i]);
 		free_stack(s);
 		free(s);
 	} while((s = va_arg(ap, stack *)) != NULL);

@@ -220,7 +220,7 @@ error_code tokenise_string(char *string, stack *ret) {
 	init_stack(ret);
 	int i;
 	for(i = 0; i < strlen(s); i++) {
-		if(isnum(s+i) && (!i || (i > 0 && top_stack(ret).tp != number && top_stack(ret).tp != rparen))) {
+		if(isnum(s+i) && (!i || (i > 0 && top_stack(ret)->tp != number && top_stack(ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
 			if(isspecialnum(s+i)) {
 				special_number stnum = getspecialnum(s+i);
@@ -281,7 +281,7 @@ error_code tokenise_string(char *string, stack *ret) {
 } /* tokenise_string() */
 
 error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
-	s_content stackp, tmpstackp;
+	s_content stackp, *tmpstackp;
 	init_stack(rpn_stack);
 
 	stack *op_stack = malloc(sizeof(stack));
@@ -302,11 +302,11 @@ error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
 				found = false;
 				while(stack_size(op_stack)) {
 					tmpstackp = pop_stack(op_stack);
-					if(tmpstackp.tp == lparen) {
+					if(tmpstackp->tp == lparen) {
 						found = true;
 						break;
 					}
-					push_ststack(tmpstackp, rpn_stack);
+					push_ststack(*tmpstackp, rpn_stack);
 				}
 				if(!found) return safe_free_stack(true, UNMATCHED_PARENTHESIS, infix_stack, op_stack, rpn_stack);
 				break;
@@ -316,8 +316,8 @@ error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
 				if(stack_size(op_stack)) {
 					while(stack_size(op_stack)) {
 						tmpstackp = top_stack(op_stack);
-						if(!isop(tmpstackp.tp)) break;
-						if(op_precedes(tmpstackp.tp, stackp.tp)) push_ststack(pop_stack(op_stack), rpn_stack);
+						if(!isop(tmpstackp->tp)) break;
+						if(op_precedes(tmpstackp->tp, stackp.tp)) push_ststack(*pop_stack(op_stack), rpn_stack);
 						else break;
 					}
 				}
@@ -329,7 +329,7 @@ error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
 	}
 
 	while(stack_size(op_stack)) {
-		stackp = pop_stack(op_stack);
+		stackp = *pop_stack(op_stack);
 		if(isspecialch(stackp.tp))
 			return safe_free_stack(true, UNMATCHED_PARENTHESIS, infix_stack, op_stack, rpn_stack);
 		push_ststack(stackp, rpn_stack);
@@ -357,11 +357,11 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 				break;
 			case func:
 				if(stack_size(tmpstack) < 1)
-					return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
-				arg[0] = *(double *) top_stack(tmpstack).val;
-				free(pop_stack(tmpstack).val);
-				result = malloc(sizeof(double));
+					return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+				arg[0] = *(double *) top_stack(tmpstack)->val;
+				free_scontent(pop_stack(tmpstack));
 
+				result = malloc(sizeof(double));
 				*result = ((function *)stackp.val)->get(arg[0]);
 				push_valstack(result, number, tmpstack);
 				break;
@@ -369,14 +369,14 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 			case multop:
 			case expop:
 				if(stack_size(tmpstack) < 2)
-					return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
-				arg[1] = *(double *) top_stack(tmpstack).val;
-				free(pop_stack(tmpstack).val);
-				arg[0] = *(double *) top_stack(tmpstack).val;
-				free(pop_stack(tmpstack).val);
+					return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+				arg[1] = *(double *) top_stack(tmpstack)->val;
+				free_scontent(pop_stack(tmpstack));
+
+				arg[0] = *(double *) top_stack(tmpstack)->val;
+				free_scontent(pop_stack(tmpstack));
 
 				result = malloc(sizeof(double));
-
 				switch(*(char *) stackp.val) {
 					case '+':
 						*result = arg[0] + arg[1];
@@ -399,19 +399,18 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 						*result = pow(arg[0], arg[1]);
 						break;
 					default:
-						return safe_free_stack(false, UNKNOWN_TOKEN, tmpstack, rpn);
+						return safe_free_stack(true, UNKNOWN_TOKEN, tmpstack, rpn);
 				}
 				push_valstack(result, number, tmpstack);
 				break;
 			default:
-				return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
+				return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
 		}
 	}
 	if(stack_size(tmpstack) != 1)
-				return safe_free_stack(false, WRONG_NUM_VALUES, tmpstack, rpn);
-	*ret = *(double *) top_stack(tmpstack).val;
-	free(pop_stack(tmpstack).val);
-	return safe_free_stack(false, SUCCESS, tmpstack);
+				return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+	*ret = *(double *) top_stack(tmpstack)->val;
+	return safe_free_stack(true, SUCCESS, tmpstack);
 } /* eval_rpnstack() */
 
 char *get_error_msg(error_code error) {
@@ -441,9 +440,11 @@ char *get_error_msg(error_code error) {
 
 error_code compute_infix_string(char *string, double *result) {
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
+	init_stack(rpn_stack);
+	init_stack(infix_stack);
 	error_code ecode;
 	if((ecode = tokenise_string(string, infix_stack)) != SUCCESS) /* generate infix stack */
-		return safe_free_stack(true, ecode, infix_stack);
+		return safe_free_stack(true, ecode, infix_stack, rpn_stack);
 	else if((ecode = infix_stack_to_rpnstack(infix_stack, rpn_stack)) != SUCCESS) /* convert to postfix (or RPN) stack */
 		return ecode;
 	else if((ecode = eval_rpnstack(rpn_stack, result)) != SUCCESS) /* evaluate postfix (or RPN) stack */
