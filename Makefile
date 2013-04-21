@@ -14,7 +14,7 @@ GTK_SRC = src/gtk.c
 DEPS = src/stack.h src/calculator.h
 
 VERSION = 1.0.2
-CLI_VERSION =
+CLI_VERSION = 1.0.0
 GTK_VERSION =
 
 all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
