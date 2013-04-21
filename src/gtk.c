@@ -51,7 +51,7 @@ static void gui_compute_string (GtkWidget *widget, gpointer data) {
 		g_free(markup);
 	} else {
 		gtk_label_set_selectable(GTK_LABEL(output_label), TRUE);
-		char *output = malloc((printf("= %.*f", get_precision(result), result) + 1) * sizeof(char));
+		char *output = malloc((snprintf(NULL, 0, "= %.*f", get_precision(result), result) + 1) * sizeof(char));
 		sprintf(output, "= %.*f", get_precision(result), result);
 		char *markup = g_markup_printf_escaped("<b>%s</b>", output);
 		gtk_label_set_markup(GTK_LABEL(output_label), markup);
