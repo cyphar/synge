@@ -13,7 +13,7 @@ GTK_SRC = src/gtk.c
 
 DEPS = src/stack.h src/calculator.h
 
-VERSION = 1.0.1
+VERSION = 1.0.2
 CLI_VERSION =
 GTK_VERSION =
 
