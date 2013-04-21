@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-#define CLI_LICENSE	"Synge-CLI: A command-line wrapper for Synge\n" \
-			BASE_LICENSE
+#define SYNGE_CLI_LICENSE	"Synge-CLI: A command-line wrapper for Synge\n" \
+				SYNGE_LICENSE
 
-#define GTK_LICENSE	"Synge-GTK: A GTK+ gui wrapper for Synge\n" \
-			BASE_LICENSE
+#define SYNGE_GTK_LICENSE	"Synge-GTK: A GTK+ gui wrapper for Synge\n" \
+				SYNGE_LICENSE
 
-#define BASE_LICENSE	"Synge: A shunting-yard calculation \"engine\"\n" \
+#define SYNGE_LICENSE	"Synge: A shunting-yard calculation \"engine\"\n" \
 			"Copyright (c) 2013 Cyphar\n" \
 			"\n" \
 			"Permission is hereby granted, free of charge, to any person obtaining a copy of\n" \
@@ -39,7 +39,7 @@
 			"1. The above copyright notice and this permission notice shall be included in\n" \
 			"   all copies or substantial portions of the Software.\n"
 
-#define WARRANTY	"THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n" \
+#define SYNGE_WARRANTY	"THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n" \
 			"IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n" \
 			"FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n" \
 			"AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n" \
