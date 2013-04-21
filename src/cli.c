@@ -76,8 +76,8 @@ void cli_print_settings(char *s) {
 	char *args = strchr(s, ' ') + 1, *ret = NULL;
 
 	/* should be replaced with a struct lookup */
-	if(!strcmp(args, "angle")) {
-		switch(current_settings.angle) {
+	if(!strcmp(args, "mode")) {
+		switch(current_settings.mode) {
 			case degrees:
 				ret = "Degrees";
 				break;
@@ -98,12 +98,12 @@ void cli_set_settings(char *s) {
 	bool err = false;
 
 	/* should be replaced with a struct lookup */
-	if(!strncmp(args, "angle ", strlen("angle "))) {
+	if(!strncmp(args, "mode ", strlen("mode "))) {
 		char *val = strchr(args, ' ') + 1;
 		if(!strcasecmp(val, "degrees"))
-			new_settings.angle = degrees;
+			new_settings.mode = degrees;
 		else if(!strcasecmp(val, "radians"))
-			new_settings.angle = radians;
+			new_settings.mode = radians;
 		else err = true;
 	}
 	else err = true;

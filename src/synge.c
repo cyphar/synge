@@ -384,7 +384,7 @@ bool is_in_list(char *s, char **list) {
 }
 
 double settings_to_rad(double in) {
-	switch(active_settings.angle) {
+	switch(active_settings.mode) {
 		case degrees:
 			return deg2rad(in);
 		case radians:
@@ -395,7 +395,7 @@ double settings_to_rad(double in) {
 } /* settings_to_rad() */
 
 double rad_to_settings(double in) {
-	switch(active_settings.angle) {
+	switch(active_settings.mode) {
 		case degrees:
 			return rad2deg(in);
 		case radians:
