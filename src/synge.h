@@ -35,7 +35,7 @@ typedef struct __synge_settings__ {
 	enum {
 		degrees,
 		radians
-	} angle;
+	} mode;
 } synge_settings;
 
 int get_precision(double); /* returns minimum decimal precision needed to print number */
