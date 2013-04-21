@@ -147,6 +147,14 @@ bool isonechar(char *ch) {
 	}
 } /* isonechar() */
 
+bool isop(s_type type) {
+	return (type == addop || type == multop || type == expop);
+} /* isop() */
+
+bool isspecialch(s_type type) {
+	return (type == lparen || type == rparen || type == argsep);
+} /* isspecialch() */
+
 bool isspecialnum(char *s) {
 	int i;
 	for(i = 0; i < length(number_list); i++)
@@ -161,6 +169,29 @@ special_number getspecialnum(char *s) {
 		if(!strncmp(number_list[i].name, s, strlen(number_list[i].name))) return number_list[i];
 	return ret;
 } /* getspecialnum() */
+
+bool op_precedes(s_type op1, s_type op2) {
+	/* IMPORTANT:	returns true if:
+	 * 			op1 > op2 (or op1 > op2 - 0)
+	 * 			op2 is left associative and op1 >= op2 (or op1 > op2 - 1)
+	 * 		returns false otherwise
+	 */
+	int lassoc;
+	switch(op2) {
+		case addop:
+		case multop:
+			lassoc = 1;
+			break;
+		case expop:
+			lassoc = 0;
+			break;
+		default:
+			return false; /* what the hell you doing? */
+			break;
+	}
+	if(op1 > op2 - lassoc) return true;
+	else return false;
+} /* op_precedes() */
 
 bool isnum(char *s) {
 	if(isspecialnum(s)) return true;
@@ -245,6 +276,66 @@ error_code tokenise_string(char *string, stack *ret) {
 	print_stack(ret);
 	return SUCCESS;
 } /* tokenise_string() */
+
+error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
+	s_content stackp, tmpstackp;
+	init_stack(rpn_stack);
+
+	stack *op_stack = malloc(sizeof(stack));
+	init_stack(op_stack);
+	int i, found;
+	for(i = 0; i < stack_size(infix_stack); i++) {
+		stackp = infix_stack->content[i];
+		switch(stackp.tp) {
+			case number:
+				push_ststack(stackp, rpn_stack);
+				break;
+			case lparen:
+			case func:
+				push_ststack(stackp, op_stack);
+				break;
+			case argsep:
+			case rparen:
+				found = false;
+				while(stack_size(op_stack)) {
+					tmpstackp = pop_stack(op_stack);
+					if(tmpstackp.tp == lparen) {
+						found = true;
+						break;
+					}
+					push_ststack(tmpstackp, rpn_stack);
+				}
+				if(!found) return safe_free_stack(true, UNMATCHED_PARENTHESIS, infix_stack, op_stack, rpn_stack);
+				break;
+			case addop:
+			case multop:
+			case expop:
+				if(stack_size(op_stack)) {
+					while(stack_size(op_stack)) {
+						tmpstackp = top_stack(op_stack);
+						if(!isop(tmpstackp.tp)) break;
+						if(op_precedes(tmpstackp.tp, stackp.tp)) push_ststack(pop_stack(op_stack), rpn_stack);
+						else break;
+					}
+				}
+				push_ststack(stackp, op_stack);
+				break;
+			default:
+				return safe_free_stack(true, UNKNOWN_TOKEN, infix_stack, op_stack, rpn_stack);
+		}
+	}
+
+	while(stack_size(op_stack)) {
+		stackp = pop_stack(op_stack);
+		if(isspecialch(stackp.tp))
+			return safe_free_stack(true, UNMATCHED_PARENTHESIS, infix_stack, op_stack, rpn_stack);
+		push_ststack(stackp, rpn_stack);
+	}
+
+	/* debugging */
+	print_stack(rpn_stack);
+	return safe_free_stack(false, SUCCESS, infix_stack, op_stack);
+} /* populate_stack() */
 
 char *get_error_msg(error_code error) {
 	char *msg = NULL;
