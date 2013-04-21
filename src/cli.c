@@ -24,32 +24,33 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <strings.h>
 #include <math.h>
 
 #include "stack.h"
 #include "synge.h"
 #include "definitions.h"
 
+#define length(x) (sizeof(x) / sizeof(x[0]))
+
 #define ANSI_ERROR	"\x1b[1;31m"
 #define ANSI_INFO	"\x1b[1;37m"
 #define ANSI_CLEAR	"\x1b[0;m"
+#define OUTPUT_PADDING	"\t\t"
 
 #ifndef __SYNGE_CLI_VERSION__
 #define __SYNGE_CLI_VERSION__ ""
 #endif
 
-#define BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
-		"Copyright (C) 2013 Cyphar\n" \
-		"This free software is licensed under the terms of the MIT License with ABSOLUTELY NO WARRANTY\n" \
-		"For more information, type 'version', 'license' and 'warranty'\n" \
+#define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
+			"Copyright (C) 2013 Cyphar\n" \
+			"This free software is licensed under the terms of the MIT License with ABSOLUTELY NO WARRANTY\n" \
+			"For more information, type 'version', 'license' and 'warranty'\n"
 
-void cli_license(void) {
-	printf("\n%s%s%s\n", ANSI_INFO, CLI_LICENSE, ANSI_CLEAR);
-} /* cli_license() */
-
-void cli_warranty(void) {
-	printf("\n%s%s%s\n", ANSI_INFO, WARRANTY, ANSI_CLEAR);
-} /* cli_warranty() */
+typedef struct __cli_command__ {
+	char *name;
+	void (*exec)();
+} cli_command;
 
 void cli_version(void) {
 	printf(	"\n%s"
@@ -58,11 +59,88 @@ void cli_version(void) {
 		"%s\n", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__, ANSI_CLEAR);
 } /* cli_version() */
 
+void cli_license(void) {
+	printf("\n%s%s%s\n", ANSI_INFO, SYNGE_LICENSE, ANSI_CLEAR);
+} /* cli_license() */
+
+void cli_warranty(void) {
+	printf("\n%s%s%s\n", ANSI_INFO, SYNGE_WARRANTY, ANSI_CLEAR);
+} /* cli_warranty() */
+
 void cli_banner(void) {
-	printf("%s%s%s\n", ANSI_INFO, BANNER, ANSI_CLEAR);
+	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 } /* cli_banner() */
 
-char *get_cli_str(void) {
+void cli_print_settings(char *s) {
+	synge_settings current_settings = get_synge_settings();
+	char *args = strchr(s, ' ') + 1, *ret = NULL;
+
+	/* should be replaced with a struct lookup */
+	if(!strcmp(args, "angle")) {
+		switch(current_settings.angle) {
+			case degrees:
+				ret = "Degrees";
+				break;
+			case radians:
+				ret = "Radians";
+				break;
+		}
+	}
+	
+	if(!ret)
+		printf("%sUnknown argument to 'get': %s.%s\n", ANSI_ERROR, args, ANSI_CLEAR);
+	else printf("\n%s%s%s\n\n", ANSI_INFO, ret, ANSI_CLEAR);
+} /* cli_print_settings() */
+
+void cli_set_settings(char *s) {
+	synge_settings new_settings = get_synge_settings();
+	char *args = strchr(s, ' ') + 1;
+	bool err = false;
+
+	/* should be replaced with a struct lookup */
+	if(!strncmp(args, "angle ", strlen("angle "))) {
+		char *val = strchr(args, ' ') + 1;
+		if(!strcasecmp(val, "degrees"))
+			new_settings.angle = degrees;
+		else if(!strcasecmp(val, "radians"))
+			new_settings.angle = radians;
+		else err = true;
+	}
+	else err = true;
+	
+	if(err) printf("%sUnknown argument to 'set': %s.%s\n", ANSI_ERROR, args, ANSI_CLEAR);
+	else set_synge_settings(new_settings);
+} /* cli_set_settings */
+
+cli_command cli_command_list[] = {
+	{"exit",		      NULL},
+	{"quit",		      NULL},
+
+	{"version",	       cli_version},
+	{"license",	       cli_license},
+	{"warranty",	      cli_warranty},
+
+	{"set ",	  cli_set_settings},
+	{"get ",	cli_print_settings}
+};
+
+bool cli_is_command(char *s) {
+	int i;
+	for(i = 0; i < length(cli_command_list); i++)
+		if(!strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return true;
+	return false;
+} /* cli_is_command() */
+
+cli_command cli_get_command(char *s) {
+	int i;
+	for(i = 0; i < length(cli_command_list); i++)
+		if(!strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return cli_command_list[i];
+
+	cli_command empty = {NULL, NULL};
+	return empty;
+} /* cli_get_command() */
+
+char *cli_get_str(void) {
 	char ch, *ret = NULL;
 	int size = 0;
 
@@ -90,15 +168,16 @@ int main(void) {
 	cli_banner();
 	while(true) {
 		if(cur_str) sfree(&cur_str);
-		cur_str = get_cli_str();
+		cur_str = cli_get_str();
 
-		if(!strcmp("exit", cur_str)) break;
-		else if(!strcmp("license", cur_str)) cli_license();
-		else if(!strcmp("warranty", cur_str)) cli_warranty();
-		else if(!strcmp("version", cur_str)) cli_version();
+		if(cli_is_command(cur_str)) {
+			cli_command tmp = cli_get_command(cur_str);
+			if(!tmp.exec) break; /* command is to exit */
+			tmp.exec(cur_str);
+		}
 		else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS)
-			printf("\t\t%s%s%s\n", ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
-		else printf("\t\t= %.*f\n", get_precision(result), result);
+			printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+		else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
 	}
 	if(cur_str) sfree(&cur_str);
 	return 0;
