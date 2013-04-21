@@ -32,3 +32,4 @@ typedef enum __errcode__ {
 } error_code;
 
 char *get_error_msg(error_code); /* return a string which describes the error code (DO NOT FREE) */
+error_code compute_infix_string(char *, double *); /* takes an infix-style string and runs it through the "engine" */
