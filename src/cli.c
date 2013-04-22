@@ -27,6 +27,8 @@
 #include <strings.h>
 #include <math.h>
 
+#include <editline.h> /* readline drop-in replacement */
+
 #include "stack.h"
 #include "synge.h"
 #include "definitions.h"
@@ -111,7 +113,7 @@ void cli_set_settings(char *s) {
 	if(err)
 		printf("%s%sUnknown command 'set %s'.%s\n", OUTPUT_PADDING, ANSI_ERROR, args, ANSI_CLEAR);
 	else set_synge_settings(new_settings);
-} /* cli_set_settings */
+} /* cli_set_settings() */
 
 cli_command cli_command_list[] = {
 	{"exit",		      NULL},
@@ -141,20 +143,6 @@ cli_command cli_get_command(char *s) {
 	return empty;
 } /* cli_get_command() */
 
-char *cli_get_str(void) {
-	char ch, *ret = NULL;
-	int size = 0;
-
-	while((ch = getchar()) != '\n') {
-		ret = realloc(ret, ++size * sizeof(char));
-		ret[size - 1] = ch;
-	}
-	ret = realloc(ret, ++size * sizeof(char));
-	ret[size - 1] = '\0';
-	
-	return ret;
-} /* get_in_str() */
-
 void sfree(char **pp) {
 	if(pp && *pp) {
 		free(*pp);
@@ -167,9 +155,13 @@ int main(void) {
 	double result = 0;
 	error_code ecode;
 	cli_banner();
+
 	while(true) {
 		if(cur_str) sfree(&cur_str);
-		cur_str = cli_get_str();
+
+		cur_str = (char *) readline(">>> "); /* get input */
+		if(cur_str);
+			add_history(cur_str); /* add input to history */
 
 		if(cli_is_command(cur_str)) {
 			cli_command tmp = cli_get_command(cur_str);
