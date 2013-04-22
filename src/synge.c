@@ -156,6 +156,12 @@ char *replace(char *str, char *old, char *new) {
 	return ret;
 } /* replace() */
 
+double *double_dup(double num) {
+	double *ret = malloc(sizeof(double));
+	*ret = num;
+	return ret;
+}
+
 int get_precision(double num) {
 	double tmp;
 	num = (1.0 + modf(num, &tmp)) * 10000000000000000;
@@ -251,12 +257,12 @@ char *get_onechar(char *s) {
 	return NULL;
 } /* get_op() */
 
-error_code tokenise_string(char *string, stack *ret) {
+error_code tokenise_string(char *string, stack **ret) {
 	char *s = replace(string, " ", "");
-	init_stack(ret);
+	init_stack(*ret);
 	int i;
 	for(i = 0; i < strlen(s); i++) {
-		if(isnum(s+i) && (!i || (i > 0 && top_stack(ret)->tp != number && top_stack(ret)->tp != rparen))) {
+		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
 			if(isspecialnum(s+i)) {
 				special_number stnum = getspecialnum(s+i);
@@ -267,7 +273,7 @@ error_code tokenise_string(char *string, stack *ret) {
 				*num = strtold(s+i, &endptr);
 				i += (endptr - (s + i)) - 1;
 			}
-			push_valstack(num, number, ret);
+			push_valstack(num, number, *ret);
 		}
 		else if(isonechar(s+i)) {
 			s_type type;
@@ -297,11 +303,11 @@ error_code tokenise_string(char *string, stack *ret) {
 					free(s);
 					return UNKNOWN_TOKEN;
 			}
-			push_valstack(get_onechar(s+i), type, ret);
+			push_valstack(get_onechar(s+i), type, *ret);
 		}	
 		else if(get_func(s+i)) {
 			function *funcname = get_func(s+i);
-			push_valstack(funcname, func, ret);
+			push_valstack(funcname, func, *ret);
 			i += strlen(funcname->name) - 1;
 		}
 		else { /* unknown token */
@@ -310,24 +316,24 @@ error_code tokenise_string(char *string, stack *ret) {
 		}
 	}
 	free(s);
-	if(!stack_size(ret)) return EMPTY_STACK;
+	if(!stack_size(*ret)) return EMPTY_STACK;
 	/* debugging */
-	print_stack(ret);
+	print_stack(*ret);
 	return SUCCESS;
 } /* tokenise_string() */
 
-error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
+error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 	s_content stackp, *tmpstackp;
-	init_stack(rpn_stack);
+	init_stack(*rpn_stack);
 
 	stack *op_stack = malloc(sizeof(stack));
 	init_stack(op_stack);
 	int i, found;
-	for(i = 0; i < stack_size(infix_stack); i++) {
-		stackp = infix_stack->content[i];
+	for(i = 0; i < stack_size(*infix_stack); i++) {
+		stackp = (*infix_stack)->content[i];
 		switch(stackp.tp) {
 			case number:
-				push_ststack(stackp, rpn_stack);
+				push_valstack(double_dup(*(double *) stackp.val), number, *rpn_stack);
 				break;
 			case lparen:
 			case func:
@@ -342,9 +348,9 @@ error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
 						found = true;
 						break;
 					}
-					push_ststack(*tmpstackp, rpn_stack);
+					push_ststack(*tmpstackp, *rpn_stack);
 				}
-				if(!found) return safe_free_stack(true, UNMATCHED_PARENTHESIS, infix_stack, op_stack, rpn_stack);
+				if(!found) return safe_free_stack(UNMATCHED_PARENTHESIS, infix_stack, &op_stack, rpn_stack);
 				break;
 			case addop:
 			case multop:
@@ -353,27 +359,27 @@ error_code infix_stack_to_rpnstack(stack *infix_stack, stack *rpn_stack) {
 					while(stack_size(op_stack)) {
 						tmpstackp = top_stack(op_stack);
 						if(!isop(tmpstackp->tp)) break;
-						if(op_precedes(tmpstackp->tp, stackp.tp)) push_ststack(*pop_stack(op_stack), rpn_stack);
+						if(op_precedes(tmpstackp->tp, stackp.tp)) push_ststack(*pop_stack(op_stack), *rpn_stack);
 						else break;
 					}
 				}
 				push_ststack(stackp, op_stack);
 				break;
 			default:
-				return safe_free_stack(true, UNKNOWN_TOKEN, infix_stack, op_stack, rpn_stack);
+				return safe_free_stack(UNKNOWN_TOKEN, infix_stack, &op_stack, rpn_stack);
 		}
 	}
 
 	while(stack_size(op_stack)) {
 		stackp = *pop_stack(op_stack);
 		if(isspecialch(stackp.tp))
-			return safe_free_stack(true, UNMATCHED_PARENTHESIS, infix_stack, op_stack, rpn_stack);
-		push_ststack(stackp, rpn_stack);
+			return safe_free_stack(UNMATCHED_PARENTHESIS, infix_stack, &op_stack, rpn_stack);
+		push_ststack(stackp, *rpn_stack);
 	}
 
 	/* debugging */
-	print_stack(rpn_stack);
-	return safe_free_stack(false, SUCCESS, infix_stack, op_stack);
+	print_stack(*rpn_stack);
+	return safe_free_stack(SUCCESS, infix_stack, &op_stack);
 } /* populate_stack() */
 
 bool is_in_list(char *s, char **list) {
@@ -405,24 +411,24 @@ double rad_to_settings(double in) {
 	}
 } /* rad_to_settings() */
 
-error_code eval_rpnstack(stack *rpn, double *ret) {
+error_code eval_rpnstack(stack **rpn, double *ret) {
 	stack *tmpstack = malloc(sizeof(stack));
 	init_stack(tmpstack);
 
 	s_content stackp;
 	int i;
 	double *result = NULL, arg[2];
-	for(i = 0; i < stack_size(rpn); i++) {
+	for(i = 0; i < stack_size(*rpn); i++) {
 		/* debugging */
 		print_stack(tmpstack);
-		stackp = rpn->content[i];
+		stackp = (*rpn)->content[i];
 		switch(stackp.tp) {
 			case number:
-				push_ststack(stackp, tmpstack);
+				push_valstack(double_dup(*(double *) stackp.val), number, tmpstack);
 				break;
 			case func:
 				if(stack_size(tmpstack) < 1)
-					return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+					return safe_free_stack(WRONG_NUM_VALUES, &tmpstack, rpn);
 				arg[0] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 				if(is_in_list(((function *)stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
@@ -439,7 +445,7 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 			case multop:
 			case expop:
 				if(stack_size(tmpstack) < 2)
-					return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+					return safe_free_stack(WRONG_NUM_VALUES, &tmpstack, rpn);
 				arg[1] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
@@ -458,29 +464,35 @@ error_code eval_rpnstack(stack *rpn, double *ret) {
 						*result = arg[0] * arg[1];
 						break;
 					case '/':
-						if(!arg[1]) return DIVIDE_BY_ZERO;
+						if(!arg[1]) {
+							free(result);
+							return safe_free_stack(DIVIDE_BY_ZERO, &tmpstack, rpn);
+						}
 						*result = arg[0] / arg[1];
 						break;
 					case '%':
-						if(!arg[1]) return DIVIDE_BY_ZERO;
+						if(!arg[1]) {
+							free(result);
+							return safe_free_stack(DIVIDE_BY_ZERO, &tmpstack, rpn);
+						}
 						*result = fmod(arg[0], arg[1]);
 						break;
 					case '^':
 						*result = pow(arg[0], arg[1]);
 						break;
 					default:
-						return safe_free_stack(true, UNKNOWN_TOKEN, tmpstack, rpn);
+						return safe_free_stack(UNKNOWN_TOKEN, &tmpstack, rpn);
 				}
 				push_valstack(result, number, tmpstack);
 				break;
 			default:
-				return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+				return safe_free_stack(WRONG_NUM_VALUES, &tmpstack, rpn);
 		}
 	}
 	if(stack_size(tmpstack) != 1)
-				return safe_free_stack(true, WRONG_NUM_VALUES, tmpstack, rpn);
+				return safe_free_stack(WRONG_NUM_VALUES, &tmpstack, rpn);
 	*ret = *(double *) top_stack(tmpstack)->val;
-	return safe_free_stack(true, SUCCESS, tmpstack);
+	return safe_free_stack(SUCCESS, &tmpstack, rpn);
 } /* eval_rpnstack() */
 
 char *get_error_msg(error_code error) {
@@ -513,14 +525,14 @@ error_code compute_infix_string(char *string, double *result) {
 	init_stack(rpn_stack);
 	init_stack(infix_stack);
 	error_code ecode;
-	if((ecode = tokenise_string(string, infix_stack)) != SUCCESS) /* generate infix stack */
-		return safe_free_stack(true, ecode, infix_stack, rpn_stack);
-	else if((ecode = infix_stack_to_rpnstack(infix_stack, rpn_stack)) != SUCCESS) /* convert to postfix (or RPN) stack */
+	if((ecode = tokenise_string(string, &infix_stack)) != SUCCESS) /* generate infix stack */
+		return safe_free_stack(ecode, &infix_stack, &rpn_stack);
+	else if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)) != SUCCESS) /* convert to postfix (or RPN) stack */
 		return ecode;
-	else if((ecode = eval_rpnstack(rpn_stack, result)) != SUCCESS) /* evaluate postfix (or RPN) stack */
+	else if((ecode = eval_rpnstack(&rpn_stack, result)) != SUCCESS) /* evaluate postfix (or RPN) stack */
 		return ecode;
 	else
-		return safe_free_stack(false, ecode, rpn_stack);
+		return safe_free_stack(ecode, &rpn_stack);
 } /* calculate_infix_string() */
 
 synge_settings get_synge_settings(void) {
