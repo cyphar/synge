@@ -58,11 +58,12 @@ s_content *pop_stack(stack *s) {
 s_content *top_stack(stack *s) {
 	s_content *ret = NULL;
 	if(s->top > -1 && s->content)
-		ret = &s->content[s->top];
+		ret = &(s->content[s->top]);
 	return ret;
 } /* top_stack() */
 
 void free_scontent(s_content *s) {
+	if(!s) return;
 	if(s->tp == number) {
 		free(s->val);
 		s->val = NULL;
@@ -71,24 +72,25 @@ void free_scontent(s_content *s) {
 } /* free_scontent() */
 
 void free_stack(stack *s) {
+	if(!s || !s->content) return;
+	int i;
+	for(i = 0; i < s->size; i++) 
+		if(s->content[i].tp == number) free_scontent(&s->content[i]);
 	free(s->content);
 	s->content = NULL;
 	s->size = 0;
 	s->top = -1;
 } /* free_stack() */
 
-error_code usafe_free_stack(bool full_free, error_code ecode, stack *s, ...) {
+error_code usafe_free_stack(error_code ecode, stack **s, ...) {
 	va_list ap;
-	int i;
 
 	va_start(ap, s);
 	do {
-		if(full_free)
-			for(i = 0; i < s->size; i++) 
-				if(s->content[i].tp == number) free_scontent(&s->content[i]);
-		free_stack(s);
-		free(s);
-	} while((s = va_arg(ap, stack *)) != NULL);
+		free_stack(*s);
+		free(*s);
+		*s = NULL;
+	} while((s = va_arg(ap, stack **)) != NULL);
 	va_end(ap);
 
 	return ecode;

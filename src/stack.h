@@ -68,7 +68,7 @@ void free_scontent(s_content *); /* frees and clears the stack content struct */
 void free_stack(stack *); /* frees and clears the stack */
 
 /* wrapper function for free_stack - frees malloc'd memory and free_stacks it */
-error_code usafe_free_stack(bool, error_code ecode, stack *s, ...);
+error_code usafe_free_stack(error_code ecode, stack **s, ...);
 #define safe_free_stack(...) usafe_free_stack(__VA_ARGS__, NULL)
 
 #define stack_size(x) ((x)->top + 1)
