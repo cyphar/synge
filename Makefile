@@ -30,7 +30,7 @@ CLI_CFLAGS =
 GTK_CFLAGS = `pkg-config --cflags gtk+-3.0`
 
 SHR_LFLAGS = -lm
-CLI_LFLAGS =
+CLI_LFLAGS = -leditline
 GTK_LFLAGS = `pkg-config --libs gtk+-3.0`
 
 SHR_SRC = src/stack.c src/synge.c
