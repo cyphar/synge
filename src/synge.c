@@ -525,14 +525,14 @@ error_code compute_infix_string(char *string, double *result) {
 	init_stack(rpn_stack);
 	init_stack(infix_stack);
 	error_code ecode;
-	if((ecode = tokenise_string(string, &infix_stack)) != SUCCESS) /* generate infix stack */
-		return safe_free_stack(ecode, &infix_stack, &rpn_stack);
-	else if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)) != SUCCESS) /* convert to postfix (or RPN) stack */
-		return ecode;
-	else if((ecode = eval_rpnstack(&rpn_stack, result)) != SUCCESS) /* evaluate postfix (or RPN) stack */
-		return ecode;
-	else
-		return safe_free_stack(ecode, &rpn_stack);
+	/* generate infix stack */
+	if((ecode = tokenise_string(string, &infix_stack)) == SUCCESS)
+		/* convert to postfix (or RPN) stack */
+		if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)) == SUCCESS)
+			/* evaluate postfix (or RPN) stack */
+			if((ecode = eval_rpnstack(&rpn_stack, result)) == SUCCESS);
+
+	return safe_free_stack(ecode, &infix_stack, &rpn_stack);
 } /* calculate_infix_string() */
 
 synge_settings get_synge_settings(void) {
