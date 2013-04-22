@@ -160,17 +160,18 @@ int main(void) {
 		if(cur_str) sfree(&cur_str);
 
 		cur_str = (char *) readline(">>> "); /* get input */
-		if(cur_str);
+		if(cur_str && strlen(cur_str)) {
 			add_history(cur_str); /* add input to history */
 
-		if(cli_is_command(cur_str)) {
-			cli_command tmp = cli_get_command(cur_str);
-			if(!tmp.exec) break; /* command is to exit */
-			tmp.exec(cur_str);
+			if(cli_is_command(cur_str)) {
+				cli_command tmp = cli_get_command(cur_str);
+				if(!tmp.exec) break; /* command is to exit */
+				tmp.exec(cur_str);
+			}
+			else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS)
+				printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+			else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
 		}
-		else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS)
-			printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
-		else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
 	}
 	if(cur_str) sfree(&cur_str);
 	return 0;
