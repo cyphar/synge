@@ -62,7 +62,7 @@ void cli_version(void) {
 } /* cli_version() */
 
 void cli_license(void) {
-	printf("\n%s%s%s\n", ANSI_INFO, SYNGE_LICENSE, ANSI_CLEAR);
+	printf("\n%s%s%s\n", ANSI_INFO, SYNGE_CLI_LICENSE, ANSI_CLEAR);
 } /* cli_license() */
 
 void cli_warranty(void) {
