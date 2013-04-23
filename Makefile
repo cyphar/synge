@@ -39,7 +39,7 @@ GTK_SRC = src/gtk.c
 
 DEPS = src/stack.h src/synge.h
 
-VERSION = 1.0.4
+VERSION = 1.0.5
 CLI_VERSION = 1.0.2
 GTK_VERSION = 1.0.0
 
