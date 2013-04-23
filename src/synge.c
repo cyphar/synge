@@ -98,13 +98,15 @@ char *op_list[] = {
 char *angle_infunc_list[] = {
 	"sin",
 	"cos",
-	"tan"
+	"tan",
+	NULL
 };
 
 char *angle_outfunc_list[] = {
 	"asin",
 	"acos",
-	"atan"
+	"atan",
+	NULL
 };
 
 synge_settings active_settings = {
@@ -384,8 +386,8 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 
 bool is_in_list(char *s, char **list) {
 	int i;
-	for(i = 0; i < length(list); i++)
-		if(!strncmp(list[i], s, strlen(list[i]))) return true;
+	for(i = 0; list[i] != NULL; i++)
+		if(!strcmp(list[i], s)) return true;
 	return false;
 }
 
