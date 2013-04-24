@@ -92,20 +92,6 @@ char *op_list[] = {
 	"^",
 	"(",
 	")",
-	","
-};
-
-char *angle_infunc_list[] = {
-	"sin",
-	"cos",
-	"tan",
-	NULL
-};
-
-char *angle_outfunc_list[] = {
-	"asin",
-	"acos",
-	"atan",
 	NULL
 };
 
@@ -158,11 +144,18 @@ char *replace(char *str, char *old, char *new) {
 	return ret;
 } /* replace() */
 
+char *get_from_ch_list(char *ch, char **list) {
+	int i;
+	for(i = 0; list[i] != NULL; i++)
+		if(!strncmp(list[i], ch, strlen(list[i]))) return list[i];
+	return NULL;
+} /* get_from_ch_list() */
+
 double *double_dup(double num) {
 	double *ret = malloc(sizeof(double));
 	*ret = num;
 	return ret;
-}
+} /* double_dup() */
 
 int get_precision(double num) {
 	double tmp;
@@ -172,31 +165,12 @@ int get_precision(double num) {
 	return num ? floor(log10(fabs(num))) : 0;
 } /* get_precision() */
 
-bool isonechar(char *ch) {
-	switch(*ch) {
-		case '+':
-		case '-':
-		case '*':
-		case '/':
-		case '%':
-		case '^':
-		case '(':
-		case ')':
-		case ',':
-			return true;
-			break;
-		default:
-			return false;
-			break;
-	}
-} /* isonechar() */
-
 bool isop(s_type type) {
 	return (type == addop || type == multop || type == expop);
 } /* isop() */
 
 bool isspecialch(s_type type) {
-	return (type == lparen || type == rparen || type == argsep);
+	return (type == lparen || type == rparen);
 } /* isspecialch() */
 
 bool isspecialnum(char *s) {
@@ -213,6 +187,83 @@ special_number getspecialnum(char *s) {
 		if(!strncmp(number_list[i].name, s, strlen(number_list[i].name))) return number_list[i];
 	return ret;
 } /* getspecialnum() */
+
+function *get_func(char *val) {
+	int i;
+	for(i = 0; i < length(func_list); i++)
+		if(!strncmp(val, func_list[i].name, strlen(func_list[i].name))) return &func_list[i];
+	return NULL;
+} /* get_func() */
+
+bool isnum(char *s) {
+	char *endptr = NULL;
+	strtold(s, &endptr);
+
+	if(isspecialnum(s) || s != endptr) return true;
+	else return false;
+} /* isnum() */
+
+error_code tokenise_string(char *string, stack **ret) {
+	char *s = replace(string, " ", "");
+	init_stack(*ret);
+	int i;
+	for(i = 0; i < strlen(s); i++) {
+		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
+			double *num = malloc(sizeof(double));
+			if(isspecialnum(s+i)) {
+				special_number stnum = getspecialnum(s+i);
+				*num = stnum.value;
+				i += strlen(stnum.name) - 1;
+			} else {
+				char *endptr;
+				*num = strtold(s+i, &endptr);
+				i += (endptr - (s + i)) - 1;
+			}
+			push_valstack(num, number, *ret);
+		}
+		else if(get_from_ch_list(s+i, op_list)) {
+			s_type type;
+			switch(s[i]) {
+				case '+':
+				case '-':
+					type = addop;
+					break;
+				case '*':
+				case '/':
+				case '%':
+					type = multop;
+					break;	
+				case '^':
+					type = expop;
+					break;
+				case '(':
+					type = lparen;
+					break;
+				case ')':
+					type = rparen;
+					break;
+				default:
+					free(s);
+					return UNKNOWN_TOKEN;
+			}
+			push_valstack(get_from_ch_list(s+i, op_list), type, *ret);
+		}	
+		else if(get_func(s+i)) {
+			function *funcname = get_func(s+i);
+			push_valstack(funcname, func, *ret);
+			i += strlen(funcname->name) - 1;
+		}
+		else { /* unknown token */
+			free(s);
+			return UNKNOWN_TOKEN;
+		}
+	}
+	free(s);
+	if(!stack_size(*ret)) return EMPTY_STACK;
+	/* debugging */
+	print_stack(*ret);
+	return SUCCESS;
+} /* tokenise_string() */
 
 bool op_precedes(s_type op1, s_type op2) {
 	/* IMPORTANT:	returns true if:
@@ -237,92 +288,6 @@ bool op_precedes(s_type op1, s_type op2) {
 	else return false;
 } /* op_precedes() */
 
-bool isnum(char *s) {
-	if(isspecialnum(s)) return true;
-	char *endptr = NULL;
-	strtold(s, &endptr);
-	if(s != endptr) return true;
-	else return false;
-} /* isnum() */
-
-function *get_func(char *val) {
-	int i;
-	for(i = 0; i < length(func_list); i++)
-		if(!strncmp(val, func_list[i].name, strlen(func_list[i].name))) return &func_list[i];
-	return NULL;
-} /* get_func() */
-
-char *get_onechar(char *s) {
-	int i;
-	for(i = 0; i < length(op_list); i++)
-		if(!strncmp(s, op_list[i], strlen(op_list[i]))) return op_list[i];
-	return NULL;
-} /* get_op() */
-
-error_code tokenise_string(char *string, stack **ret) {
-	char *s = replace(string, " ", "");
-	init_stack(*ret);
-	int i;
-	for(i = 0; i < strlen(s); i++) {
-		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
-			double *num = malloc(sizeof(double));
-			if(isspecialnum(s+i)) {
-				special_number stnum = getspecialnum(s+i);
-				*num = stnum.value;
-				i += strlen(stnum.name) - 1;
-			} else {
-				char *endptr;
-				*num = strtold(s+i, &endptr);
-				i += (endptr - (s + i)) - 1;
-			}
-			push_valstack(num, number, *ret);
-		}
-		else if(isonechar(s+i)) {
-			s_type type;
-			switch(s[i]) {
-				case '+':
-				case '-':
-					type = addop;
-					break;
-				case '*':
-				case '/':
-				case '%':
-					type = multop;
-					break;	
-				case '^':
-					type = expop;
-					break;
-				case '(':
-					type = lparen;
-					break;
-				case ')':
-					type = rparen;
-					break;
-				case ',':
-					type = argsep;
-					break;
-				default:
-					free(s);
-					return UNKNOWN_TOKEN;
-			}
-			push_valstack(get_onechar(s+i), type, *ret);
-		}	
-		else if(get_func(s+i)) {
-			function *funcname = get_func(s+i);
-			push_valstack(funcname, func, *ret);
-			i += strlen(funcname->name) - 1;
-		}
-		else { /* unknown token */
-			free(s);
-			return UNKNOWN_TOKEN;
-		}
-	}
-	free(s);
-	if(!stack_size(*ret)) return EMPTY_STACK;
-	/* debugging */
-	print_stack(*ret);
-	return SUCCESS;
-} /* tokenise_string() */
 
 error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 	s_content stackp, *tmpstackp;
@@ -341,7 +306,6 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 			case func:
 				push_ststack(stackp, op_stack);
 				break;
-			case argsep:
 			case rparen:
 				found = false;
 				while(stack_size(op_stack)) {
@@ -382,14 +346,22 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 	/* debugging */
 	print_stack(*rpn_stack);
 	return safe_free_stack(SUCCESS, infix_stack, &op_stack);
-} /* populate_stack() */
+} /* infix_to_rpnstack() */
 
-bool is_in_list(char *s, char **list) {
-	int i;
-	for(i = 0; list[i] != NULL; i++)
-		if(!strcmp(list[i], s)) return true;
-	return false;
-}
+
+char *angle_infunc_list[] = {
+	"sin",
+	"cos",
+	"tan",
+	NULL
+};
+
+char *angle_outfunc_list[] = {
+	"asin",
+	"acos",
+	"atan",
+	NULL
+};
 
 double settings_to_rad(double in) {
 	switch(active_settings.mode) {
@@ -433,12 +405,14 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 					return safe_free_stack(WRONG_NUM_VALUES, &tmpstack, rpn);
 				arg[0] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
-				if(is_in_list(((function *)stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
+
+				if(get_from_ch_list(((function *)stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
 					arg[0] = settings_to_rad(arg[0]);
 
 				result = malloc(sizeof(double));
 				*result = ((function *)stackp.val)->get(arg[0]);
-				if(is_in_list(((function *)stackp.val)->name, angle_outfunc_list)) /* convert radians to settings angles */
+
+				if(get_from_ch_list(((function *)stackp.val)->name, angle_outfunc_list)) /* convert radians to settings angles */
 					*result = rad_to_settings(*result);
 
 				push_valstack(result, number, tmpstack);
@@ -520,7 +494,7 @@ char *get_error_msg(error_code error) {
 			break;
 	}
 	return msg;
-} /* print_error() */
+} /* get_error_error() */
 
 error_code compute_infix_string(char *string, double *result) {
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
