@@ -36,7 +36,6 @@ typedef enum __stack_type__ {
 	
 	func,
 	arg,
-	argsep,
 
 	lparen,
 	rparen,
