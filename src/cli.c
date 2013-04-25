@@ -27,7 +27,7 @@
 #include <strings.h>
 #include <math.h>
 
-#include <editline.h> /* readline drop-in replacement */
+#include <histedit.h> /* readline drop-in replacement */
 
 #include "stack.h"
 #include "synge.h"
@@ -150,18 +150,37 @@ void sfree(char **pp) {
 	}
 } /* sfree() */
 
-int main(void) {
+char *cli_get_prompt(EditLine *e) {
+	return ">>> ";
+} /* cli_get_prompt() */
+
+int main(int argc, char **argv) {
 	char *cur_str = NULL;
 	double result = 0;
 	error_code ecode;
 	cli_banner();
 
-	while(true) {
-		if(cur_str) sfree(&cur_str);
+	/* Local stuff for libedit */
+	EditLine *cli_el;
+	History *cli_history;
+	HistEvent cli_ev;
+	int count;
 
-		cur_str = (char *) readline(">>> "); /* get input */
-		if(cur_str && strlen(cur_str)) {
-			add_history(cur_str); /* add input to history */
+	cli_el = el_init(argv[0], stdin, stdout, stderr);
+	el_set(cli_el, EL_PROMPT, &cli_get_prompt);
+	el_set(cli_el, EL_EDITOR, "emacs");
+
+	/* Initialize the history */
+	cli_history = history_init();
+	history(cli_history, &cli_ev, H_SETSIZE, 800);
+	el_set(cli_el, EL_HIST, history, cli_history);
+
+	while(true) {
+		cur_str = (char *) el_gets(cli_el, &count); /* get input */
+		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
+
+		if(cur_str && count) {
+			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
 
 			if(cli_is_command(cur_str)) {
 				cli_command tmp = cli_get_command(cur_str);
@@ -173,6 +192,9 @@ int main(void) {
 			else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
 		}
 	}
-	if(cur_str) sfree(&cur_str);
+
+	/* free up memory */
+	history_end(cli_history);
+	el_end(cli_el);
 	return 0;
 }
