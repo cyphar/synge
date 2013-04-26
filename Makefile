@@ -40,7 +40,7 @@ GTK_SRC = src/gtk.c
 DEPS = src/stack.h src/synge.h
 
 VERSION = 1.0.5
-CLI_VERSION = 1.0.2
+CLI_VERSION = 1.0.3
 GTK_VERSION = 1.0.0
 
 # Compile "production" engine and wrappers
