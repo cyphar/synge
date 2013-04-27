@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
 		cur_str = (char *) el_gets(cli_el, &count); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 
-		if(cur_str && count) {
+		if(cur_str && strlen(cur_str) && count) {
 			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
 
 			if(cli_is_command(cur_str)) {
