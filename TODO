@@ -1,8 +1,13 @@
 Things to fix/implement:
 
-	+ GTK+ interface
-	+ Variables (a = 1)
-	+ getopt command line options for cli
-	* More comments
-	* Generalise helper functions
-	+ Documentation
+	ALL:
+	 + Documentation
+	 * More comments
+	SYNGE:
+	 + Variables (a = 1)
+	 * Generalise helper functions
+	CLI:
+	 + Getopt command line options for cli
+	 + Add help page
+	GTK:
+	 * (Better) GTK+ interface
