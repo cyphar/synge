@@ -8,7 +8,7 @@
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
  *
- * 1. The above copyright notice and this permission notice shall be included in 
+ * 1. The above copyright notice and this permission notice shall be included in
  *    all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -74,7 +74,7 @@ void free_scontent(s_content *s) {
 void free_stack(stack *s) {
 	if(!s || !s->content) return;
 	int i;
-	for(i = 0; i < s->size; i++) 
+	for(i = 0; i < s->size; i++)
 		if(s->content[i].tp == number) free_scontent(&s->content[i]);
 	free(s->content);
 	s->content = NULL;
