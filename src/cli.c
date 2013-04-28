@@ -8,7 +8,7 @@
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
  *
- * 1. The above copyright notice and this permission notice shall be included in 
+ * 1. The above copyright notice and this permission notice shall be included in
  *    all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -88,7 +88,7 @@ void cli_print_settings(char *s) {
 				break;
 		}
 	}
-	
+
 	if(!ret)
 		printf("%s%sUnknown command 'get %s'.%s\n", OUTPUT_PADDING, ANSI_ERROR, args, ANSI_CLEAR);
 	else printf("\n%s%s%s\n\n", ANSI_INFO, ret, ANSI_CLEAR);
@@ -109,7 +109,7 @@ void cli_set_settings(char *s) {
 		else err = true;
 	}
 	else err = true;
-	
+
 	if(err)
 		printf("%s%sUnknown command 'set %s'.%s\n", OUTPUT_PADDING, ANSI_ERROR, args, ANSI_CLEAR);
 	else set_synge_settings(new_settings);

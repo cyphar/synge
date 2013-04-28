@@ -8,7 +8,7 @@
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
  *
- * 1. The above copyright notice and this permission notice shall be included in 
+ * 1. The above copyright notice and this permission notice shall be included in
  *    all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -232,7 +232,7 @@ error_code tokenise_string(char *string, stack **ret) {
 				case '/':
 				case '%':
 					type = multop;
-					break;	
+					break;
 				case '^':
 					type = expop;
 					break;
@@ -247,7 +247,7 @@ error_code tokenise_string(char *string, stack **ret) {
 					return UNKNOWN_TOKEN;
 			}
 			push_valstack(get_from_ch_list(s+i, op_list), type, *ret);
-		}	
+		}
 		else if(get_func(s+i)) {
 			function *funcname = get_func(s+i);
 			push_valstack(funcname, func, *ret);
