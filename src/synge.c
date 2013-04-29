@@ -478,16 +478,16 @@ char *get_error_msg(error_code error) {
 			msg = "Attempted to divide or modulo by zero.";
 			break;
 		case UNMATCHED_PARENTHESIS:
-			msg = "Missing parenthesis in evalutation.";
+			msg = "Missing parenthesis in expression.";
 			break;
 		case UNKNOWN_TOKEN:
-			msg = "Unknown token or function in evaluation.";
+			msg = "Unknown token or function in expression.";
 			break;
 		case WRONG_NUM_VALUES:
 			msg = "Incorrect number of values for operator or function.";
 			break;
 		case EMPTY_STACK:
-			msg = "Evaluation was empty.";
+			msg = "Expression was empty.";
 			break;
 		default:
 			msg = "An unknown error has occured.";
