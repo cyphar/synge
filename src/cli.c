@@ -187,8 +187,10 @@ int main(int argc, char **argv) {
 				if(!tmp.exec) break; /* command is to exit */
 				tmp.exec(cur_str);
 			}
-			else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS)
-				printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+			else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS) {
+				if(ecode == EMPTY_STACK) continue;
+				else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+			}
 			else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
 		}
 	}
