@@ -90,7 +90,7 @@ void cli_print_settings(char *s) {
 	}
 
 	if(!ret)
-		printf("%s%sUnknown command 'get %s'.%s\n", OUTPUT_PADDING, ANSI_ERROR, args, ANSI_CLEAR);
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(UNKNOWN_TOKEN), ANSI_CLEAR);
 	else printf("\n%s%s%s\n\n", ANSI_INFO, ret, ANSI_CLEAR);
 } /* cli_print_settings() */
 
@@ -111,7 +111,7 @@ void cli_set_settings(char *s) {
 	else err = true;
 
 	if(err)
-		printf("%s%sUnknown command 'set %s'.%s\n", OUTPUT_PADDING, ANSI_ERROR, args, ANSI_CLEAR);
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(UNKNOWN_TOKEN), ANSI_CLEAR);
 	else set_synge_settings(new_settings);
 } /* cli_set_settings() */
 
