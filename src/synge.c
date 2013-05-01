@@ -203,8 +203,35 @@ bool isnum(char *s) {
 	else return false;
 } /* isnum() */
 
+char *function_paren_pad(char *string) {
+	char *firstpass = replace(string, "(", "((");
+	char *final = replace(firstpass, ")", "))");
+
+	int i;
+	for(i = 0; i < length(func_list); i++) {
+		char *tmpfrom = malloc(strlen(func_list[i].name) + 2);
+		strcpy(tmpfrom, func_list[i].name);
+		strcat(tmpfrom, "((");
+
+		char *tmpto = malloc(strlen(func_list[i].name) + 2);
+		strcpy(tmpto, "(");
+		strcat(tmpto, func_list[i].name);
+		strcat(tmpto, "(");
+
+		char *tmpfinal = replace(final, tmpfrom, tmpto);
+		free(final);
+		final = tmpfinal;
+
+		free(tmpfrom);
+		free(tmpto);
+	}
+	return final;
+}
+
 error_code tokenise_string(char *string, stack **ret) {
-	char *s = replace(string, " ", "");
+	char *tmps = replace(string, " ", "");
+	char *s = function_paren_pad(tmps);
+	free(tmps);
 	init_stack(*ret);
 	int i;
 	for(i = 0; i < strlen(s); i++) {
