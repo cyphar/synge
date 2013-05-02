@@ -70,7 +70,7 @@ void cli_warranty(void) {
 } /* cli_warranty() */
 
 void cli_banner(void) {
-	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
+	printf("\n%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 } /* cli_banner() */
 
 void cli_print_settings(char *s) {
@@ -122,6 +122,7 @@ cli_command cli_command_list[] = {
 	{"version",	       cli_version},
 	{"license",	       cli_license},
 	{"warranty",	      cli_warranty},
+	{"banner",		cli_banner},
 
 	{"set ",	  cli_set_settings},
 	{"get ",	cli_print_settings}
@@ -158,7 +159,6 @@ int main(int argc, char **argv) {
 	char *cur_str = NULL;
 	double result = 0;
 	error_code ecode;
-	cli_banner();
 
 	/* Local stuff for libedit */
 	EditLine *cli_el;
@@ -174,6 +174,9 @@ int main(int argc, char **argv) {
 	cli_history = history_init();
 	history(cli_history, &cli_ev, H_SETSIZE, 800);
 	el_set(cli_el, EL_HIST, history, cli_history);
+
+	/* print banner (cli_banner has a leading newline)*/
+	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 
 	while(true) {
 		cur_str = (char *) el_gets(cli_el, &count); /* get input */
