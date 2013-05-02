@@ -183,8 +183,6 @@ int main(int argc, char **argv) {
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 
 		if(cur_str && strlen(cur_str) && count) {
-			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
-
 			if(cli_is_command(cur_str)) {
 				cli_command tmp = cli_get_command(cur_str);
 				if(!tmp.exec) break; /* command is to exit */
@@ -195,6 +193,8 @@ int main(int argc, char **argv) {
 				else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
 			else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
+
+			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
 		}
 	}
 
