@@ -65,12 +65,15 @@ function func_list[] = {
 
 	{"deg2rad",   deg2rad},
 	{"rad2deg",   rad2deg},
-	{"sin",		  sin},
-	{"cos",		  cos},
-	{"tan",		  tan},
+
 	{"asin",	 asin},
+	{"sin",		  sin},
+
 	{"acos",	 acos},
-	{"atan",	 atan}
+	{"cos",		  cos},
+
+	{"atan",	 atan},
+	{"tan",		  tan}
 };
 
 typedef struct __special_number__ {
