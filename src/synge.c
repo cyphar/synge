@@ -61,6 +61,7 @@ function func_list[] = {
 	{"ceil",	 ceil},
 
 	{"log10",	log10},
+	{"log",		 log2},
 	{"ln",		  log},
 
 	{"deg2rad",   deg2rad},
