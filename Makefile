@@ -50,14 +50,16 @@ all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
 
 # Compile "production" engine and command-line wrapper
 cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) $(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
+	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
 	strip $(EXEC_BASE)-cli
 
 # Compile "production" engine and gui wrapper
 gtk: $(SHR_SRC) $(GTK_SRC) $(DEPS)
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) $(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
+	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
 	strip $(EXEC_BASE)-gtk
@@ -69,14 +71,16 @@ debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
 
 # Compile "debug" engine and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) $(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
+	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
 
 # Compile "debug" engine and gui wrapper
 debug-gtk: $(SHR_SRC) $(GTK) $(DEPS)
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) $(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
+	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
