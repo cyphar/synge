@@ -213,11 +213,11 @@ char *function_paren_pad(char *string) {
 
 	int i;
 	for(i = 0; i < length(func_list); i++) {
-		char *tmpfrom = malloc(strlen(func_list[i].name) + 2);
+		char *tmpfrom = malloc(strlen(func_list[i].name) + 3);
 		strcpy(tmpfrom, func_list[i].name);
 		strcat(tmpfrom, "((");
 
-		char *tmpto = malloc(strlen(func_list[i].name) + 2);
+		char *tmpto = malloc(strlen(func_list[i].name) + 3);
 		strcpy(tmpto, "(");
 		strcat(tmpto, func_list[i].name);
 		strcat(tmpto, "(");
@@ -229,6 +229,8 @@ char *function_paren_pad(char *string) {
 		free(tmpfrom);
 		free(tmpto);
 	}
+
+	free(firstpass);
 	return final;
 }
 
