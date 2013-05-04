@@ -11,3 +11,5 @@ Things to fix/implement:
 	 + Add help page
 	GTK:
 	 * (Better) GTK+ interface
+	TESTS:
+	 * Add more tests
