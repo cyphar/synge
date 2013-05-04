@@ -48,29 +48,57 @@ CASES = [
 
 	# expected successes
 	("1+1",				"2",			deg,	"Basic Addition		"),
+	("1+-1",			"0",			deg,	"Convoluted Addition	"),
+	("5-3",				"2",			deg,	"Basic Subtraction	"),
+	("3*4",				"12",			deg,	"Basic Multiplication	"),
+	("4/2",				"2",			deg,	"Basic Division		"),
+	("5%2",				"1",			deg,	"Basic Modulo		"),
+	("15.1%2",			"1.0999999999999996",	deg,	"Basic Modulo		"), # needs to be fixed (due to rounding err)
 	("(1+1)*2",			"4",			deg,	"Basic Parenthesis	"),
+	("10^2",			"100",			deg,	"Basic Indicies		"),
+	("16^(1/4)",			"2",			deg,	"Fractional Indicies	"),
 
-	("3.0+2.1",			"5.0999999999999996",	deg,	"Basic Decimal Notation	"),
-	("5.3+2",			"7.2999999999999998",	deg,	"Basic Decimal Notation	"),
+	("0xDEADBEEF + 0xA",		"3735928569",		deg,	"Hexadecimal Addition	"),
+	("0xDEADBEEF - 0xA",		"3735928549",		deg,	"Hexadecimal Subtraction	"),
+	("0xA0 / 0xA",			"16",			deg,	"Hexadecimal Division	"),
+
+	("0xDEADBEEF + 10",		"3735928569",		deg,	"Mixed Addition		"),
+	("0xDEADBEEF - 10",		"3735928549",		deg,	"Mixed Subtraction	"),
+	("0xA0 / 10",			"16",			deg,	"Mixed Division		"),
+
+	("3.0+2.1",			"5.0999999999999996",	deg,	"Basic Decimal Notation	"), # needs to be fixed (due to rounding err)
+	("5.3+2",			"7.2999999999999998",	deg,	"Basic Decimal Notation	"), # needs to be fixed (due to rounding err)
 	("0.1+2",			"2.1",			deg,	"Basic Decimal Notation	"),
+	("1.0+3",			"4",			deg,	"Basic Decimal Notation	"),
 	(".1+2",			"2.1",			deg,	"Basic Decimal Notation	"),
 	("1.+3",			"4",			deg,	"Basic Decimal Notation	"),
-	("1.0+3",			"4",			deg,	"Basic Decimal Notation	"),
 
-	("tan(45)",			"1",			deg,	"Basic Degrees Trig	"),
-	("tan(45)",			"1.6197751905438615",	rad,	"Basic Radian Trig	"),
+	("log10(100)/2",		"1",			deg,	"Basic Function Division	"),
+
+	("tan(45)+cos(60)+sin(30)",	"2",			deg,	"Basic Degrees Trig	"),
+	("atan(1)+acos(0.5)+asin(0)",	"105",			deg,	"Basic Degrees Trig	"),
+
+	("tan(45)+cos(60)+sin(30)",	"-0.320669413964157",	rad,	"Basic Radian Trig	"),
+	("atan(1)+acos(0.5)+asin(0)",	"1.832595714594046",	rad,	"Basic Radian Trig	"),
+
+	("deg2rad(180/pi)+rad2deg(pi)",	"181",			deg,	"Basic Angle Conversion	"),
 
 	("2^2^2-15-14-12-11-10^5",	"-100036",		deg,	"Complex Expression	"),
 
 	# expected errors
 	("",				errors["empty"],	deg,	"Empty Expression Error	"),
 	(" ",				errors["empty"],	deg,	"Empty Expression Error	"),
+	("does_not_exist",		errors["token"],	deg,	"Unknown Token Error	"),
+	("fake_function()",		errors["token"],	deg,	"Unknown Token Error	"),
+	("fake_function()+23",		errors["token"],	deg,	"Unknown Token Error	"),
+	("1@5",				errors["token"],	deg,	"Unknown Token Error	"),
 	("1/0",				errors["zerodiv"],	deg,	"Zero Division Error	"),
 	("1%(2-(2^2/2))",		errors["zerodiv"],	deg,	"Modulo by Zero Error	"),
 	("1+(1",			errors["parens"],	deg,	"Parenthesis Error	"),
 	("1+4)",			errors["parens"],	deg,	"Parenthesis Error	"),
 	("1+-+4",			errors["numvals"],	deg,	"Token Number Error	"),
 	("2+1-",			errors["numvals"],	deg,	"Token Number Error	"),
+	("abs()",			errors["numvals"],	deg,	"Token Number Error	"),
 ]
 
 def test_calc(program, test, expected, mode, description):
@@ -78,24 +106,27 @@ def test_calc(program, test, expected, mode, description):
 	output = getstatusoutput(command)[1]
 	if output.replace("\n", "") == expected:
 		print "%s ... %sOK%s" % (description, ansi_good, ansi_reset)
+		return True
 	else:
 		print "%s ... %sFAIL%s" % (description, ansi_error, ansi_reset)
-		print 'Expression: "%s"' % (test)
-		print 'Output: "%s"' % (output)
-		print 'Expected: "%s"' % (expected)
+		print '\tExpression: "%s"' % (test)
+		print '\tOutput: "%s%s%s"' % (ansi_error, output, ansi_reset)
+		print '\tExpected: "%s%s%s"' % (ansi_good, expected, ansi_reset)
+		return False
 
 def run_tests(program):
-	failures, counter = [0 for x in 'a'*2]
+	failures = 0
+	counter = 0
 	for case in CASES:
 		counter += 1
-		if test_calc(program, case[0], case[1], case[2], case[3]):
+		if not test_calc(program, case[0], case[1], case[2], case[3]):
 			failures += 1
 	print "--- Test Summary ---"
-	print "Cases run: %d" % counter
-	if failures:
-		print "Failed cases: %d" % failures
+	print "Cases run: %d" % (counter)
+	if failures > 0:
+		print "Failed cases: %d" % (failures)
 	else:
-		print "All tests passed."
+		print "All tests passed"
 
 def main():
 	print "--- Beginning Synge Test Suite ---"
