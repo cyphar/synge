@@ -28,6 +28,10 @@ from commands import *
 deg = "degrees"
 rad = "radians"
 
+ansi_error = "\x1b[1;31m"
+ansi_good  = "\x1b[1;32m"
+ansi_reset = "\x1b[0m"
+
 errors = {
 		"zerodiv"	: "Attempted to divide or modulo by zero.",
 		"parens"	: "Missing parenthesis in expression.",
@@ -73,9 +77,9 @@ def test_calc(program, test, expected, mode, description):
 	command = '%s -m %s "%s"' % (program, mode, test)
 	output = getstatusoutput(command)[1]
 	if output.replace("\n", "") == expected:
-		print "%s ... OK" % (description)
+		print "%s ... %sOK%s" % (description, ansi_good, ansi_reset)
 	else:
-		print "%s ... FAIL" % (description)
+		print "%s ... %sFAIL%s" % (description, ansi_error, ansi_reset)
 		print 'Expression: "%s"' % (test)
 		print 'Output: "%s"' % (output)
 		print 'Expected: "%s"' % (expected)
