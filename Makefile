@@ -73,7 +73,11 @@ test: $(SHR_SRC) $(TEST_SRC) $(DEPS)
 		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_BASE)-test \
 		-D__SYNGE_VERSION__='"$(VERSION)"'
 	strip $(EXEC_BASE)-test
-	python tests/test.py ./$(EXEC_BASE)-test
+	@if [ -z "`python --version 2>&1`" ]; then \
+		echo "python not found - required for test suite"; \
+	else \
+		python tests/test.py ./$(EXEC_BASE)-test; \
+	fi
 
 # Compile "debug" engine and wrappers
 debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
