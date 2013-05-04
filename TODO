@@ -6,6 +6,7 @@ Things to fix/implement:
 	SYNGE:
 	 + Variables (a = 1)
 	 * Generalise helper functions
+	 * Improve error reporting (give approx position)
 	CLI:
 	 + Getopt command line options for cli
 	 + Add help page
