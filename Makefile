@@ -22,26 +22,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-CC ?= gcc
-EXEC_BASE = synge
+CC		?= gcc
+EXEC_BASE	= synge
 
-SHR_CFLAGS = -Wall -pedantic -std=c99 -fsigned-char
-CLI_CFLAGS = `pkg-config --cflags libedit`
-GTK_CFLAGS = `pkg-config --cflags gtk+-3.0`
+SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char
+CLI_CFLAGS	= `pkg-config --cflags libedit`
+GTK_CFLAGS	= `pkg-config --cflags gtk+-3.0`
+TEST_CFLAGS	= -Isrc/
 
-SHR_LFLAGS = -lm
-CLI_LFLAGS = `pkg-config --libs libedit`
-GTK_LFLAGS = `pkg-config --libs gtk+-3.0`
+SHR_LFLAGS	= -lm
+CLI_LFLAGS	= `pkg-config --libs libedit`
+GTK_LFLAGS	= `pkg-config --libs gtk+-3.0`
+TEST_LFLAGS	=
 
-SHR_SRC = src/stack.c src/synge.c
-CLI_SRC = src/cli.c
-GTK_SRC = src/gtk.c
+SHR_SRC		= src/stack.c src/synge.c
+CLI_SRC		= src/cli.c
+GTK_SRC		= src/gtk.c
+TEST_SRC	= tests/test.c
 
-DEPS = src/stack.h src/synge.h
+DEPS		= src/stack.h src/synge.h
 
-VERSION = 1.0.7
-CLI_VERSION = 1.0.4
-GTK_VERSION = 1.0.0
+VERSION		= 1.0.7
+CLI_VERSION	= 1.0.4
+GTK_VERSION	= 1.0.0
 
 # Compile "production" engine and wrappers
 all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
@@ -63,6 +66,14 @@ gtk: $(SHR_SRC) $(GTK_SRC) $(DEPS)
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
 	strip $(EXEC_BASE)-gtk
+
+# Compile "production" engine and test suite wrapper + execute test suite
+test: $(SHR_SRC) $(TEST_SRC) $(DEPS)
+	$(CC) $(SHR_SRC) $(TEST_SRC) $(SHR_LFLAGS) $(TEST_LFLAGS) \
+		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_BASE)-test \
+		-D__SYNGE_VERSION__='"$(VERSION)"'
+	strip $(EXEC_BASE)-test
+	python tests/test.py ./$(EXEC_BASE)-test
 
 # Compile "debug" engine and wrappers
 debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
@@ -87,4 +98,4 @@ debug-gtk: $(SHR_SRC) $(GTK) $(DEPS)
 
 # Clean working directory
 clean:
-	rm -f $(EXEC_BASE)-cli $(EXEC_BASE)-gtk
+	rm -f $(EXEC_BASE)-*
