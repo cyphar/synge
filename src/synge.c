@@ -67,14 +67,23 @@ function func_list[] = {
 	{"deg2rad",   deg2rad},
 	{"rad2deg",   rad2deg},
 
-	{"asin",	 asin},
+	{"sini",	 asin},
+	{"cosi",	 acos},
+	{"tani",	 atan},
 	{"sin",		  sin},
-
-	{"acos",	 acos},
 	{"cos",		  cos},
-
-	{"atan",	 atan},
 	{"tan",		  tan}
+};
+
+typedef struct __function_alias__ {
+	char *alias;
+	char *function;
+} function_alias;
+
+function_alias alias_list[] = {
+	{"asin",	"sini"},
+	{"acos",	"cosi"},
+	{"atan",	"tani"}
 };
 
 typedef struct __special_number__ {
@@ -148,10 +157,12 @@ char *replace(char *str, char *old, char *new) {
 	return ret;
 } /* replace() */
 
-char *get_from_ch_list(char *ch, char **list) {
+char *get_from_ch_list(char *ch, char **list, bool delimit) {
 	int i;
-	for(i = 0; list[i] != NULL; i++)
-		if(!strncmp(list[i], ch, strlen(list[i]))) return list[i];
+	for(i = 0; list[i] != NULL; i++) {
+		if((delimit && !strncmp(list[i], ch, strlen(list[i]))) ||
+		   (!delimit && !strcmp(list[i], ch))) return list[i];
+	}
 	return NULL;
 } /* get_from_ch_list() */
 
@@ -207,11 +218,19 @@ bool isnum(char *s) {
 	else return false;
 } /* isnum() */
 
-char *function_paren_pad(char *string) {
-	char *firstpass = replace(string, "(", "((");
-	char *final = replace(firstpass, ")", "))");
+char *function_process_replace(char *string) {
+	char *firstpass = NULL;
 
 	int i;
+	for(i = 0; i < length(alias_list); i++) {
+		char *tmppass = replace(firstpass ? firstpass : string, alias_list[i].alias, alias_list[i].function);
+		free(firstpass);
+		firstpass = tmppass;
+	}
+
+	char *secondpass = replace(firstpass, "(", "((");
+	char *final = replace(secondpass, ")", "))");
+
 	for(i = 0; i < length(func_list); i++) {
 		char *tmpfrom = malloc(strlen(func_list[i].name) + 3);
 		strcpy(tmpfrom, func_list[i].name);
@@ -223,6 +242,12 @@ char *function_paren_pad(char *string) {
 		strcat(tmpto, "(");
 
 		char *tmpfinal = replace(final, tmpfrom, tmpto);
+
+#ifdef __DEBUG__
+		if(strcmp(final, tmpfinal)) {
+			printf("(%s)\t%s => %s\n", func_list[i].name, final, tmpfinal);
+		}
+#endif
 		free(final);
 		final = tmpfinal;
 
@@ -231,12 +256,16 @@ char *function_paren_pad(char *string) {
 	}
 
 	free(firstpass);
+	free(secondpass);
 	return final;
 }
 
 error_code tokenise_string(char *string, stack **ret) {
 	char *tmps = replace(string, " ", "");
-	char *s = function_paren_pad(tmps);
+	char *s = function_process_replace(tmps);
+#ifdef __DEBUG__
+	printf("%s\n%s\n", string, s);
+#endif
 	free(tmps);
 	init_stack(*ret);
 	int i;
@@ -254,7 +283,7 @@ error_code tokenise_string(char *string, stack **ret) {
 			}
 			push_valstack(num, number, *ret);
 		}
-		else if(get_from_ch_list(s+i, op_list)) {
+		else if(get_from_ch_list(s+i, op_list, true)) {
 			s_type type;
 			switch(s[i]) {
 				case '+':
@@ -279,7 +308,7 @@ error_code tokenise_string(char *string, stack **ret) {
 					free(s);
 					return UNKNOWN_TOKEN;
 			}
-			push_valstack(get_from_ch_list(s+i, op_list), type, *ret);
+			push_valstack(get_from_ch_list(s+i, op_list, true), type, *ret);
 		}
 		else if(get_func(s+i)) {
 			function *funcname = get_func(s+i);
@@ -390,9 +419,9 @@ char *angle_infunc_list[] = {
 };
 
 char *angle_outfunc_list[] = {
-	"asin",
-	"acos",
-	"atan",
+	"sini",
+	"cosi",
+	"tani",
 	NULL
 };
 
@@ -402,9 +431,8 @@ double settings_to_rad(double in) {
 			return deg2rad(in);
 		case radians:
 			return in;
-		default:
-			return 0.0;
 	}
+	return 0.0;
 } /* settings_to_rad() */
 
 double rad_to_settings(double in) {
@@ -413,9 +441,8 @@ double rad_to_settings(double in) {
 			return rad2deg(in);
 		case radians:
 			return in;
-		default:
-			return 0.0;
 	}
+	return 0.0;
 } /* rad_to_settings() */
 
 error_code eval_rpnstack(stack **rpn, double *ret) {
@@ -439,13 +466,13 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				arg[0] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
-				if(get_from_ch_list(((function *)stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
+				if(get_from_ch_list(((function *)stackp.val)->name, angle_infunc_list, false)) /* convert settings angles to radians */
 					arg[0] = settings_to_rad(arg[0]);
 
 				result = malloc(sizeof(double));
 				*result = ((function *)stackp.val)->get(arg[0]);
 
-				if(get_from_ch_list(((function *)stackp.val)->name, angle_outfunc_list)) /* convert radians to settings angles */
+				if(get_from_ch_list(((function *)stackp.val)->name, angle_outfunc_list, false)) /* convert radians to settings angles */
 					*result = rad_to_settings(*result);
 
 				push_valstack(result, number, tmpstack);
