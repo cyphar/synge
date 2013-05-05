@@ -47,18 +47,21 @@ CASES = [
 #	test expression			[expected results]	mode	test description
 
 	# expected successes
-	("1+1",				["2"],				0,	"Basic Addition		"),
+	("1+1",				["2"],				0,	"Addition		"),
 	("1+-1",			["0"],				0,	"Convoluted Addition	"),
-	("5-3",				["2"],				0,	"Basic Subtraction	"),
-	("0-5-3",			["-8"],				0,	"Basic Subtraction	"),
-	("3*4",				["12"],				0,	"Basic Multiplication	"),
-	("4/2",				["2"],				0,	"Basic Division		"),
-	("5%2",				["1"],				0,	"Basic Modulo		"),
-	("15.1%2",			["1.0999999999999996"],		0,	"Basic Modulo		"), # needs to be fixed (due to rounding err)
-	("(1+1)*2",			["4"],				0,	"Basic Parenthesis	"),
-	("1+(-2)",			["-1"],				0,	"Basic Parenthesis	"),
-	("10^2",			["100"],			0,	"Basic Indicies		"),
+	("5-3",				["2"],				0,	"Subtraction		"),
+	("0-5-3",			["-8"],				0,	"Subtraction		"),
+	("3*4",				["12"],				0,	"Multiplication		"),
+	("4/2",				["2"],				0,	"Division		"),
+	("5%2",				["1"],				0,	"Modulo			"),
+	("15.1%2",			["1.0999999999999996"],		0,	"Modulo			"), # needs to be fixed (due to rounding err)
+	("(1+1)*2",			["4"],				0,	"Parenthesis		"),
+	("1+(-2)",			["-1"],				0,	"Parenthesis		"),
+	("10^2",			["100"],			0,	"Indicies		"),
 	("16^(1/4)",			["2"],				0,	"Fractional Indicies	"),
+
+	("pi-pi%1",			["3"],				0,	"Magic Numbers		"),
+	("e-e%1",			["2"],				0,	"Magic Numbers		"),
 
 	("0xDEADBEEF + 0xA",		["3735928569"],			0,	"Hexadecimal Addition	"),
 	("0xDEADBEEF - 0xA",		["3735928549"],			0,	"Hexadecimal Subtraction	"),
@@ -68,29 +71,33 @@ CASES = [
 	("0xDEADBEEF - 10",		["3735928549"],			0,	"Mixed Subtraction	"),
 	("0xA0 / 10",			["16"],				0,	"Mixed Division		"),
 
-	("3.0+2.1",			["5.0999999999999996"],		0,	"Basic Decimal Notation	"), # needs to be fixed (due to rounding err)
-	("5.3+2",			["7.2999999999999998"],		0,	"Basic Decimal Notation	"), # needs to be fixed (due to rounding err)
-	("0.1+2",			["2.1"],			0,	"Basic Decimal Notation	"),
-	("1.0+3",			["4"],				0,	"Basic Decimal Notation	"),
-	(".1+2",			["2.1"],			0,	"Basic Decimal Notation	"),
-	("1.+3",			["4"],				0,	"Basic Decimal Notation	"),
+	("3.0+2.1",			["5.0999999999999996"],		0,	"Decimal Notation	"), # needs to be fixed (due to rounding err)
+	("5.3+2",			["7.2999999999999998"],		0,	"Decimal Notation	"), # needs to be fixed (due to rounding err)
+	("0.1+2",			["2.1"],			0,	"Decimal Notation	"),
+	("1.0+3",			["4"],				0,	"Decimal Notation	"),
+	(".1+2",			["2.1"],			0,	"Decimal Notation	"),
+	("1.+3",			["4"],				0,	"Decimal Notation	"),
 
-	("log10(100)/2",		["1"],				0,	"Basic Function Division	"),
+	("log10(100)/2",		["1"],				0,	"Function Division	"),
+	("ln(100)/ln(10)",		["2"],				0,	"Function Division	"),
+	("ceil(11.01)/floor(12.01)",	["1"],				0,	"Function Division	"),
 
-	("tan(45)+cos(60)+sin(30)",	["2", "1.9999999999999998"],	deg,	"Basic Degrees Trig	"),
-	("atan(1)+acos(0.5)+asin(0)",	["105"],			deg,	"Basic Degrees Trig	"),
-	("atan(sin(30)/cos(30))",	["30", "30.0000000000000036"],	deg,	"Basic Degrees Trig	"),
+	("tan(45)+cos(60)+sin(30)",	["2", "1.9999999999999998"],	deg,	"Degrees Trigonometry	"),
+	("atan(1)+acos(0.5)+asin(0)",	["105"],			deg,	"Degrees Trigonometry	"),
+	("atan(sin(30)/cos(30))",	["30", "30.0000000000000036"],	deg,	"Degrees Trigonometry	"),
 
-	("tan(45)+cos(60)+sin(30)",	["-0.320669413964157"],		rad,	"Basic Radian Trig	"),
-	("atan(1)+acos(0.5)+asin(0)",	["1.832595714594046"],		rad,	"Basic Radian Trig	"),
-	("atan(sin(1.1)/cos(1.1))",	["1.1"],			rad,	"Basic Radian Trig	"),
+	("tan(45)+cos(60)+sin(30)",	["-0.320669413964157"],		rad,	"Radian Trigonometry	"),
+	("atan(1)+acos(0.5)+asin(0)",	["1.832595714594046"],		rad,	"Radian Trigonometry	"),
+	("atan(sin(1.1)/cos(1.1))",	["1.1"],			rad,	"Radian Trigonometry	"),
 
-	("deg2rad(180/pi)+rad2deg(pi)",	["181"],			0,	"Basic Angle Conversion	"),
+	("deg2rad(180/pi)+rad2deg(pi)",	["181"],			0,	"Angle Conversion	"),
 
 	("2^2^2-15-14-12-11-10^5",	["-100036"],			0,	"Complex Expression	"),
 	("57-(-2)^2-floor(log10(23))",	["52"],				0,	"Complex Expression	"),
 	("2+floor(log10(23))/32",	["2.03125"],			0,	"Complex Expression	"),
 	("ceil((e%2.5)*300)",		["66"],				0,	"Complex Expression	"),
+
+	("987654321012/987654321012",	["1"],				0,	"Big Numbers		"),
 
 	# expected errors
 	("",				errors["empty"],		0,	"Empty Expression Error	"),
