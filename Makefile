@@ -42,7 +42,7 @@ TEST_SRC	= tests/test.c
 
 DEPS		= src/stack.h src/synge.h
 
-VERSION		= 1.0.7
+VERSION		= 1.0.8
 CLI_VERSION	= 1.0.4
 GTK_VERSION	= 1.0.0
 
