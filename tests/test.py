@@ -22,7 +22,7 @@
 # SOFTWARE.
 
 from sys import argv
-from commands import *
+from commands import getstatusoutput
 
 
 deg = "degrees"
@@ -79,13 +79,18 @@ CASES = [
 
 	("tan(45)+cos(60)+sin(30)",	["2", "1.9999999999999998"],	deg,	"Basic Degrees Trig	"),
 	("atan(1)+acos(0.5)+asin(0)",	["105"],			deg,	"Basic Degrees Trig	"),
+	("atan(sin(30)/cos(30))",	["30", "30.0000000000000036"],	deg,	"Basic Degrees Trig	"),
 
 	("tan(45)+cos(60)+sin(30)",	["-0.320669413964157"],		rad,	"Basic Radian Trig	"),
 	("atan(1)+acos(0.5)+asin(0)",	["1.832595714594046"],		rad,	"Basic Radian Trig	"),
+	("atan(sin(1.1)/cos(1.1))",	["1.1"],			rad,	"Basic Radian Trig	"),
 
 	("deg2rad(180/pi)+rad2deg(pi)",	["181"],			0,	"Basic Angle Conversion	"),
 
 	("2^2^2-15-14-12-11-10^5",	["-100036"],			0,	"Complex Expression	"),
+	("57-(-2)^2-floor(log10(23))",	["52"],				0,	"Complex Expression	"),
+	("2+floor(log10(23))/32",	["2.03125"],			0,	"Complex Expression	"),
+	("ceil((e%2.5)*300)",		["66"],				0,	"Complex Expression	"),
 
 	# expected errors
 	("",				errors["empty"],		0,	"Empty Expression Error	"),
@@ -113,9 +118,12 @@ def test_calc(program, test, expected, mode, description):
 		print "%s ... %sFAIL%s" % (description, ansi_error, ansi_reset)
 		print '\tExpression: "%s"' % (test)
 		print '\tOutput: "%s%s%s"' % (ansi_error, output, ansi_reset)
-		print "\tExpected:"
-		for each in expected:
-			print '\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset)
+		if len(expected) > 1:
+			print "\tExpected:"
+			for each in expected:
+				print '\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset)
+		else:
+			print '\tExpected: "%s%s%s"' % (ansi_good, expected[0], ansi_reset)
 		return False
 
 def run_tests(program):
