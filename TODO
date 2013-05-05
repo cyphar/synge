@@ -7,6 +7,7 @@ Things to fix/implement:
 	 + Variables (a = 1)
 	 * Generalise helper functions
 	 * Improve error reporting (give approx position)
+	 * Improve precision (try to fix rounding errors)
 	CLI:
 	 + Getopt command line options for cli
 	 + Add help page
