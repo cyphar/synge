@@ -78,6 +78,16 @@ void gui_append_key(GtkWidget *widget, gpointer data) {
 	free(newstr);
 } /* gui_append_key() */
 
+void gui_backspace_string(GtkWidget *widget, gpointer data) {
+	if(gtk_entry_get_text_length(GTK_ENTRY(input)) == 0) return;
+
+	char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + 1) * sizeof(char));
+	strcpy(newstr, gtk_entry_get_text(GTK_ENTRY(input)));
+	newstr[strlen(newstr)-1] = '\0';
+	gtk_entry_set_text(GTK_ENTRY(input), newstr);
+	free(newstr);
+} /* gui_backspace_string() */
+
 void gui_clear_string(GtkWidget *widget, gpointer data) {
 	gtk_entry_set_text(GTK_ENTRY(input), "");
 	gtk_label_set_text(GTK_LABEL(output), "");
@@ -102,11 +112,6 @@ void gui_toggle_mode(GtkWidget *widget, gpointer data) {
 	}
 	set_synge_settings(new);
 } /* gui_about_popup() */
-
-/* stop compile-time warnings for gui functions not being used */
-void gui_fake_usage(int a, ...) {
-	if(a || !a) return;
-} /* gui_fake_usage() */
 
 int main(int argc, char **argv) {
 	gtk_init(&argc, &argv);
@@ -134,6 +139,5 @@ int main(int argc, char **argv) {
 	gtk_widget_show(GTK_WIDGET(window));
 	gtk_main();
 	g_object_unref(G_OBJECT(builder));
-	gui_fake_usage(-1, gui_clear_string, gui_append_key, gui_compute_string, kill_window);
 	return 0;
 }
