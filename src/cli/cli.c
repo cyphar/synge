@@ -29,9 +29,9 @@
 
 #include <histedit.h> /* readline drop-in replacement */
 
-#include "stack.h"
-#include "synge.h"
-#include "definitions.h"
+#include <stack.h>
+#include <synge.h>
+#include <definitions.h>
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
