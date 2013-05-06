@@ -25,8 +25,9 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
-#include "stack.h"
-#include "synge.h"
+#include <stack.h>
+#include <synge.h>
+#include <definitions.h>
 
 #ifndef __SYNGE_GTK_VERSION__
 #define __SYNGE_GTK_VERSION__ ""
