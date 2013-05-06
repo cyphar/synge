@@ -27,11 +27,12 @@ EXEC_BASE	= synge
 
 SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char
 CLI_CFLAGS	= `pkg-config --cflags libedit`
-GTK_CFLAGS	= `pkg-config --cflags gtk+-3.0`
+GTK_CFLAGS	= `pkg-config --cflags gtk+-3.0` -export-dynamic
 TEST_CFLAGS	= -Isrc/
 
 SHR_LFLAGS	= -lm
 CLI_LFLAGS	= `pkg-config --libs libedit`
+GTK_LFLAGS	= `pkg-config --libs gtk+-3.0 gmodule-2.0 gmodule-export-2.0`
 GTK_LFLAGS	= `pkg-config --libs gtk+-3.0`
 TEST_LFLAGS	=
 
