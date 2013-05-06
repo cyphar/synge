@@ -90,6 +90,13 @@ CASES = [
 	("atan(1)+acos(0.5)+asin(0)",	["1.832595714594046"],		rad,	"Radian Trigonometry	"),
 	("atan(sin(1.1)/cos(1.1))",	["1.1"],			rad,	"Radian Trigonometry	"),
 
+	("tanh(ln(2))",			["0.6"],			0,	"Hyperbolic Trigonometry	"),
+	("e^atanh(0.6)",		["1.9999999999999998", "2"],	0,	"Hyperbolic Trigonometry	"), # 'nother rounding error
+	("cosh(ln(2))",			["1.25"],			0,	"Hyperbolic Trigonometry	"),
+	("e^acosh(1.25)",		["1.9999999999999998", "2"],	0,	"Hyperbolic Trigonometry	"), # 'nother rounding error
+	("sinh(ln(2))",			["0.75"],			0,	"Hyperbolic Trigonometry	"),
+	("e^asinh(0.75)",		["1.9999999999999998", "2"],	0,	"Hyperbolic Trigonometry	"), # 'nother rounding error
+
 	("deg2rad(180/pi)+rad2deg(pi)",	["181"],			0,	"Angle Conversion	"),
 
 	("2^2^2-15-14-12-11-10^5",	["-100036"],			0,	"Complex Expression	"),
