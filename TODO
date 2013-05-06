@@ -13,5 +13,7 @@ Things to fix/implement:
 	 + Add help page
 	GTK:
 	 * (Better) GTK+ interface
+	 * Bake the Glade XML into the executable
+	 * Hook up the rest of the callbacks and windows
 	TESTS:
 	 * Add more tests
