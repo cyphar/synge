@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <gtk/gtk.h>
 
 #include <stack.h>
@@ -82,6 +83,26 @@ void gui_clear_string(GtkWidget *widget, gpointer data) {
 	gtk_label_set_text(GTK_LABEL(output), "");
 } /* gui_clear_string() */
 
+void gui_about_popup(GtkWidget *widget, gpointer data) {
+	gtk_dialog_run(GTK_DIALOG(gtk_builder_get_object(builder, "about_popup")));
+	gtk_widget_destroy(GTK_WIDGET(gtk_builder_get_object(builder, "about_popup")));
+} /* gui_about_popup() */
+
+void gui_toggle_mode(GtkWidget *widget, gpointer data) {
+	synge_settings new = get_synge_settings();
+	switch(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		case TRUE:
+			if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "degrees")) new.mode = degrees;
+			else if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "radians")) new.mode = radians;
+			break;
+		case FALSE:
+			if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "degrees")) new.mode = radians;
+			else if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "radians")) new.mode = degrees;
+			break;
+	}
+	set_synge_settings(new);
+} /* gui_about_popup() */
+
 /* stop compile-time warnings for gui functions not being used */
 void gui_fake_usage(int a, ...) {
 	if(a || !a) return;
@@ -106,11 +127,13 @@ int main(int argc, char **argv) {
 
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
 	gtk_builder_connect_signals(builder, NULL);
-	g_object_unref(G_OBJECT(builder));
+
+	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), __SYNGE_GTK_VERSION__);
+	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n" SYNGE_WARRANTY);
 
 	gtk_widget_show(GTK_WIDGET(window));
 	gtk_main();
+	g_object_unref(G_OBJECT(builder));
 	gui_fake_usage(-1, gui_clear_string, gui_append_key, gui_compute_string, kill_window);
-
 	return 0;
 }
