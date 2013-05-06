@@ -53,6 +53,7 @@ typedef struct __function__ {
 } function;
 
 function func_list[] = {
+	{"exp",	 	  exp},
 	{"abs",		 fabs},
 	{"sqrt",	 sqrt},
 	{"cbrt",	 cbrt},
@@ -66,6 +67,13 @@ function func_list[] = {
 
 	{"deg2rad",   deg2rad},
 	{"rad2deg",   rad2deg},
+
+	{"sinhi",	asinh},
+	{"coshi",	acosh},
+	{"tanhi",	atanh},
+	{"sinh",	 sinh},
+	{"cosh",	 cosh},
+	{"tanh",	 tanh},
 
 	{"sini",	 asin},
 	{"cosi",	 acos},
@@ -81,9 +89,12 @@ typedef struct __function_alias__ {
 } function_alias;
 
 function_alias alias_list[] = {
-	{"asin",	"sini"},
-	{"acos",	"cosi"},
-	{"atan",	"tani"}
+	{"asinh",	"sinhi"},
+	{"acosh",	"coshi"},
+	{"atanh",	"tanhi"},
+	{"asin",	 "sini"},
+	{"acos",	 "cosi"},
+	{"atan",	 "tani"}
 };
 
 typedef struct __special_number__ {
