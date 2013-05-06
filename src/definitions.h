@@ -23,7 +23,7 @@
 #define SYNGE_CLI_LICENSE	"Synge-CLI: A command-line wrapper for Synge\n" \
 				SYNGE_LICENSE
 
-#define SYNGE_GTK_LICENSE	"Synge-GTK: A GTK+ gui wrapper for Synge\n" \
+#define SYNGE_GTK_LICENSE	"Synge-GTK: A GTK+ wrapper for Synge\n" \
 				SYNGE_LICENSE
 
 #define SYNGE_LICENSE	"Synge: A shunting-yard calculation \"engine\"\n" \

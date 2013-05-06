@@ -1,4 +1,4 @@
-/* Synge-Gui: A GTK+ gui wrapper for Synge
+/* Synge-GTK: A GTK+ wrapper for Synge
  * Copyright (C) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
