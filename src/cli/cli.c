@@ -117,7 +117,9 @@ void cli_set_settings(char *s) {
 
 cli_command cli_command_list[] = {
 	{"exit",		      NULL},
+	{"exit()",		      NULL},
 	{"quit",		      NULL},
+	{"quit()",		      NULL},
 
 	{"version",	       cli_version},
 	{"license",	       cli_license},
