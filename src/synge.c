@@ -271,6 +271,12 @@ char *function_process_replace(char *string) {
 	return final;
 }
 
+bool has_rounding_error(double number) {
+	if(number + 1 == number || number - 1 == number)
+		return true;
+	return false;
+} /* has_rounding_error() */
+
 error_code tokenise_string(char *string, stack **ret) {
 	char *tmps = replace(string, " ", "");
 	char *s = function_process_replace(tmps);
@@ -293,6 +299,7 @@ error_code tokenise_string(char *string, stack **ret) {
 				i += (endptr - (s + i)) - 1;
 			}
 			push_valstack(num, number, *ret);
+			if(has_rounding_error(*num)) return NUM_OVERFLOW;
 		}
 		else if(get_from_ch_list(s+i, op_list, true)) {
 			s_type type;
@@ -537,8 +544,12 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 		}
 	}
 	if(stack_size(tmpstack) != 1)
-				return safe_free_stack(WRONG_NUM_VALUES, &tmpstack, rpn);
+		return safe_free_stack(WRONG_NUM_VALUES, &tmpstack, rpn);
+
 	*ret = *(double *) top_stack(tmpstack)->val;
+
+	if(has_rounding_error(*ret))
+		return safe_free_stack(NUM_OVERFLOW, &tmpstack, rpn);
 	return safe_free_stack(SUCCESS, &tmpstack, rpn);
 } /* eval_rpnstack() */
 
@@ -559,6 +570,9 @@ char *get_error_msg(error_code error) {
 			break;
 		case EMPTY_STACK:
 			msg = "Expression was empty.";
+			break;
+		case NUM_OVERFLOW:
+			msg = "Number caused overflow.";
 			break;
 		default:
 			msg = "An unknown error has occured.";

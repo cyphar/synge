@@ -28,7 +28,8 @@ typedef enum __errcode__ {
 	UNMATCHED_PARENTHESIS,
 	UNKNOWN_TOKEN,
 	WRONG_NUM_VALUES,
-	EMPTY_STACK
+	EMPTY_STACK,
+	NUM_OVERFLOW
 } error_code;
 
 typedef struct __synge_settings__ {
