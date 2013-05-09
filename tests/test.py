@@ -38,6 +38,7 @@ errors = {
 		"token"		: ["Unknown token or function in expression."],
 		"numvals"	: ["Incorrect number of values for operator or function."],
 		"empty"		: ["Expression was empty."],
+		"overflow"	: ["Number caused overflow."],
 		"unknown"	: ["An unknown error has occured."]
 }
 
@@ -84,7 +85,9 @@ CASES = [
 
 	("tan(45)+cos(60)+sin(30)",	["2", "1.9999999999999998"],	deg,	"Degrees Trigonometry	"),
 	("atan(1)+acos(0.5)+asin(0)",	["105"],			deg,	"Degrees Trigonometry	"),
-	("atan(sin(30)/cos(30))",	["30", "30.0000000000000036"],	deg,	"Degrees Trigonometry	"),
+	("atan(sin(30)/cos(30))",	["29.9999999999999964",
+					 "30",
+					 "30.0000000000000036"],	deg,	"Degrees Trigonometry	"),
 
 	("tan(45)+cos(60)+sin(30)",	["-0.320669413964157"],		rad,	"Radian Trigonometry	"),
 	("atan(1)+acos(0.5)+asin(0)",	["1.832595714594046"],		rad,	"Radian Trigonometry	"),
@@ -120,6 +123,8 @@ CASES = [
 	("1+-+4",			errors["numvals"],		0,	"Token Number Error	"),
 	("2+1-",			errors["numvals"],		0,	"Token Number Error	"),
 	("abs()",			errors["numvals"],		0,	"Token Number Error	"),
+	("100000000000000000000000000", errors["overflow"],		0,	"Input Overflow Error	"),
+	("17^68",			errors["overflow"],		0,	"Output Overflow Error	"),
 ]
 
 def test_calc(program, test, expected, mode, description):
