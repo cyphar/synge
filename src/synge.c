@@ -47,40 +47,36 @@ double rad2deg(double rad) {
 	return rad * (180.0 / PI);
 } /* rad2deg() */
 
-typedef struct __function__ {
-	char *name;
-	double (*get)(double);
-} function;
-
 function func_list[] = {
-	{"exp",	 	  exp},
-	{"abs",		 fabs},
-	{"sqrt",	 sqrt},
-	{"cbrt",	 cbrt},
+	{"exp",		exp,		"Gives e risen to the power of x"},
+	{"abs",		fabs,		"Gives the absolute value of x"},
+	{"sqrt",	sqrt,		"Gives the square root of x"},
+	{"cbrt",	cbrt,		"Gives the cubic root of x"},
 
-	{"floor",	floor},
-	{"ceil",	 ceil},
+	{"floor",	floor,		"Gives the largest integer not greater than x"},
+	{"ceil",	ceil,		"Gives the smallest integer not smaller than x"},
 
-	{"log10",	log10},
-	{"log",		 log2},
-	{"ln",		  log},
+	{"log10",	log10,		"Gives the base 10 logarithm of x"},
+	{"log",		log2,		"Gives the base 2 logarithm of x"},
+	{"ln",		log,		"Gives the base e logarithm of x"},
 
-	{"deg2rad",   deg2rad},
-	{"rad2deg",   rad2deg},
+	{"deg2rad",   	deg2rad,	"Gives x degrees in radians"},
+	{"rad2deg",   	rad2deg,	"Gives x radians in degrees"},
 
-	{"sinhi",	asinh},
-	{"coshi",	acosh},
-	{"tanhi",	atanh},
-	{"sinh",	 sinh},
-	{"cosh",	 cosh},
-	{"tanh",	 tanh},
+	{"sinhi",	asinh,		"Gives the inverse hyperbolic sine of x"},
+	{"coshi",	acosh,		"Gives the inverse hyperbolic cosine of x"},
+	{"tanhi",	atanh,		"Gives the inverse hyperbolic tangent of x"},
+	{"sinh",	sinh,		"Gives the hyperbolic sine of x"},
+	{"cosh",	cosh,		"Gives the hyperbolic cosine of x"},
+	{"tanh",	tanh,		"Gives the hyperbolic tangent of x"},
 
-	{"sini",	 asin},
-	{"cosi",	 acos},
-	{"tani",	 atan},
-	{"sin",		  sin},
-	{"cos",		  cos},
-	{"tan",		  tan}
+	{"sini",	asin,		"Gives the inverse sine of x"},
+	{"cosi",	acos,		"Gives the inverse cosine of x"},
+	{"tani",	atan,		"Gives the inverse tangent of x"},
+	{"sin",		sin,		"Gives the sine of x"},
+	{"cos",		cos,		"Gives the cosine of x"},
+	{"tan",		tan,		"Gives the tangent of x"},
+	{NULL,		NULL,		NULL}
 };
 
 typedef struct __function_alias__ {
@@ -216,7 +212,7 @@ special_number getspecialnum(char *s) {
 
 function *get_func(char *val) {
 	int i;
-	for(i = 0; i < length(func_list); i++)
+	for(i = 0; func_list[i].name != NULL; i++)
 		if(!strncmp(val, func_list[i].name, strlen(func_list[i].name))) return &func_list[i];
 	return NULL;
 } /* get_func() */
@@ -242,7 +238,7 @@ char *function_process_replace(char *string) {
 	char *secondpass = replace(firstpass, "(", "((");
 	char *final = replace(secondpass, ")", "))");
 
-	for(i = 0; i < length(func_list); i++) {
+	for(i = 0; func_list[i].name != NULL; i++) {
 		char *tmpfrom = malloc(strlen(func_list[i].name) + 3);
 		strcpy(tmpfrom, func_list[i].name);
 		strcat(tmpfrom, "((");
@@ -603,3 +599,7 @@ synge_settings get_synge_settings(void) {
 void set_synge_settings(synge_settings new_settings) {
 	active_settings = new_settings;
 } /* set_synge_settings() */
+
+function *get_synge_function_list(void) {
+	return func_list;
+} /* get_synge_function_list() */
