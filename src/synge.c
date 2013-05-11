@@ -48,34 +48,33 @@ double rad2deg(double rad) {
 } /* rad2deg() */
 
 function func_list[] = {
-	{"exp",		exp,		"Gives e risen to the power of x"},
-	{"abs",		fabs,		"Gives the absolute value of x"},
-	{"sqrt",	sqrt,		"Gives the square root of x"},
-	{"cbrt",	cbrt,		"Gives the cubic root of x"},
+	{"abs",		fabs,		"abs(x)",	"abs(",			"Absolute value of x"},
+	{"sqrt",	sqrt,		"sqrt(x)",	"sqrt(",		"Square root of x"},
+	{"cbrt",	cbrt,		"cbrt(x)",	"cbrt(",		"Cubic root of x"},
 
-	{"floor",	floor,		"Gives the largest integer not greater than x"},
-	{"ceil",	ceil,		"Gives the smallest integer not smaller than x"},
+	{"floor",	floor,		"floor(x)",	"floor(",		"Largest integer not greater than x"},
+	{"ceil",	ceil,		"ceil(x)",	"ceil(",		"Smallest integer not smaller than x"},
 
-	{"log10",	log10,		"Gives the base 10 logarithm of x"},
-	{"log",		log2,		"Gives the base 2 logarithm of x"},
-	{"ln",		log,		"Gives the base e logarithm of x"},
+	{"log10",	log10,		"log10(x)",	"log10(",		"Base 10 logarithm of x"},
+	{"log",		log2,		"log(x)",	"log(",			"Base 2 logarithm of x"},
+	{"ln",		log,		"ln(x)",	"ln(",			"Base e logarithm of x"},
 
-	{"deg2rad",   	deg2rad,	"Gives x degrees in radians"},
-	{"rad2deg",   	rad2deg,	"Gives x radians in degrees"},
+	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"deg2rad(",		"x degrees in radians"},
+	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"rad2deg(",		"x radians in degrees"},
 
-	{"sinhi",	asinh,		"Gives the inverse hyperbolic sine of x"},
-	{"coshi",	acosh,		"Gives the inverse hyperbolic cosine of x"},
-	{"tanhi",	atanh,		"Gives the inverse hyperbolic tangent of x"},
-	{"sinh",	sinh,		"Gives the hyperbolic sine of x"},
-	{"cosh",	cosh,		"Gives the hyperbolic cosine of x"},
-	{"tanh",	tanh,		"Gives the hyperbolic tangent of x"},
+	{"sinhi",	asinh,		"asinh(x)",	"asinh(",		"Inverse hyperbolic sine of x"},
+	{"coshi",	acosh,		"acosh(x)",	"acosh(",		"Inverse hyperbolic cosine of x"},
+	{"tanhi",	atanh,		"atanh(x)",	"atanh(",		"Inverse hyperbolic tangent of x"},
+	{"sinh",	sinh,		"sinh(x)",	"sinh(",		"Hyperbolic sine of x"},
+	{"cosh",	cosh,		"cosh(x)",	"cosh(",		"Hyperbolic cosine of x"},
+	{"tanh",	tanh,		"tanh(x)",	"tanh(",		"Hyperbolic tangent of x"},
 
-	{"sini",	asin,		"Gives the inverse sine of x"},
-	{"cosi",	acos,		"Gives the inverse cosine of x"},
-	{"tani",	atan,		"Gives the inverse tangent of x"},
-	{"sin",		sin,		"Gives the sine of x"},
-	{"cos",		cos,		"Gives the cosine of x"},
-	{"tan",		tan,		"Gives the tangent of x"},
+	{"sini",	asin,		"sini(x)",	"sini(",		"Inverse sine of x"},
+	{"cosi",	acos,		"cosi(x)",	"cosi(",		"Inverse cosine of x"},
+	{"tani",	atan,		"tani(x)",	"tani(",		"Inverse tangent of x"},
+	{"sin",		sin,		"sin(x)",	"sin(",			"Sine of x"},
+	{"cos",		cos,		"cos(x)",	"cos(",			"Cosine of x"},
+	{"tan",		tan,		"tan(x)",	"tan(",			"Tangent of x"},
 	{NULL,		NULL,		NULL}
 };
 
