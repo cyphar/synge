@@ -42,6 +42,9 @@ typedef struct __synge_settings__ {
 typedef struct __function__ {
 	char *name;
 	double (*get)(double);
+	/* to hard-code explanations and name strings */
+	char *prototype;
+	char *expression;
 	char *description;
 } function;
 
