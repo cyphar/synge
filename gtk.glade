@@ -754,7 +754,6 @@ THE SOFTWARE.</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="vscroll_policy">natural</property>
-                    <property name="enable_grid_lines">both</property>
                     <signal name="row-activated" handler="gui_add_function_to_expression" swapped="no"/>
                     <child internal-child="selection">
                       <object class="GtkTreeSelection" id="function_selection"/>
