@@ -25,10 +25,15 @@
 CC		?= gcc
 EXEC_BASE	= synge
 
+SRC_DIR		= src
+CLI_DIR		= $(SRC_DIR)/cli
+GTK_DIR		= $(SRC_DIR)/gtk
+TEST_DIR	= tests
+
 SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char
-CLI_CFLAGS	= `pkg-config --cflags libedit` -Isrc/
-GTK_CFLAGS	= `pkg-config --cflags gtk+-3.0` -export-dynamic -Isrc/
-TEST_CFLAGS	= -Isrc/
+CLI_CFLAGS	= `pkg-config --cflags libedit` -I$(SRC_DIR)/
+GTK_CFLAGS	= `pkg-config --cflags gtk+-3.0` -export-dynamic -I$(SRC_DIR)/
+TEST_CFLAGS	= -I$(SRC_DIR)/
 
 SHR_LFLAGS	= -lm
 CLI_LFLAGS	= `pkg-config --libs libedit`
@@ -36,24 +41,29 @@ GTK_LFLAGS	= `pkg-config --libs gtk+-3.0 gmodule-2.0 gmodule-export-2.0`
 GTK_LFLAGS	= `pkg-config --libs gtk+-3.0`
 TEST_LFLAGS	=
 
-SHR_SRC		= src/stack.c src/synge.c
-CLI_SRC		= src/cli/cli.c
-GTK_SRC		= src/gtk/gtk.c
-TEST_SRC	= tests/test.c
+SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c
+CLI_SRC		= $(CLI_DIR)/cli.c
+GTK_SRC		= $(GTK_DIR)/gtk.c
+TEST_SRC	= $(TEST_DIR)/test.c
 
-DEPS		= src/stack.h src/synge.h
+SHR_DEPS	= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h
+CLI_DEPS	=
+GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/xmlui.h
+TEST_DEPS	=
 
 VERSION		= 1.0.9
 CLI_VERSION	= 1.0.4
 GTK_VERSION	= 1.0.0
 
+TO_CLEAN	= $(EXEC_BASE)-cli $(EXEC_BASE)-gtk $(EXEC_BASE)-test $(GTK_DIR)/xmlui.h
+
 # Compile "production" engine and wrappers
-all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
+all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS)
 	make cli
 	make gtk
 
 # Compile "production" engine and command-line wrapper
-cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
+cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -61,7 +71,7 @@ cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
 	strip $(EXEC_BASE)-cli
 
 # Compile "production" engine and gui wrapper
-gtk: $(SHR_SRC) $(GTK_SRC) $(DEPS)
+gtk: $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -69,24 +79,25 @@ gtk: $(SHR_SRC) $(GTK_SRC) $(DEPS)
 	strip $(EXEC_BASE)-gtk
 
 # Compile "production" engine and test suite wrapper + execute test suite
-test: $(SHR_SRC) $(TEST_SRC) $(DEPS)
+test: $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	$(CC) $(SHR_SRC) $(TEST_SRC) $(SHR_LFLAGS) $(TEST_LFLAGS) \
 		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_BASE)-test \
 		-D__SYNGE_VERSION__='"$(VERSION)"'
 	strip $(EXEC_BASE)-test
-	@if [ -z "`python --version 2>&1`" ]; then \
-		echo "python not found - required for test suite"; \
+	@if [ -z "`python2 --version 2>&1`" ]; then \
+		echo "python2 not found - required for test suite"; \
+		false; \
 	else \
-		python tests/test.py ./$(EXEC_BASE)-test; \
+		python2 $(TEST_DIR)/test.py ./$(EXEC_BASE)-test; \
 	fi
 
 # Compile "debug" engine and wrappers
-debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(DEPS)
+debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 	make debug-cli
 	make debug-gtk
 
 # Compile "debug" engine and command-line wrapper
-debug-cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
+debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
 		-g -O0 -D__DEBUG__ \
@@ -94,7 +105,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(DEPS)
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
 
 # Compile "debug" engine and gui wrapper
-debug-gtk: $(SHR_SRC) $(GTK) $(DEPS)
+debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
 		-g -O0 -D__DEBUG__ \
@@ -103,4 +114,12 @@ debug-gtk: $(SHR_SRC) $(GTK) $(DEPS)
 
 # Clean working directory
 clean:
-	rm -f $(EXEC_BASE)-*
+	rm -f $(TO_CLEAN)
+
+$(GTK_DIR)/xmlui.h:
+	@if [ -z "`python2 --version 2>&1`" ]; then \
+		echo "python2 not found - required to bake gtk xml ui"; \
+		false; \
+	else \
+		python2 $(GTK_DIR)/bakeui.py $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/xmlui.h; \
+	fi
