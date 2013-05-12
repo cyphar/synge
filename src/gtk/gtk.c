@@ -30,6 +30,8 @@
 #include <synge.h>
 #include <definitions.h>
 
+#include "xmlui.h" /* generated header to bake the gtk_builder xml string */
+
 #ifndef __SYNGE_GTK_VERSION__
 #define __SYNGE_GTK_VERSION__ ""
 #endif
@@ -182,10 +184,16 @@ int main(int argc, char **argv) {
 	gtk_init(&argc, &argv);
 
 	builder = gtk_builder_new();
-	if(!gtk_builder_add_from_file(builder, "gtk.glade", NULL)) {
-		printf("Couldn't open gtk.glade");
+
+#ifdef __SYNGE_GTK_XML_UI__
+	gtk_builder_add_from_string(builder, __SYNGE_GTK_XML_UI__, -1, NULL);
+#else
+	if(!gtk_builder_add_from_file(builder, "synge-gtk.glade", NULL)) {
+		printf("Couldn't open synge-gtk.glade\n");
 		exit(0);
 	}
+
+#endif
 
 	input = gtk_builder_get_object(builder, "input");
 	output = gtk_builder_get_object(builder, "output");
