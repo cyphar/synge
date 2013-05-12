@@ -1,2 +1,4 @@
 # Compiled wrappers
-synge-*
+synge-cli
+synge-gtk
+synge-test
