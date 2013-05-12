@@ -34,7 +34,14 @@
 #define __SYNGE_GTK_VERSION__ ""
 #endif
 
-static GObject *input, *output;
+enum {
+	FUNCL_COLUMN_NAME,
+	FUNCL_COLUMN_DESCRIPTION,
+	FUNCL_COLUMN_EXPRESSION,
+	FUNCL_N_COLUMNS
+};
+
+static GObject *input, *output, *func_window, *func_tree, *func_select;
 GtkBuilder *builder;
 GtkWidget *window;
 
@@ -95,7 +102,7 @@ void gui_clear_string(GtkWidget *widget, gpointer data) {
 
 void gui_about_popup(GtkWidget *widget, gpointer data) {
 	gtk_dialog_run(GTK_DIALOG(gtk_builder_get_object(builder, "about_popup")));
-	gtk_widget_destroy(GTK_WIDGET(gtk_builder_get_object(builder, "about_popup")));
+	gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(builder, "about_popup")));
 } /* gui_about_popup() */
 
 void gui_toggle_mode(GtkWidget *widget, gpointer data) {
@@ -111,7 +118,65 @@ void gui_toggle_mode(GtkWidget *widget, gpointer data) {
 			break;
 	}
 	set_synge_settings(new);
-} /* gui_about_popup() */
+} /* gui_toggle_mode() */
+
+void gui_open_function_list(GtkWidget *widget, gpointer data) {
+	gtk_widget_show_all(GTK_WIDGET(func_window));
+} /* gui_open_function_list() */
+
+void gui_close_function_list(GtkWidget *widget, gpointer data) {
+	gtk_widget_hide(GTK_WIDGET(func_window));
+} /* gui_close_function_list() */
+
+void gui_populate_function_list(void) {
+	GtkTreeIter iter;
+	GtkListStore *func_store;
+	GtkCellRenderer *cell;
+	function *tmp_function_list = get_synge_function_list();
+
+	func_store = gtk_list_store_new(FUNCL_N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(func_tree), GTK_TREE_MODEL(func_store));
+
+	cell = gtk_cell_renderer_text_new();
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(func_tree), -1, "Prototype",	 cell, "text", FUNCL_COLUMN_NAME, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(func_tree), -1, "Description", cell, "text", FUNCL_COLUMN_DESCRIPTION, NULL);
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(func_tree), -1, "Expression",	 cell, "text", FUNCL_COLUMN_EXPRESSION, NULL);
+
+	int i;
+	for(i = 0; tmp_function_list[i].name != NULL; i++) {
+		gtk_list_store_append(func_store, &iter);
+#ifdef __DEBUG__
+		printf("Adding to function list: \"%s\" -> \"%s\"\n", tmp_function_list[i].prototype, tmp_function_list[i].description);
+#endif
+		gtk_list_store_set(func_store, &iter,
+				FUNCL_COLUMN_NAME, tmp_function_list[i].prototype,
+				FUNCL_COLUMN_DESCRIPTION, tmp_function_list[i].description,
+				FUNCL_COLUMN_EXPRESSION, tmp_function_list[i].expression,
+				-1);
+	}
+} /* gui_populate_function_list() */
+
+void gui_add_function_to_expression(GtkWidget *widget, gpointer data) {
+	GtkTreeIter tmpiter;
+	if(gtk_tree_selection_get_selected(GTK_TREE_SELECTION(func_select), NULL, &tmpiter)) {
+		GtkTreeModel *func_model = gtk_tree_view_get_model(GTK_TREE_VIEW(func_tree));
+
+		gchar *value = NULL;
+		gtk_tree_model_get(func_model, &tmpiter, FUNCL_COLUMN_EXPRESSION, &value, -1);
+
+#ifdef __DEBUG__
+		g_print("selected expression is: %s\n", value);
+		printf("'%s' => %d\n", value, strlen(value));
+#endif
+
+		char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + strlen(value) + 1) * sizeof(char));
+		sprintf(newstr, "%s%s", gtk_entry_get_text(GTK_ENTRY(input)), value);
+		gtk_entry_set_text(GTK_ENTRY(input), newstr);
+
+		free(newstr);
+		g_free(value);
+	}
+} /* gui_populate_function_list() */
 
 int main(int argc, char **argv) {
 	gtk_init(&argc, &argv);
@@ -124,6 +189,11 @@ int main(int argc, char **argv) {
 
 	input = gtk_builder_get_object(builder, "input");
 	output = gtk_builder_get_object(builder, "output");
+	func_window = gtk_builder_get_object(builder, "function_select");
+	func_select = gtk_builder_get_object(builder, "function_selection");
+	func_tree = gtk_builder_get_object(builder, "function_tree");
+
+	gui_populate_function_list();
 
 	if(!gtk_builder_get_object(builder, "basewindow")) {
 		printf("Couldn't load base window\n");
