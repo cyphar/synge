@@ -4,7 +4,6 @@
   <object class="GtkAboutDialog" id="about_popup">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
-    <property name="type">popup</property>
     <property name="modal">True</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">toolbar</property>
@@ -35,7 +34,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.</property>
-    <property name="authors">Cyphar</property>
+    <property name="authors">Cyphar (Engine, CLI Wrapper, GTK Callbacks, Automated Tests)\n
+Cyphar (Proof of Concept GTK Wrapper)</property>
     <property name="wrap_license">True</property>
     <property name="license_type">mit-x11</property>
     <child internal-child="vbox">
@@ -83,7 +83,6 @@ THE SOFTWARE.</property>
             <property name="can_focus">False</property>
             <child>
               <object class="GtkMenuItem" id="synge_menu">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Synge</property>
@@ -95,7 +94,6 @@ THE SOFTWARE.</property>
                     <child>
                       <object class="GtkImageMenuItem" id="quit_option">
                         <property name="label">gtk-quit</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -110,7 +108,6 @@ THE SOFTWARE.</property>
             </child>
             <child>
               <object class="GtkMenuItem" id="function_menu">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Functions</property>
@@ -122,7 +119,6 @@ THE SOFTWARE.</property>
                     <child>
                       <object class="GtkImageMenuItem" id="function_list_option">
                         <property name="label" translatable="yes">_Function Description</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -138,7 +134,6 @@ THE SOFTWARE.</property>
             </child>
             <child>
               <object class="GtkMenuItem" id="help_menu">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Help</property>
@@ -150,7 +145,6 @@ THE SOFTWARE.</property>
                     <child>
                       <object class="GtkImageMenuItem" id="about_option">
                         <property name="label">gtk-about</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -215,11 +209,9 @@ THE SOFTWARE.</property>
                 <child>
                   <object class="GtkRadioButton" id="degrees">
                     <property name="label" translatable="yes">Degrees</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="xalign">0</property>
                     <property name="image_position">top</property>
                     <property name="active">True</property>
@@ -236,11 +228,9 @@ THE SOFTWARE.</property>
                 <child>
                   <object class="GtkRadioButton" id="radians">
                     <property name="label" translatable="yes">Radians</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="xalign">0</property>
                     <property name="active">True</property>
                     <property name="draw_indicator">True</property>
@@ -280,11 +270,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="0">
                 <property name="label" translatable="yes">0</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -297,11 +285,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="1">
                 <property name="label" translatable="yes">1</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -314,11 +300,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="2">
                 <property name="label" translatable="yes">2</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -331,11 +315,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id=".">
                 <property name="label" translatable="yes">.</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -348,11 +330,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="3">
                 <property name="label" translatable="yes">3</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -365,11 +345,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="6">
                 <property name="label" translatable="yes">6</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -382,11 +360,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="5">
                 <property name="label" translatable="yes">5</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -399,11 +375,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="4">
                 <property name="label" translatable="yes">4</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -416,11 +390,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="7">
                 <property name="label" translatable="yes">7</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -433,11 +405,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="8">
                 <property name="label" translatable="yes">8</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -450,11 +420,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="9">
                 <property name="label" translatable="yes">9</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -467,11 +435,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="/">
                 <property name="label" translatable="yes">/</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -484,11 +450,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="*">
                 <property name="label" translatable="yes">*</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -501,11 +465,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="-">
                 <property name="label" translatable="yes">-</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -518,11 +480,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="+">
                 <property name="label" translatable="yes">+</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -535,7 +495,6 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="=">
                 <property name="label" translatable="yes">=</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="has_focus">True</property>
@@ -543,7 +502,6 @@ THE SOFTWARE.</property>
                 <property name="can_default">True</property>
                 <property name="has_default">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_compute_string" swapped="no"/>
               </object>
               <packing>
@@ -556,11 +514,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id=")">
                 <property name="label" translatable="yes">)</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -573,11 +529,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="^">
                 <property name="label" translatable="yes">^</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -590,11 +544,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="%">
                 <property name="label" translatable="yes">%</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -607,11 +559,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="backspace">
                 <property name="label" translatable="yes">BKSP</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_backspace_string" swapped="no"/>
               </object>
               <packing>
@@ -624,11 +574,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="clear">
                 <property name="label" translatable="yes">C</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_clear_string" swapped="no"/>
               </object>
               <packing>
@@ -641,11 +589,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="(">
                 <property name="label" translatable="yes">(</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <signal name="clicked" handler="gui_append_key" swapped="no"/>
               </object>
               <packing>
@@ -682,7 +628,6 @@ THE SOFTWARE.</property>
             <property name="can_focus">False</property>
             <child>
               <object class="GtkMenuItem" id="synge_function_menu">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Synge</property>
@@ -693,7 +638,6 @@ THE SOFTWARE.</property>
                     <child>
                       <object class="GtkImageMenuItem" id="quit_option1">
                         <property name="label">gtk-quit</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -708,7 +652,6 @@ THE SOFTWARE.</property>
             </child>
             <child>
               <object class="GtkMenuItem" id="help_function_menu">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Help</property>
@@ -719,7 +662,6 @@ THE SOFTWARE.</property>
                     <child>
                       <object class="GtkImageMenuItem" id="about_option1">
                         <property name="label">gtk-about</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -776,11 +718,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="add_function_button">
                 <property name="label" translatable="yes">Add to Expression</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <accelerator key="a" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="gui_add_function_to_expression" swapped="no"/>
               </object>
@@ -793,11 +733,9 @@ THE SOFTWARE.</property>
             <child>
               <object class="GtkButton" id="close_function_button">
                 <property name="label" translatable="yes">Close</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <accelerator key="q" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="gui_close_function_list" swapped="no"/>
               </object>
