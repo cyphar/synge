@@ -45,7 +45,7 @@ TEST_SRC	= $(TEST_DIR)/test.c
 
 SHR_DEPS	= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h
 CLI_DEPS	=
-GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/xmlui.h
+GTK_DEPS	= $(GTK_DIR)/xmltemplate.h
 TEST_DEPS	=
 
 VERSION		= 1.1.0
@@ -69,6 +69,7 @@ cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 
 # Compile "production" engine and gui wrapper
 gtk: $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
+	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -103,6 +104,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 
 # Compile "debug" engine and gui wrapper
 debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
+	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
 		-g -O0 -D__DEBUG__ \
@@ -113,10 +115,11 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 clean:
 	rm -f $(TO_CLEAN)
 
-$(GTK_DIR)/xmlui.h:
+xmlui:
 	@if [ -z "`python2 --version 2>&1`" ]; then \
 		echo "python2 not found - required to bake gtk xml ui"; \
 		false; \
 	else \
+		echo "--- BAKING UI ---"; \
 		python2 $(GTK_DIR)/bakeui.py $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/xmlui.h; \
 	fi
