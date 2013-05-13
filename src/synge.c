@@ -37,6 +37,9 @@
  * 1 Addition, Subtraction (left associative)
  */
 
+#define SYNGE_DEFAULT_PRECISION	10
+#define SYNGE_MAX_PRECISION	10
+
 #define PI 3.14159265358979323
 
 double deg2rad(double deg) {
@@ -179,11 +182,7 @@ double *double_dup(double num) {
 } /* double_dup() */
 
 int get_precision(double num) {
-	double tmp;
-	num = (1.0 + modf(num, &tmp)) * 10000000000000000;
-	while(fmod(num, 10) == 0.0 && num != 0.0)
-		num /= 10.0;
-	return num ? floor(log10(fabs(num))) : 0;
+	return SYNGE_DEFAULT_PRECISION;
 } /* get_precision() */
 
 bool isop(s_type type) {
