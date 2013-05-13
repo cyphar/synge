@@ -1,7 +1,4 @@
 # Synge: A shunting-yard calculation "engine"
-# Synge-CLI: A command-line wrapper for Synge
-# Synge-GTK: A GTK+ gui wrapper for Synge
-
 # Copyright (c) 2013 Cyphar
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -52,7 +49,7 @@ GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/xmlui.h
 TEST_DEPS	=
 
 VERSION		= 1.1.0
-CLI_VERSION	= 1.0.4
+CLI_VERSION	= 1.0.5
 GTK_VERSION	= 1.0.0
 
 TO_CLEAN	= $(EXEC_BASE)-cli $(EXEC_BASE)-gtk $(EXEC_BASE)-test $(GTK_DIR)/xmlui.h
