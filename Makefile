@@ -51,7 +51,7 @@ CLI_DEPS	=
 GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/xmlui.h
 TEST_DEPS	=
 
-VERSION		= 1.0.9
+VERSION		= 1.1.0
 CLI_VERSION	= 1.0.4
 GTK_VERSION	= 1.0.0
 
