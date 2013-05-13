@@ -19,8 +19,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#####################
+# CONSTANTS SECTION #
+#####################
+
 CC		?= gcc
 EXEC_BASE	= synge
+
+EXEC_CLI	= $(EXEC_BASE)-cli
+EXEC_GTK	= $(EXEC_BASE)-gtk
+EXEC_TEST	= $(EXEC_BASE)-test
 
 SRC_DIR		= src
 CLI_DIR		= $(SRC_DIR)/cli
@@ -52,7 +60,14 @@ VERSION		= 1.1.0
 CLI_VERSION	= 1.0.5
 GTK_VERSION	= 1.0.1 [CONCEPT]
 
-TO_CLEAN	= $(EXEC_BASE)-cli $(EXEC_BASE)-gtk $(EXEC_BASE)-test $(GTK_DIR)/xmlui.h
+TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_TEST) $(GTK_DIR)/xmlui.h
+
+PREFIX		?=
+INSTALL_DIR	= $(PREFIX)/bin
+
+######################
+# PRODUCTION SECTION #
+######################
 
 # Compile "production" engine and wrappers
 all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS)
@@ -62,7 +77,7 @@ all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS)
 # Compile "production" engine and command-line wrapper
 cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
-		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
+		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
 	strip $(EXEC_BASE)-cli
@@ -71,23 +86,31 @@ cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 gtk: $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
-		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
+		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
 	strip $(EXEC_BASE)-gtk
 
+################
+# TEST SECTION #
+################
+
 # Compile "production" engine and test suite wrapper + execute test suite
 test: $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	$(CC) $(SHR_SRC) $(TEST_SRC) $(SHR_LFLAGS) $(TEST_LFLAGS) \
-		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_BASE)-test \
+		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_TEST) \
 		-D__SYNGE_VERSION__='"$(VERSION)"'
 	strip $(EXEC_BASE)-test
 	@if [ -z "`python2 --version 2>&1`" ]; then \
 		echo "python2 not found - required for test suite"; \
 		false; \
 	else \
-		python2 $(TEST_DIR)/test.py ./$(EXEC_BASE)-test; \
+		python2 $(TEST_DIR)/test.py ./$(EXEC_TEST); \
 	fi
+
+#################
+# DEBUG SECTION #
+#################
 
 # Compile "debug" engine and wrappers
 debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
@@ -97,7 +120,7 @@ debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 # Compile "debug" engine and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
-		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_BASE)-cli \
+		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
@@ -106,14 +129,52 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
-		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_BASE)-gtk \
+		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
 
+###################
+# INSTALL SECTION #
+###################
+
+# Install both wrappers
+install:
+	make install-cli
+	make install-gtk
+
+# Install cli wrapper
+install-cli:
+	cp $(EXEC_CLI) $(INSTALL_DIR)/$(EXEC_CLI)
+
+# Install gtk wrapper
+install-gtk:
+	cp $(EXEC_GTK) $(INSTALL_DIR)/$(EXEC_GTK)
+
+#################
+# CLEAN SECTION #
+#################
+
 # Clean working directory
 clean:
 	rm -f $(TO_CLEAN)
+
+# Uninstall both wrappers
+uninstall:
+	make uninstall-cli
+	make uninstall-gtk
+
+# Uninstall cli wrapper
+uninstall-cli:
+	rm -f $(INSTALL_DIR)/$(EXEC_CLI)
+
+# Uninstall gtk wrapper
+uninstall-gtk:
+	rm -f $(INSTALL_DIR)/$(EXEC_GTK)
+
+################
+# MISC SECTION #
+################
 
 xmlui:
 	@if [ -z "`python2 --version 2>&1`" ]; then \
