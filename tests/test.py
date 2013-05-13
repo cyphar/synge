@@ -49,17 +49,34 @@ CASES = [
 
 	# expected successes
 	("1+1",				["2"],				0,	"Addition		"),
+	("41+1",			["42"],				0,	"Addition		"),
+	("43.7+2.3",			["46"],				0,	"Addition		"),
 	("1+-1",			["0"],				0,	"Convoluted Addition	"),
+
 	("5-3",				["2"],				0,	"Subtraction		"),
 	("0-5-3",			["-8"],				0,	"Subtraction		"),
+	("15-3.5-10",			["1.5"],			0,	"Subtraction		"),
+
 	("3*4",				["12"],				0,	"Multiplication		"),
+	("0-2*6",			["-12"],			0,	"Multiplication		"),
+
 	("4/2",				["2"],				0,	"Division		"),
+	("0-9/3",			["-3"],				0,	"Division		"),
+	("5/0.2",			["25"],				0,	"Division		"),
+	("0-4.2/2.1",			["-2"],				0,	"Division		"),
+
 	("5%2",				["1"],				0,	"Modulo			"),
+	("13%-2",			["1"],				0,	"Modulo			"),
 	("15.1%2",			["1.0999999999999996"],		0,	"Modulo			"), # needs to be fixed (due to rounding err)
+
 	("(1+1)*2",			["4"],				0,	"Parenthesis		"),
 	("1+(-2)",			["-1"],				0,	"Parenthesis		"),
+	("(0.5+0.5)*(1.5+1.5)",		["3"],				0,	"Parenthesis		"),
+
 	("10^2",			["100"],			0,	"Indicies		"),
+	("(-3)^2",			["9"],				0,	"Indicies		"),
 	("16^(1/4)",			["2"],				0,	"Fractional Indicies	"),
+	("16^(-1/4)",			["0.5"],			0,	"Fractional Indicies	"),
 
 	("pi-pi%1",			["3"],				0,	"Magic Numbers		"),
 	("e-e%1",			["2"],				0,	"Magic Numbers		"),
@@ -87,7 +104,7 @@ CASES = [
 	("atan(1)+acos(0.5)+asin(0)",	["105"],			deg,	"Degrees Trigonometry	"),
 	("atan(sin(30)/cos(30))",	["29.9999999999999964",
 					 "30",
-					 "30.0000000000000036"],	deg,	"Degrees Trigonometry	"),
+					 "30.0000000000000036"],	deg,	"Degrees Trigonometry	"), # 'nother rounding error
 
 	("tan(45)+cos(60)+sin(30)",	["-0.320669413964157"],		rad,	"Radian Trigonometry	"),
 	("atan(1)+acos(0.5)+asin(0)",	["1.832595714594046"],		rad,	"Radian Trigonometry	"),
@@ -124,7 +141,9 @@ CASES = [
 	("2+1-",			errors["numvals"],		0,	"Token Number Error	"),
 	("abs()",			errors["numvals"],		0,	"Token Number Error	"),
 	("100000000000000000000000000", errors["overflow"],		0,	"Input Overflow Error	"),
+	("231664726992975794912959502", errors["overflow"],		0,	"Input Overflow Error	"),
 	("17^68",			errors["overflow"],		0,	"Output Overflow Error	"),
+	("100^23",			errors["overflow"],		0,	"Output Overflow Error	"),
 ]
 
 def test_calc(program, test, expected, mode, description):
