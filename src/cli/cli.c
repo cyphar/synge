@@ -73,6 +73,19 @@ void cli_banner(void) {
 	printf("\n%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 } /* cli_banner() */
 
+void cli_print_list(char *s) {
+	char *args = strchr(s, ' ') + 1;
+	int i;
+	if(!strcmp(args, "functions")) {
+		function *function_list = get_synge_function_list();
+		printf("\n");
+		for(i = 0; function_list[i].name != NULL; i++)
+			printf("%s%*s -- %s%s\n", ANSI_INFO, 10, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
+		printf("\n");
+	}
+	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(UNKNOWN_TOKEN), ANSI_CLEAR);
+} /* cli_print_list() */
+
 void cli_print_settings(char *s) {
 	synge_settings current_settings = get_synge_settings();
 	char *args = strchr(s, ' ') + 1, *ret = NULL;
@@ -126,6 +139,7 @@ cli_command cli_command_list[] = {
 	{"warranty",	      cli_warranty},
 	{"banner",		cli_banner},
 
+	{"list ",	    cli_print_list},
 	{"set ",	  cli_set_settings},
 	{"get ",	cli_print_settings}
 };
