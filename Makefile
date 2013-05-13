@@ -53,7 +53,7 @@ TEST_SRC	= $(TEST_DIR)/test.c
 
 SHR_DEPS	= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h
 CLI_DEPS	=
-GTK_DEPS	= $(GTK_DIR)/xmltemplate.h
+GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
 TEST_DEPS	=
 
 VERSION		= 1.1.0
@@ -70,12 +70,12 @@ INSTALL_DIR	= $(PREFIX)/bin
 ######################
 
 # Compile "production" engine and wrappers
-all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS)
-	make cli
-	make gtk
+all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
+	make $(EXEC_CLI)
+	make $(EXEC_GTK)
 
 # Compile "production" engine and command-line wrapper
-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+$(EXEC_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -83,7 +83,7 @@ cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	strip $(EXEC_BASE)-cli
 
 # Compile "production" engine and gui wrapper
-gtk: $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
+$(EXEC_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
@@ -139,16 +139,16 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 ###################
 
 # Install both wrappers
-install:
+install: $(EXEC_CLI) $(EXEC_GTK)
 	make install-cli
 	make install-gtk
 
 # Install cli wrapper
-install-cli:
+install-cli: $(EXEC_CLI)
 	cp $(EXEC_CLI) $(INSTALL_DIR)/$(EXEC_CLI)
 
 # Install gtk wrapper
-install-gtk:
+install-gtk: $(EXEC_GTK)
 	cp $(EXEC_GTK) $(INSTALL_DIR)/$(EXEC_GTK)
 
 #################
