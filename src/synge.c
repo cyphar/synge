@@ -39,6 +39,7 @@
 
 #define SYNGE_DEFAULT_PRECISION	10
 #define SYNGE_MAX_PRECISION	10
+#define SYNGE_PREV_ANSWER	"ans"
 
 #define PI 3.14159265358979323
 
@@ -101,8 +102,10 @@ typedef struct __special_number__ {
 } special_number;
 
 special_number number_list[] = {
-	{"pi",	3.14159265358979323},
-	{"e",	2.71828182845904523},
+	{"pi",			3.14159265358979323},
+	{"e",			2.71828182845904523},
+	{SYNGE_PREV_ANSWER,			0.0},
+	{NULL,					0.0},
 };
 
 char *op_list[] = {
@@ -195,7 +198,7 @@ bool isspecialch(s_type type) {
 
 bool isspecialnum(char *s) {
 	int i;
-	for(i = 0; i < length(number_list); i++)
+	for(i = 0; number_list[i].name != NULL; i++)
 		if(!strncmp(number_list[i].name, s, strlen(number_list[i].name))) return true;
 	return false;
 } /* isspecialnum() */
@@ -203,7 +206,7 @@ bool isspecialnum(char *s) {
 special_number getspecialnum(char *s) {
 	int i;
 	special_number ret = {NULL, 0.0};
-	for(i = 0; i < length(number_list); i++)
+	for(i = 0; number_list[i].name != NULL; i++)
 		if(!strncmp(number_list[i].name, s, strlen(number_list[i].name))) return number_list[i];
 	return ret;
 } /* getspecialnum() */
@@ -222,6 +225,12 @@ bool isnum(char *s) {
 	if(isspecialnum(s) || s != endptr) return true;
 	else return false;
 } /* isnum() */
+
+void set_special_number(char *s, double val, special_number *list) {
+	int i;
+	for(i = 0; list[i].name != NULL; i++)
+		if(!strcmp(list[i].name, s)) list[i].value = val;
+} /* set_special_number() */
 
 char *function_process_replace(char *string) {
 	char *firstpass = NULL;
@@ -587,6 +596,7 @@ error_code compute_infix_string(char *string, double *result) {
 			/* evaluate postfix (or RPN) stack */
 			if((ecode = eval_rpnstack(&rpn_stack, result)) == SUCCESS);
 
+	set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
 	return safe_free_stack(ecode, &infix_stack, &rpn_stack);
 } /* calculate_infix_string() */
 
