@@ -560,7 +560,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				push_valstack(result, number, pos, tmpstack);
 				break;
 			default:
-				return safe_free_stack(WRONG_NUM_VALUES, pos, &tmpstack, rpn);
+				return safe_free_stack(UNKNOWN_ERROR, pos, &tmpstack, rpn);
 		}
 	}
 	if(stack_size(tmpstack) != 1)

@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 	set_synge_settings(test_settings);
 
 	if(!expression) return 1;
-	if((ecode = compute_infix_string(expression, &result)) != SUCCESS)
+	if((ecode = compute_infix_string(expression, &result)).code != SUCCESS)
 		printf("%s\n", get_error_msg(ecode));
 	else
 		printf("%.*f\n", get_precision(result), result);

@@ -30,7 +30,8 @@ typedef struct {
 		UNKNOWN_TOKEN,
 		WRONG_NUM_VALUES,
 		EMPTY_STACK,
-		NUM_OVERFLOW
+		NUM_OVERFLOW,
+		UNKNOWN_ERROR
 	} code;
 	int position;
 } error_code;
