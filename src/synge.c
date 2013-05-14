@@ -63,8 +63,8 @@ function func_list[] = {
 	{"log",		log2,		"log(x)",	"log(",			"Base 2 logarithm of x"},
 	{"ln",		log,		"ln(x)",	"ln(",			"Base e logarithm of x"},
 
-	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"deg2rad(",		"x degrees in radians"},
-	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"rad2deg(",		"x radians in degrees"},
+	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"deg2rad(",		"Convert x degrees to radians"},
+	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"rad2deg(",		"Convert x radians to degrees"},
 
 	{"sinhi",	asinh,		"asinh(x)",	"asinh(",		"Inverse hyperbolic sine of x"},
 	{"coshi",	acosh,		"acosh(x)",	"acosh(",		"Inverse hyperbolic cosine of x"},
