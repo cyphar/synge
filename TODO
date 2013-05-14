@@ -6,13 +6,11 @@ Things to fix/implement:
 	SYNGE:
 	 + Variables (a = 1)
 	 * Generalise helper functions
-	 * Improve error reporting (give approx position)
 	 * Improve precision (try to fix rounding errors)
 	CLI:
 	 + Getopt command line options for cli
 	 + Add help page
 	GTK:
 	 * (Better) GTK+ interface
-	 * Hook up the rest of the callbacks and windows
 	TESTS:
 	 * Add more tests
