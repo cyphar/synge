@@ -39,7 +39,6 @@
 enum {
 	FUNCL_COLUMN_NAME,
 	FUNCL_COLUMN_DESCRIPTION,
-	FUNCL_COLUMN_EXPRESSION,
 	FUNCL_N_COLUMNS
 };
 
@@ -142,7 +141,6 @@ void gui_populate_function_list(void) {
 	cell = gtk_cell_renderer_text_new();
 	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(func_tree), -1, "Prototype",	 cell, "text", FUNCL_COLUMN_NAME, NULL);
 	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(func_tree), -1, "Description", cell, "text", FUNCL_COLUMN_DESCRIPTION, NULL);
-	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(func_tree), -1, "Expression",	 cell, "text", FUNCL_COLUMN_EXPRESSION, NULL);
 
 	int i;
 	for(i = 0; tmp_function_list[i].name != NULL; i++) {
@@ -153,7 +151,6 @@ void gui_populate_function_list(void) {
 		gtk_list_store_set(func_store, &iter,
 				FUNCL_COLUMN_NAME, tmp_function_list[i].prototype,
 				FUNCL_COLUMN_DESCRIPTION, tmp_function_list[i].description,
-				FUNCL_COLUMN_EXPRESSION, tmp_function_list[i].expression,
 				-1);
 	}
 } /* gui_populate_function_list() */
@@ -164,7 +161,10 @@ void gui_add_function_to_expression(GtkWidget *widget, gpointer data) {
 		GtkTreeModel *func_model = gtk_tree_view_get_model(GTK_TREE_VIEW(func_tree));
 
 		gchar *value = NULL;
-		gtk_tree_model_get(func_model, &tmpiter, FUNCL_COLUMN_EXPRESSION, &value, -1);
+		gtk_tree_model_get(func_model, &tmpiter, FUNCL_COLUMN_NAME, &value, -1);
+
+		if(strchr(value, '('))
+			*(strchr(value, '(') + 1) = '\0';
 
 #ifdef __DEBUG__
 		g_print("selected expression is: %s\n", value);
