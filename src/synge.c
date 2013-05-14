@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
+#include <strings.h>
 
 #include "stack.h"
 #include "synge.h"
@@ -202,7 +203,7 @@ bool isspecialch(s_type type) {
 bool isspecialnum(char *s) {
 	int i;
 	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strncmp(number_list[i].name, s, strlen(number_list[i].name))) return true;
+		if(!strncasecmp(number_list[i].name, s, strlen(number_list[i].name))) return true;
 	return false;
 } /* isspecialnum() */
 
@@ -210,7 +211,7 @@ special_number getspecialnum(char *s) {
 	int i;
 	special_number ret = {NULL, 0.0};
 	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strncmp(number_list[i].name, s, strlen(number_list[i].name))) return number_list[i];
+		if(!strncasecmp(number_list[i].name, s, strlen(number_list[i].name))) return number_list[i];
 	return ret;
 } /* getspecialnum() */
 
@@ -232,7 +233,7 @@ bool isnum(char *s) {
 void set_special_number(char *s, double val, special_number *list) {
 	int i;
 	for(i = 0; list[i].name != NULL; i++)
-		if(!strcmp(list[i].name, s)) list[i].value = val;
+		if(!strcasecmp(list[i].name, s)) list[i].value = val;
 } /* set_special_number() */
 
 char *function_process_replace(char *string) {
