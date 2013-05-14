@@ -38,14 +38,16 @@ void push_ststack(s_content con, stack *s) {
 	s->top++;
 	s->content[s->top].val = con.val;
 	s->content[s->top].tp = con.tp;
+	s->content[s->top].position = con.position;
 } /* push_ststack() */
 
-void push_valstack(void *val, s_type tp, stack *s) {
+void push_valstack(void *val, s_type tp, int pos, stack *s) {
 	if(s->top + 1 >= s->size) /* if stack is full */
 		s->content = (s_content *) realloc(s->content, ++s->size * sizeof(s_content));
 	s->top++;
 	s->content[s->top].val = val;
 	s->content[s->top].tp = tp;
+	s->content[s->top].position = pos;
 } /* push_valstack() */
 
 s_content *pop_stack(stack *s) {
@@ -69,6 +71,7 @@ void free_scontent(s_content *s) {
 		s->val = NULL;
 		s->tp = none;
 	}
+	s->position = -1;
 } /* free_scontent() */
 
 void free_stack(stack *s) {
@@ -82,7 +85,7 @@ void free_stack(stack *s) {
 	s->top = -1;
 } /* free_stack() */
 
-error_code usafe_free_stack(error_code ecode, stack **s, ...) {
+error_code usafe_free_stack(int ecode, int pos, stack **s, ...) {
 	va_list ap;
 
 	va_start(ap, s);
@@ -93,5 +96,9 @@ error_code usafe_free_stack(error_code ecode, stack **s, ...) {
 	} while((s = va_arg(ap, stack **)) != NULL);
 	va_end(ap);
 
-	return ecode;
+	error_code ret = {
+		ecode,
+		pos
+	};
+	return ret;
 } /* safe_free_stack() */
