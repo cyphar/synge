@@ -85,7 +85,7 @@ void cli_print_list(char *s) {
 			printf("%s%*s -- %s%s\n", ANSI_INFO, 10, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
 		printf("\n");
 	}
-	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(UNKNOWN_TOKEN), ANSI_CLEAR);
+	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 } /* cli_print_list() */
 
 void cli_print_settings(char *s) {
@@ -105,7 +105,7 @@ void cli_print_settings(char *s) {
 	}
 
 	if(!ret)
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(UNKNOWN_TOKEN), ANSI_CLEAR);
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 	else printf("\n%s%s%s\n\n", ANSI_INFO, ret, ANSI_CLEAR);
 } /* cli_print_settings() */
 
@@ -126,7 +126,7 @@ void cli_set_settings(char *s) {
 	else err = true;
 
 	if(err)
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(UNKNOWN_TOKEN), ANSI_CLEAR);
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 	else set_synge_settings(new_settings);
 } /* cli_set_settings() */
 
@@ -206,8 +206,8 @@ int main(int argc, char **argv) {
 				if(!tmp.exec) break; /* command is to exit */
 				tmp.exec(cur_str);
 			}
-			else if((ecode = compute_infix_string(cur_str, &result)) != SUCCESS) {
-				if(ecode == EMPTY_STACK) continue;
+			else if((ecode = compute_infix_string(cur_str, &result)).code != SUCCESS) {
+				if(ecode.code == EMPTY_STACK) continue;
 				else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
 			else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
@@ -219,5 +219,6 @@ int main(int argc, char **argv) {
 	/* free up memory */
 	history_end(cli_history);
 	el_end(cli_el);
+	synge_end();
 	return 0;
 }

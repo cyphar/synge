@@ -57,7 +57,7 @@ void gui_compute_string(GtkWidget *widget, gpointer data) {
 
 	char *text = (char *) gtk_entry_get_text(GTK_ENTRY(input));
 
-	if((ecode = compute_infix_string(text, &result)) != SUCCESS) {
+	if((ecode = compute_infix_string(text, &result)).code != SUCCESS) {
 		gtk_label_set_selectable(GTK_LABEL(output), FALSE);
 
 		char *markup = g_markup_printf_escaped("<b><span color=\"red\">%s</span></b>", get_error_msg(ecode));
@@ -217,5 +217,7 @@ int main(int argc, char **argv) {
 	gtk_widget_show(GTK_WIDGET(window));
 	gtk_main();
 	g_object_unref(G_OBJECT(builder));
+
+	synge_end();
 	return 0;
 }

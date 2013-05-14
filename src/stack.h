@@ -45,6 +45,7 @@ typedef enum __stack_type__ {
 typedef struct __stack_content__ {
 	void *val;
 	s_type tp;
+	int position;
 } s_content;
 
 typedef struct __stack__ {
@@ -57,7 +58,7 @@ typedef struct __stack__ {
 
 void init_stack(stack *); /* initialize the stack */
 
-void push_valstack(void *, s_type, stack *); /* push value and type to the top of the stack */
+void push_valstack(void *, s_type, int, stack *); /* push value and type to the top of the stack */
 void push_ststack(s_content, stack *); /* push struct to the top of the stack */
 
 s_content *pop_stack(stack *); /* pops the top value on the stack */
@@ -67,7 +68,7 @@ void free_scontent(s_content *); /* frees and clears the stack content struct */
 void free_stack(stack *); /* frees and clears the stack */
 
 /* wrapper function for free_stack - frees malloc'd memory and free_stacks it */
-error_code usafe_free_stack(error_code ecode, stack **s, ...);
+error_code usafe_free_stack(int ecode, int pos, stack **s, ...);
 #define safe_free_stack(...) usafe_free_stack(__VA_ARGS__, NULL)
 
 #define stack_size(x) ((x)->top + 1)
