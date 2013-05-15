@@ -37,13 +37,12 @@ TEST_DIR	= tests
 
 SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char
 CLI_CFLAGS	= `pkg-config --cflags libedit` -I$(SRC_DIR)/
-GTK_CFLAGS	= `pkg-config --cflags gtk+-3.0` -export-dynamic -I$(SRC_DIR)/
+GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` -export-dynamic -I$(SRC_DIR)/
 TEST_CFLAGS	= -I$(SRC_DIR)/
 
 SHR_LFLAGS	= -lm
 CLI_LFLAGS	= `pkg-config --libs libedit`
-GTK_LFLAGS	= `pkg-config --libs gtk+-3.0 gmodule-2.0 gmodule-export-2.0`
-GTK_LFLAGS	= `pkg-config --libs gtk+-3.0`
+GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0`
 TEST_LFLAGS	=
 
 SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c

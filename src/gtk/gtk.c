@@ -36,22 +36,28 @@
 #define __SYNGE_GTK_VERSION__ ""
 #endif
 
+#ifdef _WIN32
+#define __EXPORT_SYMBOL __declspec(dllexport)
+#else
+#define __EXPORT_SYMBOL
+#endif
+
 enum {
 	FUNCL_COLUMN_NAME,
 	FUNCL_COLUMN_DESCRIPTION,
 	FUNCL_N_COLUMNS
 };
 
-static GObject *input, *output, *func_window, *func_tree, *func_select;
+static GObject *input, *output, *func_window, *func_tree;
 GtkBuilder *builder;
 GtkWidget *window;
 
-gboolean kill_window(GtkWidget *widget, GdkEvent *event, gpointer data) {
+__EXPORT_SYMBOL gboolean kill_window(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	gtk_main_quit();
 	return FALSE;
 } /* kill_window() */
 
-void gui_compute_string(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	double result;
 	error_code ecode;
 
@@ -78,7 +84,7 @@ void gui_compute_string(GtkWidget *widget, gpointer data) {
 	}
 } /* gui_compute_string() */
 
-void gui_append_key(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_append_key(GtkWidget *widget, gpointer data) {
 	char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + strlen(gtk_button_get_label(GTK_BUTTON(widget))) + 1) * sizeof(char));
 	sprintf(newstr, "%s%s", gtk_entry_get_text(GTK_ENTRY(input)), gtk_button_get_label(GTK_BUTTON(widget)));
 
@@ -86,7 +92,7 @@ void gui_append_key(GtkWidget *widget, gpointer data) {
 	free(newstr);
 } /* gui_append_key() */
 
-void gui_backspace_string(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_backspace_string(GtkWidget *widget, gpointer data) {
 	if(gtk_entry_get_text_length(GTK_ENTRY(input)) == 0) return;
 
 	char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + 1) * sizeof(char));
@@ -96,17 +102,17 @@ void gui_backspace_string(GtkWidget *widget, gpointer data) {
 	free(newstr);
 } /* gui_backspace_string() */
 
-void gui_clear_string(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_clear_string(GtkWidget *widget, gpointer data) {
 	gtk_entry_set_text(GTK_ENTRY(input), "");
 	gtk_label_set_text(GTK_LABEL(output), "");
 } /* gui_clear_string() */
 
-void gui_about_popup(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_about_popup(GtkWidget *widget, gpointer data) {
 	gtk_dialog_run(GTK_DIALOG(gtk_builder_get_object(builder, "about_popup")));
 	gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(builder, "about_popup")));
 } /* gui_about_popup() */
 
-void gui_toggle_mode(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_toggle_mode(GtkWidget *widget, gpointer data) {
 	synge_settings new = get_synge_settings();
 	switch(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		case TRUE:
@@ -121,15 +127,15 @@ void gui_toggle_mode(GtkWidget *widget, gpointer data) {
 	set_synge_settings(new);
 } /* gui_toggle_mode() */
 
-void gui_open_function_list(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_open_function_list(GtkWidget *widget, gpointer data) {
 	gtk_widget_show_all(GTK_WIDGET(func_window));
 } /* gui_open_function_list() */
 
-void gui_close_function_list(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_close_function_list(GtkWidget *widget, gpointer data) {
 	gtk_widget_hide(GTK_WIDGET(func_window));
 } /* gui_close_function_list() */
 
-void gui_populate_function_list(void) {
+__EXPORT_SYMBOL void gui_populate_function_list(void) {
 	GtkTreeIter iter;
 	GtkListStore *func_store;
 	GtkCellRenderer *cell;
@@ -155,8 +161,10 @@ void gui_populate_function_list(void) {
 	}
 } /* gui_populate_function_list() */
 
-void gui_add_function_to_expression(GtkWidget *widget, gpointer data) {
+__EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer data) {
 	GtkTreeIter tmpiter;
+	GtkTreeSelection *func_select = gtk_tree_view_get_selection(GTK_TREE_VIEW(func_tree));
+
 	if(gtk_tree_selection_get_selected(GTK_TREE_SELECTION(func_select), NULL, &tmpiter)) {
 		GtkTreeModel *func_model = gtk_tree_view_get_model(GTK_TREE_VIEW(func_tree));
 
@@ -198,7 +206,6 @@ int main(int argc, char **argv) {
 	input = gtk_builder_get_object(builder, "input");
 	output = gtk_builder_get_object(builder, "output");
 	func_window = gtk_builder_get_object(builder, "function_select");
-	func_select = gtk_builder_get_object(builder, "function_selection");
 	func_tree = gtk_builder_get_object(builder, "function_tree");
 
 	gui_populate_function_list();
@@ -211,7 +218,7 @@ int main(int argc, char **argv) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
 	gtk_builder_connect_signals(builder, NULL);
 
-	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), __SYNGE_GTK_VERSION__);
+	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), "Version " __SYNGE_GTK_VERSION__);
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n" SYNGE_WARRANTY);
 
 	gtk_widget_show(GTK_WIDGET(window));
