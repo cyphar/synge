@@ -41,6 +41,10 @@ typedef struct __synge_settings__ {
 		degrees,
 		radians
 	} mode;
+	enum {
+		simple,
+		position
+	} error;
 } synge_settings;
 
 typedef struct __function__ {

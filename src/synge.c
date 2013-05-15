@@ -121,7 +121,8 @@ char *op_list[] = {
 };
 
 synge_settings active_settings = {
-	degrees
+	degrees,
+	position
 };
 
 static char *error_msg_container = NULL; /* needs to be freed at program termination using synge_free() (if you want valgrind to be happy) */
@@ -587,46 +588,47 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 } /* eval_rpnstack() */
 
 char *get_error_msg(error_code error) {
+	bool full_err = (error.position > 0 && active_settings.error >= position);
 	char *msg = NULL;
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
-			if(error.position > 0)
+			if(full_err)
 				msg = "Attempted to divide or modulo by zero @ %d.";
 			else
 				msg = "Attempted to divide or modulo by zero.";
 			break;
 		case UNMATCHED_PARENTHESIS:
-			if(error.position > 0)
+			if(full_err)
 				msg = "Missing parenthesis in expression @ %d.";
 			else
 				msg = "Missing parenthesis in expression.";
 			break;
 		case UNKNOWN_TOKEN:
-			if(error.position > 0)
+			if(full_err)
 				msg = "Unknown token or function in expression @ %d.";
 			else
 				msg = "Unknown token or function in expression.";
 			break;
 		case WRONG_NUM_VALUES:
-			if(error.position > 0)
+			if(full_err)
 				msg = "Incorrect number of values for operator or function @ %d.";
 			else
 				msg = "Incorrect number of values for operator or function.";
 			break;
 		case EMPTY_STACK:
-			if(error.position > 0)
+			if(full_err)
 				msg = "Expression was empty @ %d.";
 			else
 				msg = "Expression was empty.";
 			break;
 		case NUM_OVERFLOW:
-			if(error.position > 0)
+			if(full_err)
 				msg = "Number caused overflow @ %d.";
 			else
 				msg = "Number caused overflow.";
 			break;
 		default:
-			if(error.position > 0)
+			if(full_err)
 				msg = "An unknown error has occured @ %d.";
 			else;
 				msg = "An unknown error has occured.";
@@ -634,7 +636,7 @@ char *get_error_msg(error_code error) {
 	}
 
 	free(error_msg_container);
-	if(error.position > 0) {
+	if(full_err) {
 		error_msg_container = malloc(lenprintf(msg, error.position));
 		sprintf(error_msg_container, msg, error.position);
 	} else {
