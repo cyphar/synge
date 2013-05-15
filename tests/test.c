@@ -38,31 +38,26 @@
 
 #include <stdio.h>
 #include <strings.h>
-#include <getopt.h>
 
 #include <synge.h>
 
 synge_settings test_settings;
 
 char *bake_args(int argc, char **argv) {
-	static struct option long_options[] = {
-		{"mode",	required_argument,	NULL,	'm'},
-	};
-	int option_index, ch;
-
-	while((ch = getopt_long(argc, argv, "m:", long_options, &option_index)) != -1) {
-		switch(ch) {
-			case 'm':
-				if(!strcasecmp(optarg, "radians")) test_settings.mode = radians;
-				else if(!strcasecmp(optarg, "degrees")) test_settings.mode = degrees;
-				break;
-			default:
-				break;
+	int i;
+	for(i = 1; i < argc; i++) {
+		if(!strcmp(argv[i], "-m") || !strcmp(argv[i], "-mode") || !strcmp(argv[i], "--mode")) {
+				i++;
+				if(!strcasecmp(argv[i], "radians")) test_settings.mode = radians;
+				else if(!strcasecmp(argv[i], "degrees")) test_settings.mode = degrees;
+				argv[i-1] = NULL;
+				argv[i] = NULL;
 		}
 	}
 
-	if(!optind) return NULL;
-	return argv[optind];
+	for(i = 1; i < argc; i++)
+		if(argv[i]) return argv[i];
+	return NULL;
 } /* bake_args() */
 
 int main(int argc, char **argv) {
