@@ -19,6 +19,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#######################
+# OS SPECIFIC SECTION #
+#######################
+
+ifeq ($(OS), Windows_NT)
+	OS_SHR_CFLAGS =
+	OS_CLI_CFLAGS =
+	OS_GTK_CFLAGS =
+	OS_TEST_CFLAGS =
+
+	OS_SHR_LFLAGS =
+	OS_CLI_LFLAGS =
+	OS_GTK_LFLAGS = -mwindows
+	OS_TEST_LFLAGS =
+else
+	OS_SHR_CFLAGS =
+	OS_CLI_CFLAGS =
+	OS_GTK_CFLAGS = -export-dynamic
+	OS_TEST_CFLAGS =
+
+	OS_SHR_LFLAGS =
+	OS_CLI_LFLAGS =
+	OS_GTK_LFLAGS =
+	OS_TEST_LFLAGS =
+endif
+
+PYTHON		= python
+
 #####################
 # CONSTANTS SECTION #
 #####################
@@ -35,15 +63,15 @@ CLI_DIR		= $(SRC_DIR)/cli
 GTK_DIR		= $(SRC_DIR)/gtk
 TEST_DIR	= tests
 
-SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char
-CLI_CFLAGS	= `pkg-config --cflags libedit` -I$(SRC_DIR)/
-GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` -export-dynamic -I$(SRC_DIR)/
-TEST_CFLAGS	= -I$(SRC_DIR)/
+SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char -I$(SRC_DIR)/ $(OS_SHR_CFLAGS)
+CLI_CFLAGS	= `pkg-config --cflags libedit` $(OS_CLI_CFLAGS)
+GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` $(OS_GTK_CFLAGS)
+TEST_CFLAGS	= $(OS_TEST_CFLAGS)
 
-SHR_LFLAGS	= -lm
-CLI_LFLAGS	= `pkg-config --libs libedit`
-GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0`
-TEST_LFLAGS	=
+SHR_LFLAGS	= -lm $(OS_SHR_LFLAGS)
+CLI_LFLAGS	= `pkg-config --libs libedit` $(OS_CLI_LFLAGS)
+GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0` $(OS_GTK_LFLAGS)
+TEST_LFLAGS	= $(OS_TEST_LFLAGS)
 
 SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c
 CLI_SRC		= $(CLI_DIR)/cli.c
@@ -100,11 +128,11 @@ test: $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_TEST) \
 		-D__SYNGE_VERSION__='"$(VERSION)"'
 	strip $(EXEC_BASE)-test
-	@if [ -z "`python2 --version 2>&1`" ]; then \
-		echo "python2 not found - required for test suite"; \
+	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
+		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
-		python2 $(TEST_DIR)/test.py ./$(EXEC_TEST); \
+		$(PYTHON) $(TEST_DIR)/test.py ./$(EXEC_TEST); \
 	fi
 
 #################
@@ -176,10 +204,10 @@ uninstall-gtk:
 ################
 
 xmlui:
-	@if [ -z "`python2 --version 2>&1`" ]; then \
-		echo "python2 not found - required to bake gtk xml ui"; \
+	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
+		echo "$(PYTHON) not found - required to bake gtk xml ui"; \
 		false; \
 	else \
 		echo "--- BAKING UI ---"; \
-		python2 $(GTK_DIR)/bakeui.py $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/xmlui.h; \
+		$(PYTHON) $(GTK_DIR)/bakeui.py $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/xmlui.h; \
 	fi
