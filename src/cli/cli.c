@@ -28,6 +28,7 @@
 #include <math.h>
 
 #include <histedit.h> /* readline drop-in replacement */
+#include <time.h>
 
 #include <stack.h>
 #include <synge.h>
@@ -174,6 +175,8 @@ char *cli_get_prompt(EditLine *e) {
 } /* cli_get_prompt() */
 
 int main(int argc, char **argv) {
+	srand(time(NULL) ^ getpid());
+
 	char *cur_str = NULL;
 	double result = 0;
 	error_code ecode;
