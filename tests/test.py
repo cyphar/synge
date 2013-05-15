@@ -105,6 +105,11 @@ CASES = [
 	("ln(100)/ln(10)",		["2"],				0,	"Function Division	"),
 	("ceil(11.01)/floor(12.01)",	["1"],				0,	"Function Division	"),
 
+	("rand(100)",			["32"],				0,	'"Random" Number		'),
+	("rand(26)",			["19"],				0,	'"Random" Number		'),
+	("rand(146.7)",			["64"],				0,	'"Random" Number		'),
+	("rand(32)",			["28"],				0,	'"Random" Number		'),
+
 	("tan(45)+cos(60)+sin(30)",	["2"],				deg,	"Degrees Trigonometry	"),
 	("atan(1)+acos(0.5)+asin(0)",	["105"],			deg,	"Degrees Trigonometry	"),
 	("atan(sin(30)/cos(30))",	["30"],				deg,	"Degrees Trigonometry	"), # 'nother rounding error
