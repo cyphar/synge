@@ -104,6 +104,16 @@ void cli_print_settings(char *s) {
 				break;
 		}
 	}
+	else if(!strcmp(args, "error")) {
+		switch(current_settings.error) {
+			case simple:
+				ret = "Simple";
+				break;
+			case position:
+				ret = "Position";
+				break;
+		}
+	}
 
 	if(!ret)
 		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
@@ -122,6 +132,14 @@ void cli_set_settings(char *s) {
 			new_settings.mode = degrees;
 		else if(!strcasecmp(val, "radians"))
 			new_settings.mode = radians;
+		else err = true;
+	}
+	else if(!strncmp(args, "error ", strlen("error "))) {
+		char *val = strchr(args, ' ') + 1;
+		if(!strcasecmp(val, "simple"))
+			new_settings.error = simple;
+		else if(!strcasecmp(val, "position"))
+			new_settings.error = position;
 		else err = true;
 	}
 	else err = true;
