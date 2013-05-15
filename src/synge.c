@@ -38,7 +38,6 @@
  * 1 Addition, Subtraction (left associative)
  */
 
-#define SYNGE_DEFAULT_PRECISION	10
 #define SYNGE_MAX_PRECISION	10
 #define SYNGE_PREV_ANSWER	"ans"
 
@@ -189,7 +188,20 @@ double *double_dup(double num) {
 } /* double_dup() */
 
 int get_precision(double num) {
-	return SYNGE_DEFAULT_PRECISION;
+	int tmpsize = lenprintf("%.*f", SYNGE_MAX_PRECISION, num);
+	char *tmp = malloc(tmpsize);
+	sprintf(tmp, "%.*f", SYNGE_MAX_PRECISION, num);
+	tmp[tmpsize - 1] = '\0';
+
+	char *p = tmp + tmpsize - 2;
+	int precision = SYNGE_MAX_PRECISION;
+	while(*p == '0' && *p != '.') {
+		precision--;
+		p--;
+	}
+
+	free(tmp);
+	return precision;
 } /* get_precision() */
 
 bool isop(s_type type) {
