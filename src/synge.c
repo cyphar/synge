@@ -51,6 +51,12 @@ double rad2deg(double rad) {
 	return rad * (180.0 / PI);
 } /* rad2deg() */
 
+double sy_rand(double to) {
+	int min = 0;
+	int max = (int) floor(to);
+	return (rand() % (max + 1 - min)) + min;
+} /* sy_rand() */
+
 function func_list[] = {
 	{"abs",		fabs,		"abs(x)",	"abs(",			"Absolute value of x"},
 	{"sqrt",	sqrt,		"sqrt(x)",	"sqrt(",		"Square root of x"},
@@ -62,6 +68,8 @@ function func_list[] = {
 	{"log10",	log10,		"log10(x)",	"log10(",		"Base 10 logarithm of x"},
 	{"log",		log2,		"log(x)",	"log(",			"Base 2 logarithm of x"},
 	{"ln",		log,		"ln(x)",	"ln(",			"Base e logarithm of x"},
+
+	{"rand",	sy_rand,	"rand(x)",	"rand(",		"Generate a psedu-random integer between 0 and floor(x)"},
 
 	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"deg2rad(",		"Convert x degrees to radians"},
 	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"rad2deg(",		"Convert x radians to degrees"},
