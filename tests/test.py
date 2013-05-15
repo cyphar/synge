@@ -24,7 +24,6 @@
 from sys import argv
 from commands import getstatusoutput
 
-
 deg = "degrees"
 rad = "radians"
 
@@ -60,16 +59,16 @@ CASES = [
 	("1+-1",			["0"],				0,	"Convoluted Addition	"),
 
 	("5-3",				["2"],				0,	"Subtraction		"),
-	("0-5-3",			["-8"],				0,	"Subtraction		"),
+	("-5-3",			["-8"],				0,	"Subtraction		"),
 	("15-3.5-10",			["1.5"],			0,	"Subtraction		"),
 
 	("3*4",				["12"],				0,	"Multiplication		"),
-	("0-2*6",			["-12"],			0,	"Multiplication		"),
+	("-2*6",			["-12"],			0,	"Multiplication		"),
 
 	("4/2",				["2"],				0,	"Division		"),
-	("0-9/3",			["-3"],				0,	"Division		"),
+	("-9/3",			["-3"],				0,	"Division		"),
 	("5/0.2",			["25"],				0,	"Division		"),
-	("0-4.2/2.1",			["-2"],				0,	"Division		"),
+	("-4.2/2.1",			["-2"],				0,	"Division		"),
 
 	("5%2",				["1"],				0,	"Modulo			"),
 	("13%-2",			["1"],				0,	"Modulo			"),
