@@ -27,6 +27,7 @@
 #include <gtk/gtk.h>
 
 #include <time.h>
+#include <unistd.h>
 
 #include <stack.h>
 #include <synge.h>
