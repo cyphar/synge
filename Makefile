@@ -24,25 +24,29 @@
 #######################
 
 ifeq ($(OS), Windows_NT)
-	OS_SHR_CFLAGS =
-	OS_CLI_CFLAGS =
-	OS_GTK_CFLAGS =
-	OS_TEST_CFLAGS =
+	OS_SHR_CFLAGS	=
+	OS_CLI_CFLAGS	=
+	OS_GTK_CFLAGS	=
+	OS_TEST_CFLAGS	=
 
-	OS_SHR_LFLAGS =
-	OS_CLI_LFLAGS =
-	OS_GTK_LFLAGS = -mwindows
-	OS_TEST_LFLAGS =
+	OS_SHR_LFLAGS	=
+	OS_CLI_LFLAGS	=
+	OS_GTK_LFLAGS	= -mwindows
+	OS_TEST_LFLAGS	=
+
+	OS_SUFFIX	=.exe
 else
-	OS_SHR_CFLAGS =
-	OS_CLI_CFLAGS =
-	OS_GTK_CFLAGS = -export-dynamic
-	OS_TEST_CFLAGS =
+	OS_SHR_CFLAGS	=
+	OS_CLI_CFLAGS	=
+	OS_GTK_CFLAGS	= -export-dynamic
+	OS_TEST_CFLAGS	=
 
-	OS_SHR_LFLAGS =
-	OS_CLI_LFLAGS =
-	OS_GTK_LFLAGS =
-	OS_TEST_LFLAGS =
+	OS_SHR_LFLAGS	=
+	OS_CLI_LFLAGS	=
+	OS_GTK_LFLAGS	=
+	OS_TEST_LFLAGS	=
+
+	OS_SUFFIX	=
 endif
 
 PYTHON		= python
@@ -54,9 +58,9 @@ PYTHON		= python
 CC		?= gcc
 EXEC_BASE	= synge
 
-EXEC_CLI	= $(EXEC_BASE)-cli
-EXEC_GTK	= $(EXEC_BASE)-gtk
-EXEC_TEST	= $(EXEC_BASE)-test
+EXEC_CLI	= $(EXEC_BASE)-cli$(OS_SUFFIX)
+EXEC_GTK	= $(EXEC_BASE)-gtk$(OS_SUFFIX)
+EXEC_TEST	= $(EXEC_BASE)-test$(OS_SUFFIX)
 
 SRC_DIR		= src
 CLI_DIR		= $(SRC_DIR)/cli
@@ -107,7 +111,7 @@ $(EXEC_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
-	strip $(EXEC_BASE)-cli
+	strip $(EXEC_CLI)
 
 # Compile "production" engine and gui wrapper
 $(EXEC_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
@@ -116,7 +120,7 @@ $(EXEC_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
-	strip $(EXEC_BASE)-gtk
+	strip $(EXEC_GTK)
 
 ################
 # TEST SECTION #
@@ -127,7 +131,7 @@ test: $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	$(CC) $(SHR_SRC) $(TEST_SRC) $(SHR_LFLAGS) $(TEST_LFLAGS) \
 		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_TEST) \
 		-D__SYNGE_VERSION__='"$(VERSION)"'
-	strip $(EXEC_BASE)-test
+	strip $(EXEC_TEST)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
