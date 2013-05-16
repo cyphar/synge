@@ -144,6 +144,8 @@ CASES = [
 	("57-(-2)^2-floor(log10(23))",	["52"],				0,	"Complex Expression	"),
 	("2+floor(log10(23))/32",	["2.03125"],			0,	"Complex Expression	"),
 	("ceil((e%2.5)*300)",		["66"],				0,	"Complex Expression	"),
+	("(fact(4)+8)/4+(2+3*4)^2-3^4+(9+10)*(15-21)+7*(17-15)",
+					["23"],				0,	"Complex Expression	"),
 
 	("987654321012/987654321012",	["1"],				0,	"Big Numbers		"),
 
