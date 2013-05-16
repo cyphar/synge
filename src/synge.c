@@ -57,36 +57,45 @@ double sy_rand(double to) {
 	return (rand() % (max + 1 - min)) + min;
 } /* sy_rand() */
 
+double sy_factorial(double x) {
+	double number = floor(x);
+	double factorial = number;
+	while(number > 1.0)
+		factorial *= --number;
+	return factorial;
+} /* sy_factorial() */
+
 function func_list[] = {
-	{"abs",		fabs,		"abs(x)",	"abs(",			"Absolute value of x"},
-	{"sqrt",	sqrt,		"sqrt(x)",	"sqrt(",		"Square root of x"},
-	{"cbrt",	cbrt,		"cbrt(x)",	"cbrt(",		"Cubic root of x"},
+	{"abs",		fabs,		"abs(x)",	"Absolute value of x"},
+	{"sqrt",	sqrt,		"sqrt(x)",	"Square root of x"},
+	{"cbrt",	cbrt,		"cbrt(x)",	"Cubic root of x"},
 
-	{"floor",	floor,		"floor(x)",	"floor(",		"Largest integer not greater than x"},
-	{"ceil",	ceil,		"ceil(x)",	"ceil(",		"Smallest integer not smaller than x"},
+	{"floor",	floor,		"floor(x)",	"Largest integer not greater than x"},
+	{"ceil",	ceil,		"ceil(x)",	"Smallest integer not smaller than x"},
 
-	{"log10",	log10,		"log10(x)",	"log10(",		"Base 10 logarithm of x"},
-	{"log",		log2,		"log(x)",	"log(",			"Base 2 logarithm of x"},
-	{"ln",		log,		"ln(x)",	"ln(",			"Base e logarithm of x"},
+	{"log10",	log10,		"log10(x)",	"Base 10 logarithm of x"},
+	{"log",		log2,		"log(x)",	"Base 2 logarithm of x"},
+	{"ln",		log,		"ln(x)",	"Base e logarithm of x"},
 
-	{"rand",	sy_rand,	"rand(x)",	"rand(",		"Generate a psedu-random integer between 0 and floor(x)"},
+	{"rand",	sy_rand,	"rand(x)",	"Generate a psedu-random integer between 0 and floor(x)"},
+	{"fact",	sy_factorial,	"fact(x)",	"Factorial of floor(x)"},
 
-	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"deg2rad(",		"Convert x degrees to radians"},
-	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"rad2deg(",		"Convert x radians to degrees"},
+	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"Convert x degrees to radians"},
+	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"Convert x radians to degrees"},
 
-	{"sinhi",	asinh,		"asinh(x)",	"asinh(",		"Inverse hyperbolic sine of x"},
-	{"coshi",	acosh,		"acosh(x)",	"acosh(",		"Inverse hyperbolic cosine of x"},
-	{"tanhi",	atanh,		"atanh(x)",	"atanh(",		"Inverse hyperbolic tangent of x"},
-	{"sinh",	sinh,		"sinh(x)",	"sinh(",		"Hyperbolic sine of x"},
-	{"cosh",	cosh,		"cosh(x)",	"cosh(",		"Hyperbolic cosine of x"},
-	{"tanh",	tanh,		"tanh(x)",	"tanh(",		"Hyperbolic tangent of x"},
+	{"sinhi",	asinh,		"asinh(x)",	"Inverse hyperbolic sine of x"},
+	{"coshi",	acosh,		"acosh(x)",	"Inverse hyperbolic cosine of x"},
+	{"tanhi",	atanh,		"atanh(x)",	"Inverse hyperbolic tangent of x"},
+	{"sinh",	sinh,		"sinh(x)",	"Hyperbolic sine of x"},
+	{"cosh",	cosh,		"cosh(x)",	"Hyperbolic cosine of x"},
+	{"tanh",	tanh,		"tanh(x)",	"Hyperbolic tangent of x"},
 
-	{"sini",	asin,		"sini(x)",	"sini(",		"Inverse sine of x"},
-	{"cosi",	acos,		"cosi(x)",	"cosi(",		"Inverse cosine of x"},
-	{"tani",	atan,		"tani(x)",	"tani(",		"Inverse tangent of x"},
-	{"sin",		sin,		"sin(x)",	"sin(",			"Sine of x"},
-	{"cos",		cos,		"cos(x)",	"cos(",			"Cosine of x"},
-	{"tan",		tan,		"tan(x)",	"tan(",			"Tangent of x"},
+	{"sini",	asin,		"sini(x)",	"Inverse sine of x"},
+	{"cosi",	acos,		"cosi(x)",	"Inverse cosine of x"},
+	{"tani",	atan,		"tani(x)",	"Inverse tangent of x"},
+	{"sin",		sin,		"sin(x)",	"Sine of x"},
+	{"cos",		cos,		"cos(x)",	"Cosine of x"},
+	{"tan",		tan,		"tan(x)",	"Tangent of x"},
 	{NULL,		NULL,		NULL}
 };
 
@@ -101,7 +110,8 @@ function_alias alias_list[] = {
 	{"atanh",	"tanhi"},
 	{"asin",	 "sini"},
 	{"acos",	 "cosi"},
-	{"atan",	 "tani"}
+	{"atan",	 "tani"},
+	{NULL,		   NULL},
 };
 
 typedef struct __special_number__ {
@@ -135,7 +145,6 @@ synge_settings active_settings = {
 
 static char *error_msg_container = NULL; /* needs to be freed at program termination using synge_free() (if you want valgrind to be happy) */
 
-#define length(x) (sizeof(x) / sizeof(x[0]))
 #define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1) /* hack to get amount of memory needed to store a sprintf() */
 
 void print_stack(stack *s) {
@@ -261,7 +270,7 @@ char *function_process_replace(char *string) {
 	char *firstpass = NULL;
 
 	int i;
-	for(i = 0; i < length(alias_list); i++) {
+	for(i = 0; alias_list[i].alias != NULL; i++) {
 		char *tmppass = replace(firstpass ? firstpass : string, alias_list[i].alias, alias_list[i].function);
 		free(firstpass);
 		firstpass = tmppass;

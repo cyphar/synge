@@ -52,7 +52,6 @@ typedef struct __function__ {
 	double (*get)(double);
 	/* to hard-code explanations and name strings */
 	char *prototype;
-	char *expression;
 	char *description;
 } function;
 
