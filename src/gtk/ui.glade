@@ -676,6 +676,7 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                   <object class="GtkTreeView" id="function_tree">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="rules_hint">True</property>
                     <signal name="row-activated" handler="gui_add_function_to_expression" swapped="no"/>
                   </object>
                 </child>
