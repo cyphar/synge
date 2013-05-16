@@ -71,6 +71,7 @@ function func_list[] = {
 	{"cbrt",	cbrt,		"cbrt(x)",	"Cubic root of x"},
 
 	{"floor",	floor,		"floor(x)",	"Largest integer not greater than x"},
+	{"round",	round,		"round(x)",	"Closest integer to x"},
 	{"ceil",	ceil,		"ceil(x)",	"Smallest integer not smaller than x"},
 
 	{"log10",	log10,		"log10(x)",	"Base 10 logarithm of x"},
