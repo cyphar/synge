@@ -29,6 +29,7 @@
 
 #include <histedit.h> /* readline drop-in replacement */
 #include <time.h>
+#include <unistd.h>
 
 #include <stack.h>
 #include <synge.h>
