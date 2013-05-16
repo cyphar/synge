@@ -123,6 +123,7 @@ typedef struct __special_number__ {
 special_number number_list[] = {
 	{"pi",			3.14159265358979323},
 	{"e",			2.71828182845904523},
+	{"life",			       42.0}, /* Sorry, I couldn't resist */
 	{SYNGE_PREV_ANSWER,			0.0},
 	{NULL,					0.0},
 };
