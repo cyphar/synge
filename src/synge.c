@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <math.h>
+#include <ctype.h>
 #include <string.h>
 #include <strings.h>
 #include <assert.h>
@@ -46,6 +47,9 @@
 #define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
 
 #define PI 3.14159265358979323
+
+#define strlower(x) do { char *p = x; for(; *p; ++p) *p = tolower(*p); } while(0)
+#define strupper(x) do { char *p = x; for(; *p; ++p) *p = toupper(*p); } while(0)
 
 static bool synge_started = false; /* i REALLY reccomend you leave this false, as this is used to ensure that synge_start has been run */
 
@@ -216,6 +220,8 @@ char *get_word(char *s, char *list, char **endptr) {
 	strncpy(ret, s, i);
 	ret[i] = '\0';
 
+	strlower(ret);
+
 	*endptr = s+i;
 	return ret;
 } /* get_word() */
@@ -271,7 +277,7 @@ bool isspecialch(s_type type) {
 bool isspecialnum(char *s) {
 	int i;
 	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strcasecmp(number_list[i].name, s)) return true;
+		if(!strcmp(number_list[i].name, s)) return true;
 	return false;
 } /* isspecialnum() */
 
@@ -279,14 +285,14 @@ special_number getspecialnum(char *s) {
 	int i;
 	special_number ret = {NULL, 0.0};
 	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strcasecmp(number_list[i].name, s)) return number_list[i];
+		if(!strcmp(number_list[i].name, s)) return number_list[i];
 	return ret;
 } /* getspecialnum() */
 
 function *get_func(char *val) {
 	int i;
 	for(i = 0; func_list[i].name != NULL; i++)
-		if(!strcasecmp(val, func_list[i].name)) return &func_list[i];
+		if(!strcmp(val, func_list[i].name)) return &func_list[i];
 	return NULL;
 } /* get_func() */
 
@@ -316,7 +322,7 @@ bool isnum(char *string) {
 void set_special_number(char *s, double val, special_number *list) {
 	int i;
 	for(i = 0; list[i].name != NULL; i++)
-		if(!strcasecmp(list[i].name, s)) list[i].value = val;
+		if(!strcmp(list[i].name, s)) list[i].value = val;
 } /* set_special_number() */
 
 error_code set_variable(char *str, double val) {
