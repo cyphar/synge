@@ -40,6 +40,8 @@
 
 #define SYNGE_MAX_PRECISION	10
 #define SYNGE_PREV_ANSWER	"ans"
+#define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ_"
+#define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
 
 #define PI 3.14159265358979323
 
@@ -192,6 +194,26 @@ char *replace(char *str, char *old, char *new) {
 	return ret;
 } /* replace() */
 
+char *get_word(char *s, char *list, char **endptr) {
+	int i, j, found;
+	for(i = 0; i < strlen(s); i++) {
+		found = false;
+		for(j = 0; j < strlen(list); j++)
+			if(s[i] == list[j]) {
+				found = true;
+				break;
+			}
+		if(!found) break;
+	}
+
+	char *ret = malloc(i + 1);
+	strncpy(ret, s, i);
+	ret[i] = '\0';
+
+	*endptr = s+i;
+	return ret;
+} /* get_word() */
+
 char *get_from_ch_list(char *ch, char **list, bool delimit) {
 	int i;
 	for(i = 0; list[i] != NULL; i++) {
@@ -235,7 +257,7 @@ bool isspecialch(s_type type) {
 bool isspecialnum(char *s) {
 	int i;
 	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strncasecmp(number_list[i].name, s, strlen(number_list[i].name))) return true;
+		if(!strcasecmp(number_list[i].name, s)) return true;
 	return false;
 } /* isspecialnum() */
 
@@ -243,23 +265,38 @@ special_number getspecialnum(char *s) {
 	int i;
 	special_number ret = {NULL, 0.0};
 	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strncasecmp(number_list[i].name, s, strlen(number_list[i].name))) return number_list[i];
+		if(!strcasecmp(number_list[i].name, s)) return number_list[i];
 	return ret;
 } /* getspecialnum() */
 
 function *get_func(char *val) {
 	int i;
 	for(i = 0; func_list[i].name != NULL; i++)
-		if(!strncmp(val, func_list[i].name, strlen(func_list[i].name))) return &func_list[i];
+		if(!strcasecmp(val, func_list[i].name)) return &func_list[i];
 	return NULL;
 } /* get_func() */
 
-bool isnum(char *s) {
-	char *endptr = NULL;
-	strtold(s, &endptr);
+bool is_func(char *val) {
+	char *endptr = NULL, *word = get_word(val, SYNGE_FUNCTION_CHARS, &endptr);
+	bool ret = (get_func(word) ? true : false);
 
-	if(isspecialnum(s) || s != endptr) return true;
-	else return false;
+	free(word);
+	return ret;
+}
+
+bool isnum(char *string) {
+	int ret = false;
+	char *endptr = NULL;
+	char *s = get_word(string, SYNGE_VARIABLE_CHARS, &endptr);
+
+	endptr = NULL;
+	strtold(string, &endptr);
+
+	if(isspecialnum(s) || string != endptr) ret = true;
+	else ret = false;
+
+	free(s);
+	return ret;
 } /* isnum() */
 
 void set_special_number(char *s, double val, special_number *list) {
@@ -338,8 +375,9 @@ error_code tokenise_string(char *string, stack **ret) {
 		pos = i + 1;
 		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
-			if(isspecialnum(s+i)) {
-				special_number stnum = getspecialnum(s+i);
+			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
+			if(isspecialnum(word)) {
+				special_number stnum = getspecialnum(word);
 				*num = stnum.value;
 				i += strlen(stnum.name) - 1;
 			} else {
@@ -348,6 +386,7 @@ error_code tokenise_string(char *string, stack **ret) {
 				i += (endptr - (s + i)) - 1;
 			}
 			push_valstack(num, number, pos, *ret);
+			free(word);
 			if(has_rounding_error(*num)) return to_error_code(NUM_OVERFLOW, pos);
 		}
 		else if(get_from_ch_list(s+i, op_list, true)) {
@@ -377,10 +416,14 @@ error_code tokenise_string(char *string, stack **ret) {
 			}
 			push_valstack(get_from_ch_list(s+i, op_list, true), type, pos, *ret);
 		}
-		else if(get_func(s+i)) {
-			function *funcname = get_func(s+i);
+		else if(is_func(s+i)) {
+			char *endptr = NULL, *word = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr);
+
+			function *funcname = get_func(word);
 			push_valstack(funcname, func, pos, *ret);
 			i += strlen(funcname->name) - 1;
+
+			free(word);
 		}
 		else { /* unknown token */
 			free(s);
