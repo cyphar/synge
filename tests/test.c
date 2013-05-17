@@ -63,6 +63,7 @@ char *bake_args(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	if(argc < 2) return 1;
+	synge_start();
 	srand(0); /* seed random number generator, to make it predicatable for testing */
 
 	double result;
@@ -78,5 +79,6 @@ int main(int argc, char **argv) {
 	else
 		printf("%.*f\n", get_precision(result), result);
 
+	synge_end();
 	return 0;
 } /* main() */
