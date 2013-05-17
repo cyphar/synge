@@ -91,7 +91,7 @@ CLI_DEPS	=
 GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
 TEST_DEPS	=
 
-VERSION		= 1.2.0
+VERSION		= 1.2.1
 CLI_VERSION	= 1.0.6
 GTK_VERSION	= 1.0.1 [CONCEPT]
 
