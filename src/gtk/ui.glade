@@ -10,8 +10,6 @@
     <property name="type_hint">toolbar</property>
     <property name="program_name">Synge-GTK</property>
     <property name="copyright">Copyright (C) 2013 Cyphar</property>
-    <property name="comments" translatable="yes">Version 1.0.1</property>
-    <property name="website">https://github.com/cyphar/synge</property>
     <property name="website_label" translatable="yes">https://github.com/cyphar/synge</property>
     <property name="license">The MIT License (MIT)
 
