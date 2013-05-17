@@ -58,9 +58,13 @@ PYTHON		= python
 CC		?= gcc
 EXEC_BASE	= synge
 
-EXEC_CLI	= $(EXEC_BASE)-cli$(OS_SUFFIX)
-EXEC_GTK	= $(EXEC_BASE)-gtk$(OS_SUFFIX)
-EXEC_TEST	= $(EXEC_BASE)-test$(OS_SUFFIX)
+NAME_CLI	= $(EXEC_BASE)-cli
+NAME_GTK	= $(EXEC_BASE)-gtk
+NAME_TEST	= $(EXEC_BASE)-test
+
+EXEC_CLI	= $(NAME_CLI)$(OS_SUFFIX)
+EXEC_GTK	= $(NAME_GTK)$(OS_SUFFIX)
+EXEC_TEST	= $(NAME_TEST)$(OS_SUFFIX)
 
 SRC_DIR		= src
 CLI_DIR		= $(SRC_DIR)/cli
@@ -106,7 +110,7 @@ all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 	make $(EXEC_GTK)
 
 # Compile "production" engine and command-line wrapper
-$(EXEC_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+$(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -114,7 +118,7 @@ $(EXEC_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	strip $(EXEC_CLI)
 
 # Compile "production" engine and gui wrapper
-$(EXEC_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
+$(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
