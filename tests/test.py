@@ -32,10 +32,13 @@ ansi_good  = "\x1b[1;32m"
 ansi_reset = "\x1b[0m"
 
 errors = {
-		"zerodiv"	: "Attempted to divide or modulo by zero",
-		"parens"	: "Missing parenthesis in expression",
+		"zerodiv"	: "Cannot divide by zero",
+		"zeromod"	: "Cannot modulo by zero",
+		"lparen"	: "Missing closing parenthesis for opening parenthesis",
+		"rparen"	: "Missing opening parenthesis for closing parenthesis",
 		"token"		: "Unknown token or function in expression",
-		"numvals"	: "Incorrect number of values for operator or function",
+		"opvals"	: "Not enough values for operator",
+		"funcvals"	: "Not enough arguments for function",
 		"empty"		: "Expression was empty",
 		"overflow"	: "Number caused overflow",
 		"unknown"	: "An unknown error has occured"
@@ -157,12 +160,12 @@ CASES = [
 	("fake_function()+23",		error_get("token", 1),		0,	"Unknown Token Error	"),
 	("1@5",				error_get("token", 2),		0,	"Unknown Token Error	"),
 	("1/0",				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
-	("1%(2-(2^2/2))",		error_get("zerodiv", 2),	0,	"Modulo by Zero Error	"),
-	("1+(1",			error_get("parens", 4),		0,	"Parenthesis Error	"), # Gives incorrect location due to paren padding
-	("1+4)",			error_get("parens", 4),		0,	"Parenthesis Error	"), # Gives incorrect location due to paren padding
-	("1+-+4",			error_get("numvals", 2),	0,	"Token Number Error	"),
-	("2+1-",			error_get("numvals", 4),	0,	"Token Number Error	"),
-	("abs()",			error_get("numvals", 2),	0,	"Token Number Error	"), # Gives incorrect location due to paren padding
+	("1%(2-(2^2/2))",		error_get("zeromod", 2),	0,	"Modulo by Zero Error	"),
+	("1+(1",			error_get("lparen", 4),		0,	"Parenthesis Error	"), # Gives incorrect location due to paren padding
+	("1+4)",			error_get("rparen", 4),		0,	"Parenthesis Error	"), # Gives incorrect location due to paren padding
+	("1+-+4",			error_get("opvals", 2),		0,	"Token Number Error	"),
+	("2+1-",			error_get("opvals", 4),		0,	"Token Number Error	"),
+	("abs()",			error_get("funcvals", 2),	0,	"Token Number Error	"), # Gives incorrect location due to paren padding
 	("100000000000000000000000000",	error_get("overflow", 1),	0,	"Input Overflow Error	"),
 	("231664726992975794912959502", error_get("overflow", 1),	0,	"Input Overflow Error	"),
 	("1+1000000000000000000000000",	error_get("overflow", 3),	0,	"Input Overflow Error	"),
