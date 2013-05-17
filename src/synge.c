@@ -327,6 +327,13 @@ error_code set_variable(char *s, double val) {
 	return to_error_code(SUCCESS, -1);
 } /* set_variable() */
 
+error_code del_variable(char *s) {
+	if(!ht_search(variable_list, s, strlen(s) + 1))
+		return to_error_code(UNKNOWN_VARIABLE, -1);
+	ht_remove(variable_list, s, strlen(s) + 1);
+	return to_error_code(SUCCESS, -1);
+} /* del_variable() */
+
 char *function_process_replace(char *string) {
 	char *firstpass = NULL;
 
@@ -691,6 +698,12 @@ char *get_error_msg(error_code error) {
 			else
 				msg = "Unknown token or function in expression.";
 			break;
+		case UNKNOWN_VARIABLE:
+			if(full_err)
+				msg = "Unknown variable to delete @ %d.";
+			else
+				msg = "Unknown variable to delete.";
+			break;
 		case WRONG_NUM_VALUES:
 			if(full_err)
 				msg = "Incorrect number of values for operator or function @ %d.";
@@ -785,7 +798,10 @@ error_code compute_infix_string(char *original_str, double *result) {
 					/* set the answer variable */
 					set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
 
-	if(var && ecode.code == SUCCESS) ecode = set_variable(var, *result);
+	if(var) {
+	       if(ecode.code == SUCCESS) ecode = set_variable(var, *result);
+	       else if(ecode.code == EMPTY_STACK) ecode = del_variable(var);
+	}
 
 	free(final_pass_str);
 	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
