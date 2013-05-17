@@ -833,22 +833,33 @@ error_code compute_infix_string(char *original_str, double *result) {
 					/* set the answer variable */
 					set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
 
-	if(var) {
-		int operation = 0;
-		if(ecode.code == SUCCESS) operation = 1;
-		else if(ecode.code == EMPTY_STACK) operation = -1;
-
-		var--;
+	int operation = 0;
+	if(var && ((ecode.code == SUCCESS && ++operation) || (ecode.code == EMPTY_STACK && --operation))) {
+		char *tmp = --var;
 		do {
-			var++;
-			if(operation == 1) ecode = set_variable(var, *result);
-			else if(operation == -1) ecode = del_variable(var);
+			tmp++;
+			char *tmpp = NULL, *tmpword = get_word(tmp, SYNGE_VARIABLE_CHARS, &tmpp);
+			if(strlen(tmp) < 1 || strlen(tmpword) < 1) {
+				ecode = to_error_code(INVALID_VARIABLE_NAME, -1);
+				operation = 0;
+				free(tmpword);
+				break;
+			}
+			free(tmpword);
+		} while((tmp = strchr(tmp, '=')) != NULL);
+
+		if(operation) {
+			do {
+				var++;
+				if(operation == 1) ecode = set_variable(var, *result);
+				else if(operation == -1) ecode = del_variable(var);
 #ifdef __DEBUG__
-		char *tmpp, *tmp = get_word(var, SYNGE_VARIABLE_CHARS, &tmpp);
-		printf("%s -> %s\n", tmp, string);
-		free(tmp);
+				char *tmpp, *tmp = get_word(var, SYNGE_VARIABLE_CHARS, &tmpp);
+				printf("%s -> %s\n", tmp, string);
+				free(tmp);
 #endif
-		} while((var = strchr(var, '=')) != NULL);
+			} while((var = strchr(var, '=')) != NULL);
+		}
 	}
 
 	free(final_pass_str);
