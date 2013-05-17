@@ -194,6 +194,7 @@ char *cli_get_prompt(EditLine *e) {
 } /* cli_get_prompt() */
 
 int main(int argc, char **argv) {
+	synge_start();
 	srand(time(NULL) ^ getpid());
 
 	char *cur_str = NULL;
