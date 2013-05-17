@@ -319,19 +319,34 @@ void set_special_number(char *s, double val, special_number *list) {
 		if(!strcasecmp(list[i].name, s)) list[i].value = val;
 } /* set_special_number() */
 
-error_code set_variable(char *s, double val) {
+error_code set_variable(char *str, double val) {
 	assert(synge_started);
+
+	error_code ret = to_error_code(SUCCESS, -1);
+	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
+
 	if(isspecialnum(s))
-		return to_error_code(RESERVED_VARIABLE, -1);
-	ht_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
-	return to_error_code(SUCCESS, -1);
+		ret = to_error_code(RESERVED_VARIABLE, -1);
+	else
+		ht_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
+
+	free(s);
+	return ret;
 } /* set_variable() */
 
-error_code del_variable(char *s) {
+error_code del_variable(char *str) {
+	assert(synge_started);
+
+	error_code ret = to_error_code(SUCCESS, -1);
+	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
+
 	if(!ht_search(variable_list, s, strlen(s) + 1))
-		return to_error_code(UNKNOWN_VARIABLE, -1);
-	ht_remove(variable_list, s, strlen(s) + 1);
-	return to_error_code(SUCCESS, -1);
+		ret = to_error_code(UNKNOWN_VARIABLE, -1);
+	else
+		ht_remove(variable_list, s, strlen(s) + 1);
+
+	free(s);
+	return ret;
 } /* del_variable() */
 
 char *function_process_replace(char *string) {
@@ -801,11 +816,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 		string = strrchr(final_pass_str, '=');
 		*string++ = '\0';
 
-#ifdef __DEBUG__
-		printf("%s -> %s\n", var, string);
-#endif
-
-		char *endptr = NULL, *word = get_word(var, SYNGE_VARIABLE_CHARS, &endptr);
+		char *endptr = NULL, *word = get_word(var, SYNGE_VARIABLE_CHARS "=", &endptr);
 		if(strlen(word) != strlen(var))
 			ecode = to_error_code(INVALID_VARIABLE_NAME, -1);
 		free(word);
@@ -823,8 +834,21 @@ error_code compute_infix_string(char *original_str, double *result) {
 					set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
 
 	if(var) {
-	       if(ecode.code == SUCCESS) ecode = set_variable(var, *result);
-	       else if(ecode.code == EMPTY_STACK) ecode = del_variable(var);
+		int operation = 0;
+		if(ecode.code == SUCCESS) operation = 1;
+		else if(ecode.code == EMPTY_STACK) operation = -1;
+
+		var--;
+		do {
+			var++;
+			if(operation == 1) ecode = set_variable(var, *result);
+			else if(operation == -1) ecode = del_variable(var);
+#ifdef __DEBUG__
+		char *tmpp, *tmp = get_word(var, SYNGE_VARIABLE_CHARS, &tmpp);
+		printf("%s -> %s\n", tmp, string);
+		free(tmp);
+#endif
+		} while((var = strchr(var, '=')) != NULL);
 	}
 
 	free(final_pass_str);
