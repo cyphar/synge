@@ -517,7 +517,7 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 					}
 					push_ststack(*tmpstackp, *rpn_stack);
 				}
-				if(!found) return safe_free_stack(UNMATCHED_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
+				if(!found) return safe_free_stack(UNMATCHED_RIGHT_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
 				break;
 			case addop:
 			case multop:
@@ -541,7 +541,7 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 		stackp = *pop_stack(op_stack);
 		pos = stackp.position;
 		if(isspecialch(stackp.tp))
-			return safe_free_stack(UNMATCHED_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
+			return safe_free_stack(UNMATCHED_LEFT_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
 		push_ststack(stackp, *rpn_stack);
 	}
 
@@ -603,7 +603,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				break;
 			case func:
 				if(stack_size(tmpstack) < 1)
-					return safe_free_stack(WRONG_NUM_VALUES, pos, &tmpstack, rpn);
+					return safe_free_stack(FUNCTION_WRONG_ARGC, pos, &tmpstack, rpn);
 				arg[0] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
@@ -622,7 +622,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 			case multop:
 			case expop:
 				if(stack_size(tmpstack) < 2)
-					return safe_free_stack(WRONG_NUM_VALUES, pos, &tmpstack, rpn);
+					return safe_free_stack(OPERATOR_WRONG_ARGC, pos, &tmpstack, rpn);
 				arg[1] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
@@ -650,7 +650,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 					case '%':
 						if(!arg[1]) {
 							free(result);
-							return safe_free_stack(DIVIDE_BY_ZERO, pos, &tmpstack, rpn);
+							return safe_free_stack(MODULO_BY_ZERO, pos, &tmpstack, rpn);
 						}
 						*result = fmod(arg[0], arg[1]);
 						break;
@@ -667,7 +667,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 		}
 	}
 	if(stack_size(tmpstack) != 1)
-		return safe_free_stack(WRONG_NUM_VALUES, pos, &tmpstack, rpn);
+		return safe_free_stack(TOO_MANY_VALUES, pos, &tmpstack, rpn);
 
 	*ret = *(double *) top_stack(tmpstack)->val;
 
@@ -682,15 +682,27 @@ char *get_error_msg(error_code error) {
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
 			if(full_err)
-				msg = "Attempted to divide or modulo by zero @ %d.";
+				msg = "Cannot divide by zero @ %d.";
 			else
-				msg = "Attempted to divide or modulo by zero.";
+				msg = "Cannot divide by zero.";
 			break;
-		case UNMATCHED_PARENTHESIS:
+		case MODULO_BY_ZERO:
 			if(full_err)
-				msg = "Missing parenthesis in expression @ %d.";
+				msg = "Cannot modulo by zero @ %d.";
 			else
-				msg = "Missing parenthesis in expression.";
+				msg = "Cannot modulo by zero.";
+			break;
+		case UNMATCHED_LEFT_PARENTHESIS:
+			if(full_err)
+				msg = "Missing closing parenthesis for opening parenthesis @ %d.";
+			else
+				msg = "Missing closing parenthesis for opening parenthesis.";
+			break;
+		case UNMATCHED_RIGHT_PARENTHESIS:
+			if(full_err)
+				msg = "Missing opening parenthesis for closing parenthesis @ %d.";
+			else
+				msg = "Missing opening parenthesis for closing parenthesis.";
 			break;
 		case UNKNOWN_TOKEN:
 			if(full_err)
@@ -704,11 +716,23 @@ char *get_error_msg(error_code error) {
 			else
 				msg = "Unknown variable to delete.";
 			break;
-		case WRONG_NUM_VALUES:
+		case FUNCTION_WRONG_ARGC:
 			if(full_err)
-				msg = "Incorrect number of values for operator or function @ %d.";
+				msg = "Not enough arguments for function @ %d.";
 			else
-				msg = "Incorrect number of values for operator or function.";
+				msg = "Not enough arguments for function.";
+			break;
+		case OPERATOR_WRONG_ARGC:
+			if(full_err)
+				msg = "Not enough values for operator @ %d.";
+			else
+				msg = "Not enough values for operator.";
+			break;
+		case TOO_MANY_VALUES:
+			if(full_err)
+				msg = "Too many values in expression @ %d.";
+			else
+				msg = "Too many values in expression.";
 			break;
 		case EMPTY_STACK:
 			if(full_err)
