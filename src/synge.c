@@ -27,9 +27,11 @@
 #include <math.h>
 #include <string.h>
 #include <strings.h>
+#include <assert.h>
 
 #include "stack.h"
 #include "synge.h"
+#include "hashtab.h"
 
 /* Operator Precedence
  * 4 Parenthesis
@@ -44,6 +46,8 @@
 #define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
 
 #define PI 3.14159265358979323
+
+static bool synge_started = false; /* i REALLY reccomend you leave this false, as this is used to ensure that synge_start has been run */
 
 double deg2rad(double deg) {
 	return deg * (PI / 180.0);
@@ -121,6 +125,8 @@ typedef struct __special_number__ {
 	char *name;
 	double value;
 } special_number;
+
+hashtab_t *variable_list = NULL;
 
 special_number number_list[] = {
 	{"pi",			3.14159265358979323},
@@ -246,6 +252,14 @@ int get_precision(double num) {
 	return precision;
 } /* get_precision() */
 
+error_code to_error_code(int error, int position) {
+	error_code ret = {
+		error,
+		position
+	};
+	return ret;
+} /* to_error_code() */
+
 bool isop(s_type type) {
 	return (type == addop || type == multop || type == expop);
 } /* isop() */
@@ -282,7 +296,7 @@ bool is_func(char *val) {
 
 	free(word);
 	return ret;
-}
+} /* is_func() */
 
 bool isnum(char *string) {
 	int ret = false;
@@ -292,7 +306,7 @@ bool isnum(char *string) {
 	endptr = NULL;
 	strtold(string, &endptr);
 
-	if(isspecialnum(s) || string != endptr) ret = true;
+	if(isspecialnum(s) || ht_search(variable_list, s, strlen(s) + 1) || string != endptr) ret = true;
 	else ret = false;
 
 	free(s);
@@ -304,6 +318,14 @@ void set_special_number(char *s, double val, special_number *list) {
 	for(i = 0; list[i].name != NULL; i++)
 		if(!strcasecmp(list[i].name, s)) list[i].value = val;
 } /* set_special_number() */
+
+error_code set_variable(char *s, double val) {
+	assert(synge_started);
+	if(isspecialnum(s))
+		return to_error_code(RESERVED_VARIABLE, -1);
+	ht_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
+	return to_error_code(SUCCESS, -1);
+} /* set_variable() */
 
 char *function_process_replace(char *string) {
 	char *firstpass = NULL;
@@ -353,15 +375,8 @@ bool has_rounding_error(double number) {
 	return false;
 } /* has_rounding_error() */
 
-error_code to_error_code(int error, int position) {
-	error_code ret = {
-		error,
-		position
-	};
-	return ret;
-} /* to_error_code() */
-
 error_code tokenise_string(char *string, stack **ret) {
+	assert(synge_started);
 	char *tmps = replace(string, " ", "");
 	char *s = function_process_replace(tmps);
 
@@ -380,7 +395,12 @@ error_code tokenise_string(char *string, stack **ret) {
 				special_number stnum = getspecialnum(word);
 				*num = stnum.value;
 				i += strlen(stnum.name) - 1;
-			} else {
+			}
+			else if(ht_search(variable_list, word, strlen(word) + 1)) {
+				*num = *(double *) ht_search(variable_list, word, strlen(word) + 1);
+				i += strlen(word) - 1;
+			}
+			else {
 				char *endptr;
 				*num = strtold(s+i, &endptr);
 				i += (endptr - (s + i)) - 1;
@@ -689,6 +709,18 @@ char *get_error_msg(error_code error) {
 			else
 				msg = "Number caused overflow.";
 			break;
+		case INVALID_VARIABLE_NAME:
+			if(full_err)
+				msg = "Variable name contains invalid characters @ %d.";
+			else
+				msg = "Variable name contains invalid characters.";
+			break;
+		case RESERVED_VARIABLE:
+			if(full_err)
+				msg = "Variable name is reserved @ %d.";
+			else
+				msg = "Variable name is reserved.";
+			break;
 		default:
 			if(full_err)
 				msg = "An unknown error has occured @ %d.";
@@ -717,19 +749,45 @@ char *get_error_msg_pos(int code, int pos) {
 	return get_error_msg(to_error_code(code, pos));
 } /* get_error_msg_pos() */
 
-error_code compute_infix_string(char *string, double *result) {
+error_code compute_infix_string(char *original_str, double *result) {
+	assert(synge_started);
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
 	init_stack(rpn_stack);
 	init_stack(infix_stack);
-	error_code ecode;
-	/* generate infix stack */
-	if((ecode = tokenise_string(string, &infix_stack)).code == SUCCESS)
-		/* convert to postfix (or RPN) stack */
-		if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)).code == SUCCESS)
-			/* evaluate postfix (or RPN) stack */
-			if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS);
+	error_code ecode = to_error_code(SUCCESS, -1);
 
-	set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
+	char *final_pass_str = replace(original_str, " ", "");
+	char *string = NULL, *var = NULL;
+
+	if(strchr(final_pass_str, '=')) {
+		var = final_pass_str;
+		string = strrchr(final_pass_str, '=');
+		*string++ = '\0';
+
+#ifdef __DEBUG__
+		printf("%s -> %s\n", var, string);
+#endif
+
+		char *endptr = NULL, *word = get_word(var, SYNGE_VARIABLE_CHARS, &endptr);
+		if(strlen(word) != strlen(var))
+			ecode = to_error_code(INVALID_VARIABLE_NAME, -1);
+		free(word);
+	}
+	else string = final_pass_str;
+
+	if(ecode.code == SUCCESS)
+		/* generate infix stack */
+		if((ecode = tokenise_string(string, &infix_stack)).code == SUCCESS)
+			/* convert to postfix (or RPN) stack */
+			if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)).code == SUCCESS)
+				/* evaluate postfix (or RPN) stack */
+				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
+					/* set the answer variable */
+					set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
+
+	if(var && ecode.code == SUCCESS) ecode = set_variable(var, *result);
+
+	free(final_pass_str);
 	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
 } /* calculate_infix_string() */
 
@@ -745,6 +803,13 @@ function *get_synge_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
+void synge_start(void) {
+	variable_list = ht_init(2, NULL);
+	synge_started = true;
+} /* synge_end() */
+
 void synge_end(void) {
+	if(variable_list) ht_destroy(variable_list);
 	free(error_msg_container);
+	synge_started = false;
 } /* synge_end() */

@@ -31,6 +31,8 @@ typedef struct {
 		WRONG_NUM_VALUES,
 		EMPTY_STACK,
 		NUM_OVERFLOW,
+		INVALID_VARIABLE_NAME,
+		RESERVED_VARIABLE,
 		UNKNOWN_ERROR
 	} code;
 	int position;
@@ -65,4 +67,5 @@ char *get_error_msg(error_code); /* returns a string which describes the error c
 char *get_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
 error_code compute_infix_string(char *, double *); /* takes an infix-style string and runs it through the "engine" */
 
-void synge_end(void); /* run at program termination to free any static pointers (not neccesary, added to engine just to make valgrind happy) */
+void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
+void synge_end(void); /* run at program termination -- memory may leak if not run at end */

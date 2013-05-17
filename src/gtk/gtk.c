@@ -192,6 +192,7 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 } /* gui_populate_function_list() */
 
 int main(int argc, char **argv) {
+	synge_start();
 	srand(time(NULL) ^ getpid());
 
 	gtk_init(&argc, &argv);
