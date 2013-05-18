@@ -32,7 +32,7 @@
 
 #include "stack.h"
 #include "synge.h"
-#include "hashtab.h"
+#include "ohmic.h"
 
 /* Operator Precedence
  * 4 Parenthesis
@@ -130,7 +130,7 @@ typedef struct __special_number__ {
 	double value;
 } special_number;
 
-hashtab_t *variable_list = NULL;
+ohm_t *variable_list = NULL;
 
 special_number number_list[] = {
 	{"pi",			3.14159265358979323},
@@ -312,7 +312,7 @@ bool isnum(char *string) {
 	endptr = NULL;
 	strtold(string, &endptr);
 
-	if(isspecialnum(s) || ht_search(variable_list, s, strlen(s) + 1) || string != endptr) ret = true;
+	if(isspecialnum(s) || ohm_search(variable_list, s, strlen(s) + 1) || string != endptr) ret = true;
 	else ret = false;
 
 	free(s);
@@ -334,7 +334,7 @@ error_code set_variable(char *str, double val) {
 	if(isspecialnum(s))
 		ret = to_error_code(RESERVED_VARIABLE, -1);
 	else
-		ht_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
+		ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
 
 	free(s);
 	return ret;
@@ -346,10 +346,10 @@ error_code del_variable(char *str) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
-	if(!ht_search(variable_list, s, strlen(s) + 1))
+	if(!ohm_search(variable_list, s, strlen(s) + 1))
 		ret = to_error_code(UNKNOWN_VARIABLE, -1);
 	else
-		ht_remove(variable_list, s, strlen(s) + 1);
+		ohm_remove(variable_list, s, strlen(s) + 1);
 
 	free(s);
 	return ret;
@@ -424,8 +424,8 @@ error_code tokenise_string(char *string, stack **ret) {
 				*num = stnum.value;
 				i += strlen(stnum.name) - 1;
 			}
-			else if(ht_search(variable_list, word, strlen(word) + 1)) {
-				*num = *(double *) ht_search(variable_list, word, strlen(word) + 1);
+			else if(ohm_search(variable_list, word, strlen(word) + 1)) {
+				*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
 				i += strlen(word) - 1;
 			}
 			else {
@@ -885,12 +885,12 @@ function *get_synge_function_list(void) {
 } /* get_synge_function_list() */
 
 void synge_start(void) {
-	variable_list = ht_init(2, NULL);
+	variable_list = ohm_init(2, NULL);
 	synge_started = true;
 } /* synge_end() */
 
 void synge_end(void) {
-	if(variable_list) ht_destroy(variable_list);
+	if(variable_list) ohm_free(variable_list);
 	free(error_msg_container);
 	synge_started = false;
 } /* synge_end() */
