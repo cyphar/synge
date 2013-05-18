@@ -26,6 +26,7 @@
 #include "ohmic.h"
 
 ohm_t *ohm_init(int size, int (*hash_func)(void *, int, int)) {
+	if(size < 1) return NULL;
 	ohm_t *new_ohm = malloc(sizeof(ohm_t));
 
 	new_ohm->table = malloc(sizeof(ohm_node *) * size);
@@ -56,8 +57,10 @@ void ohm_free(ohm_t *hashmap) {
 		while(current_node) {
 			free(current_node->key);
 			free(current_node->value);
+
 			parent_node = current_node;
 			current_node = current_node->next;
+
 			free(parent_node);
 		}
 	}
@@ -67,10 +70,10 @@ void ohm_free(ohm_t *hashmap) {
 } /* ohm_free() */
 
 void *ohm_search(ohm_t *hashmap, void *key, int keylen) {
-	if(!key) return NULL;
+	if(!key || keylen < 1) return NULL;
 
 	int index = hashmap->hash(key, keylen, hashmap->size);
-	if(!hashmap->table[index])
+	if(index < 0 || !hashmap->table[index])
 		return NULL;
 
 	ohm_node *current_node = hashmap->table[index];
@@ -84,9 +87,10 @@ void *ohm_search(ohm_t *hashmap, void *key, int keylen) {
 } /* ohm_search() */
 
 void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuelen) {
-	if(!key || !value) return NULL;
+	if(!key || keylen < 1 || !value || valuelen < 1) return NULL;
 
 	int index = hashmap->hash(key, keylen, hashmap->size);
+	if(index < 0) return NULL;
 
 	ohm_node *parent_node = NULL, *current_node;
 	current_node = hashmap->table[index];
@@ -134,9 +138,10 @@ void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuele
 } /* ohm_insert() */
 
 int ohm_remove(ohm_t *hashmap, void *key, int keylen) {
-	if(!key) return 1;
+	if(!key || keylen < 1) return 1;
 
 	int index = hashmap->hash(key, keylen, hashmap->size);
+	if(index < 0) return 1;
 
 	ohm_node *parent_node = NULL, *current_node;
 	current_node = hashmap->table[index];
@@ -166,7 +171,7 @@ int ohm_remove(ohm_t *hashmap, void *key, int keylen) {
 } /* ohm_remove() */
 
 ohm_t *ohm_resize(ohm_t *old_hm, int size) {
-	if(!old_hm) return NULL;
+	if(!old_hm || size < 1) return NULL;
 
 	ohm_t *new_hm = ohm_init(size, old_hm->hash);
 	ohm_iter i = ohm_iter_init(old_hm);
@@ -233,7 +238,7 @@ void ohm_iter_inc(ohm_iter *i) {
 
 /* the djb2 hashing algorithm by Dan Bernstein */
 int ohm_hash(void *key, int keylen, int size) {
-	if(!key) return -1;
+	if(!key || keylen < 1 || size < 1) return -1;
 
 	unsigned int hash = 5381;
 	char c, *k = (char *) key;
