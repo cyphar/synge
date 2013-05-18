@@ -81,12 +81,12 @@ CLI_LFLAGS	= `pkg-config --libs libedit` $(OS_CLI_LFLAGS)
 GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0` $(OS_GTK_LFLAGS)
 TEST_LFLAGS	= $(OS_TEST_LFLAGS)
 
-SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/hashtab.c
+SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c
 CLI_SRC		= $(CLI_DIR)/cli.c
 GTK_SRC		= $(GTK_DIR)/gtk.c
 TEST_SRC	= $(TEST_DIR)/test.c
 
-SHR_DEPS	= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/hashtab.h
+SHR_DEPS	= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/ohmic.h
 CLI_DEPS	=
 GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
 TEST_DEPS	=
