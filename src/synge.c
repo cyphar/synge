@@ -809,6 +809,10 @@ char *get_error_msg_pos(int code, int pos) {
 
 error_code compute_infix_string(char *original_str, double *result) {
 	assert(synge_started);
+
+	if(variable_list->count > variable_list->size * 0.75)
+		variable_list = ohm_resize(variable_list, variable_list->size * 2);
+
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
 	init_stack(rpn_stack);
 	init_stack(infix_stack);
