@@ -845,7 +845,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 		do {
 			tmp++;
 			char *tmpp = NULL, *tmpword = get_word(tmp, SYNGE_VARIABLE_CHARS, &tmpp);
-			if(strlen(tmp) < 1 || strlen(tmpword) < 1) {
+			if(strlen(tmp) < 1 || strlen(tmpword) < 1 || isspecialnum(tmpword)) {
 				ecode = to_error_code(INVALID_VARIABLE_NAME, -1);
 				operation = 0;
 				free(tmpword);
