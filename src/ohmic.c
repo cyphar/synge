@@ -134,6 +134,7 @@ void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuele
 	else
 		hashmap->table[index] = current_node;
 
+	hashmap->count++;
 	return current_node->value;
 } /* ohm_insert() */
 
@@ -166,7 +167,6 @@ int ohm_remove(ohm_t *hashmap, void *key, int keylen) {
 		parent_node = current_node;
 		current_node = current_node->next;
 	}
-
 	return 1;
 } /* ohm_remove() */
 
