@@ -39,8 +39,9 @@
 
 #define ANSI_ERROR	"\x1b[1;31m"
 #define ANSI_INFO	"\x1b[1;37m"
+#define ANSI_OUTPUT	"\x1b[1;37m"
 #define ANSI_CLEAR	"\x1b[0;m"
-#define OUTPUT_PADDING	"\t\t"
+#define OUTPUT_PADDING	""
 
 #ifndef __SYNGE_CLI_VERSION__
 #define __SYNGE_CLI_VERSION__ ""
@@ -233,7 +234,7 @@ int main(int argc, char **argv) {
 				if(ecode.code == EMPTY_STACK) continue;
 				else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
-			else printf("%s= %.*f\n", OUTPUT_PADDING, get_precision(result), result);
+			else printf("%s%.*f%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
 
 			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
 		}
