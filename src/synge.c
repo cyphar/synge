@@ -810,7 +810,7 @@ char *get_error_msg_pos(int code, int pos) {
 error_code compute_infix_string(char *original_str, double *result) {
 	assert(synge_started);
 
-	if(variable_list->count > variable_list->size * 0.75)
+	if(variable_list->count > variable_list->size)
 		variable_list = ohm_resize(variable_list, variable_list->size * 2);
 	*result = 0.0;
 
@@ -850,8 +850,13 @@ error_code compute_infix_string(char *original_str, double *result) {
 		do {
 			tmp++;
 			char *tmpp = NULL, *tmpword = get_word(tmp, SYNGE_VARIABLE_CHARS, &tmpp);
-			if(strlen(tmp) < 1 || strlen(tmpword) < 1 || isspecialnum(tmpword)) {
-				ecode = to_error_code(INVALID_VARIABLE_NAME, -1);
+
+			error_code tmpecode = to_error_code(SUCCESS, -1);
+			if(strlen(tmp) < 1 || strlen(tmpword) < 1) tmpecode = to_error_code(INVALID_VARIABLE_NAME, -1);
+			else if(isspecialnum(tmpword)) tmpecode = to_error_code(RESERVED_VARIABLE, -1);
+
+			if(tmpecode.code != SUCCESS) {
+				ecode = tmpecode;
 				operation = 0;
 				free(tmpword);
 				break;
