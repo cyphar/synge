@@ -55,6 +55,7 @@
 typedef struct __cli_command__ {
 	char *name;
 	void (*exec)();
+	bool whole;
 } cli_command;
 
 void cli_version(void) {
@@ -152,33 +153,36 @@ void cli_set_settings(char *s) {
 } /* cli_set_settings() */
 
 cli_command cli_command_list[] = {
-	{"exit",		      NULL},
-	{"exit()",		      NULL},
-	{"quit",		      NULL},
-	{"quit()",		      NULL},
+	{"exit",	NULL,			true},
+	{"exit()",	NULL,			true},
+	{"quit",	NULL,			true},
+	{"quit()",	NULL,			true},
 
-	{"version",	       cli_version},
-	{"license",	       cli_license},
-	{"warranty",	      cli_warranty},
-	{"banner",		cli_banner},
+	{"version",	cli_version,		true},
+	{"license",	cli_license,		true},
+	{"warranty",	cli_warranty,		true},
+	{"banner",	cli_banner,		true},
 
-	{"list ",	    cli_print_list},
-	{"set ",	  cli_set_settings},
-	{"get ",	cli_print_settings}
+	{"list ",	cli_print_list,		false},
+	{"set ",	cli_set_settings,	false},
+	{"get ",	cli_print_settings,	false},
 };
 
 bool cli_is_command(char *s) {
 	int i;
-	for(i = 0; i < length(cli_command_list); i++)
-		if(!strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return true;
+	for(i = 0; i < length(cli_command_list); i++) {
+		if(cli_command_list[i].whole && !strcmp(cli_command_list[i].name, s)) return true;
+		else if(!cli_command_list[i].whole && !strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return true;
+	}
 	return false;
 } /* cli_is_command() */
 
 cli_command cli_get_command(char *s) {
 	int i;
-	for(i = 0; i < length(cli_command_list); i++)
-		if(!strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return cli_command_list[i];
-
+	for(i = 0; i < length(cli_command_list); i++) {
+		if(cli_command_list[i].whole && !strcmp(cli_command_list[i].name, s)) return cli_command_list[i];
+		else if(!cli_command_list[i].whole && !strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return cli_command_list[i];
+	}
 	cli_command empty = {NULL, NULL};
 	return empty;
 } /* cli_get_command() */
