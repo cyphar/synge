@@ -145,6 +145,7 @@ char *op_list[] = {
 	"-",
 	"*",
 	"/",
+	"\\", /* integer division */
 	"%",
 	"^",
 	"(",
@@ -470,6 +471,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					break;
 				case '*':
 				case '/':
+				case '\\':
 				case '%':
 					type = multop;
 					break;
@@ -687,6 +689,9 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 					case '*':
 						*result = arg[0] * arg[1];
 						break;
+					case '\\':
+						modf(arg[0], &arg[0]);
+						modf(arg[1], &arg[1]);
 					case '/':
 						if(!arg[1]) {
 							free(result);
