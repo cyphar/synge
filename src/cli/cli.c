@@ -236,7 +236,7 @@ int main(int argc, char **argv) {
 			}
 			else if((ecode = compute_infix_string(cur_str, &result)).code != SUCCESS) {
 				if(ecode.code == EMPTY_STACK) continue;
-				else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+				else if(ecode.code != DELETED_VARIABLE) printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
 			else printf("%s%.*f%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
 
