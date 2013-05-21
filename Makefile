@@ -34,6 +34,7 @@ ifeq ($(OS), Windows_NT)
 	OS_GTK_LFLAGS	= -mwindows
 	OS_TEST_LFLAGS	=
 
+	OS_PREFIX	=
 	OS_SUFFIX	=.exe
 else
 	OS_SHR_CFLAGS	=
@@ -46,6 +47,7 @@ else
 	OS_GTK_LFLAGS	=
 	OS_TEST_LFLAGS	=
 
+	OS_PREFIX	=./
 	OS_SUFFIX	=
 endif
 
@@ -140,7 +142,7 @@ test: $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
-		$(PYTHON) $(TEST_DIR)/test.py ./$(EXEC_TEST); \
+		$(PYTHON) $(TEST_DIR)/test.py $(OS_PREFIX)$(EXEC_TEST)$(OS_SUFFIX); \
 	fi
 
 #################

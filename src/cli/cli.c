@@ -215,6 +215,8 @@ char *cli_get_prompt(void *e) {
 	return ">>> ";
 } /* cli_get_prompt() */
 
+/* for some reason, this code (when run on Windows) has
+ * history and line editing automatically added */
 char *fallback_prompt(int *count) {
 	printf("%s", cli_get_prompt(NULL));
 	fflush(stdout);
