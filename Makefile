@@ -92,7 +92,7 @@ GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
 TEST_DEPS	=
 
 VERSION		= 1.2.2
-CLI_VERSION	= 1.0.6
+CLI_VERSION	= 1.0.7
 GTK_VERSION	= 1.0.1 [CONCEPT]
 
 TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_TEST) $(GTK_DIR)/xmlui.h
