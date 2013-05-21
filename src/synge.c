@@ -403,7 +403,7 @@ bool has_rounding_error(double number) {
 	return false;
 } /* has_rounding_error() */
 
-error_code tokenise_string(char *string, stack **ret) {
+error_code tokenise_string(char *string, int offset, stack **ret) {
 	assert(synge_started);
 	char *tmps = replace(string, " ", "");
 	char *s = function_process_replace(tmps);
@@ -415,7 +415,7 @@ error_code tokenise_string(char *string, stack **ret) {
 	init_stack(*ret);
 	int i, pos;
 	for(i = 0; i < strlen(s); i++) {
-		pos = i + 1;
+		pos = i + offset + 1;
 		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
@@ -843,7 +843,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 	if(ecode.code == SUCCESS)
 		/* generate infix stack */
-		if((ecode = tokenise_string(string, &infix_stack)).code == SUCCESS)
+		if((ecode = tokenise_string(string, var ? string - var : 0, &infix_stack)).code == SUCCESS)
 			/* convert to postfix (or RPN) stack */
 			if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)).code == SUCCESS)
 				/* evaluate postfix (or RPN) stack */
