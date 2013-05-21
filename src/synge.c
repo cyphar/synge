@@ -416,13 +416,8 @@ bool has_rounding_error(double number) {
 int recalc_padding(char *str, int len) {
 	int ret = 0, tmp;
 
-	tmp = strnchr(str, '(', len);
-	tmp -= tmp % 2;
-	ret += tmp / 2;
-
-	tmp = strnchr(str, ')', len);
-	tmp -= tmp % 2;
-	ret += tmp / 2;
+	tmp = strnchr(str, ')', len) + strnchr(str, '(', len);
+	ret += tmp / 2 + tmp % 2;
 
 	return ret;
 } /* recalc_padding() */
@@ -439,7 +434,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 	init_stack(*ret);
 	int i, pos;
 	for(i = 0; i < strlen(s); i++) {
-		pos = i + offset - recalc_padding(s, i) + 1;
+		pos = i + offset - recalc_padding(s, i - 1) + 1;
 		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
@@ -496,7 +491,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr);
 
 			function *funcname = get_func(word);
-			push_valstack(funcname, func, pos, *ret);
+			push_valstack(funcname, func, pos - 1, *ret);
 			i += strlen(funcname->name) - 1;
 
 			free(word);
@@ -566,7 +561,7 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 					}
 					push_ststack(*tmpstackp, *rpn_stack);
 				}
-				if(!found) return safe_free_stack(UNMATCHED_RIGHT_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
+				if(!found) return safe_free_stack(UNMATCHED_RIGHT_PARENTHESIS, pos + 1, infix_stack, &op_stack, rpn_stack);
 				break;
 			case addop:
 			case multop:

@@ -80,7 +80,7 @@ CASES = [
 
 	("5%2",				["1"],				0,	"Modulo			"),
 	("13%-2",			["1"],				0,	"Modulo			"),
-	("15.1%2",			["1.1"],			0,	"Modulo			"), # needs to be fixed (due to rounding err)
+	("15.1%2",			["1.1"],			0,	"Modulo			"),
 
 	("(1+1)*2",			["4"],				0,	"Parenthesis		"),
 	("1+(-2)",			["-1"],				0,	"Parenthesis		"),
@@ -102,8 +102,8 @@ CASES = [
 	("0xDEADBEEF - 10",		["3735928549"],			0,	"Mixed Subtraction	"),
 	("0xA0 / 10",			["16"],				0,	"Mixed Division		"),
 
-	("3.0+2.1",			["5.1"],			0,	"Decimal Notation	"), # needs to be fixed (due to rounding err)
-	("5.3+2",			["7.3"],			0,	"Decimal Notation	"), # needs to be fixed (due to rounding err)
+	("3.0+2.1",			["5.1"],			0,	"Decimal Notation	"),
+	("5.3+2",			["7.3"],			0,	"Decimal Notation	"),
 	("0.1+2",			["2.1"],			0,	"Decimal Notation	"),
 	("1.0+3",			["4"],				0,	"Decimal Notation	"),
 	(".1+2",			["2.1"],			0,	"Decimal Notation	"),
@@ -133,18 +133,18 @@ CASES = [
 
 	("tan(45)+cos(60)+sin(30)",	["2"],				deg,	"Degrees Trigonometry	"),
 	("atan(1)+acos(0.5)+asin(0)",	["105"],			deg,	"Degrees Trigonometry	"),
-	("atan(sin(30)/cos(30))",	["30"],				deg,	"Degrees Trigonometry	"), # 'nother rounding error
+	("atan(sin(30)/cos(30))",	["30"],				deg,	"Degrees Trigonometry	"),
 
 	("tan(45)+cos(60)+sin(30)",	["-0.320669414"],		rad,	"Radian Trigonometry	"),
 	("atan(1)+acos(0.5)+asin(0)",	["1.8325957146"],		rad,	"Radian Trigonometry	"),
 	("atan(sin(1.1)/cos(1.1))",	["1.1"],			rad,	"Radian Trigonometry	"),
 
 	("tanh(ln(2))",			["0.6"],			0,	"Hyperbolic Trigonometry	"),
-	("e^atanh(0.6)",		["2"],				0,	"Hyperbolic Trigonometry	"), # 'nother rounding error
+	("e^atanh(0.6)",		["2"],				0,	"Hyperbolic Trigonometry	"),
 	("cosh(ln(2))",			["1.25"],			0,	"Hyperbolic Trigonometry	"),
-	("e^acosh(1.25)",		["2"],				0,	"Hyperbolic Trigonometry	"), # 'nother rounding error
+	("e^acosh(1.25)",		["2"],				0,	"Hyperbolic Trigonometry	"),
 	("sinh(ln(2))",			["0.75"],			0,	"Hyperbolic Trigonometry	"),
-	("e^asinh(0.75)",		["2"],				0,	"Hyperbolic Trigonometry	"), # 'nother rounding error
+	("e^asinh(0.75)",		["2"],				0,	"Hyperbolic Trigonometry	"),
 
 	("deg2rad(180/pi)+rad2deg(pi)",	["181"],			0,	"Angle Conversion	"),
 
@@ -166,11 +166,11 @@ CASES = [
 	("1@5",				error_get("token", 2),		0,	"Unknown Token Error	"),
 	("1/0",				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
 	("1%(2-(2^2/2))",		error_get("zeromod", 2),	0,	"Modulo by Zero Error	"),
-	#("1+(1",			error_get("lparen", 4),		0,	"Parenthesis Error	"), # Gives incorrect location due to paren padding
-	#("1+4)",			error_get("rparen", 4),		0,	"Parenthesis Error	"), # Gives incorrect location due to paren padding
+	("1+(1",			error_get("lparen", 3),		0,	"Parenthesis Error	"),
+	("1+4)",			error_get("rparen", 4),		0,	"Parenthesis Error	"),
 	("1+-+4",			error_get("opvals", 2),		0,	"Token Number Error	"),
 	("2+1-",			error_get("opvals", 4),		0,	"Token Number Error	"),
-	("abs()",			error_get("funcvals", 2),	0,	"Token Number Error	"), # Gives incorrect location due to paren padding
+	("abs()",			error_get("funcvals", 1),	0,	"Token Number Error	"),
 	("100000000000000000000000000",	error_get("overflow", 1),	0,	"Input Overflow Error	"),
 	("231664726992975794912959502", error_get("overflow", 1),	0,	"Input Overflow Error	"),
 	("1+1000000000000000000000000",	error_get("overflow", 3),	0,	"Input Overflow Error	"),

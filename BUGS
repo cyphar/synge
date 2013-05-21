@@ -1,4 +1,3 @@
 List of known bugs and limitations
 
-- An expression like ((1+4) gives you an incorrect error position
 - You can't put a negative in front of a variable to make it negative (a=3; -a)
