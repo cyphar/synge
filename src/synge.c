@@ -352,7 +352,7 @@ error_code set_variable(char *str, double val) {
 error_code del_variable(char *str) {
 	assert(synge_started);
 
-	error_code ret = to_error_code(SUCCESS, -1);
+	error_code ret = to_error_code(DELETED_VARIABLE, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
 	if(!ohm_search(variable_list, s, strlen(s) + 1))
@@ -802,6 +802,12 @@ char *get_error_msg(error_code error) {
 				msg = "Variable name is reserved @ %d.";
 			else
 				msg = "Variable name is reserved.";
+			break;
+		case DELETED_VARIABLE:
+			if(full_err)
+				msg = "";
+			else
+				msg = "";
 			break;
 		case UNDEFINED:
 			if(full_err)
