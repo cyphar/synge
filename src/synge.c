@@ -478,9 +478,11 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					break;
 				case '(':
 					type = lparen;
+					pos -= 1;
 					break;
 				case ')':
 					type = rparen;
+					pos -= 1;
 					break;
 				default:
 					free(s);
@@ -805,9 +807,9 @@ char *get_error_msg(error_code error) {
 			break;
 		case DELETED_VARIABLE:
 			if(full_err)
-				msg = "";
+				msg = "Variable deleted @ %d.";
 			else
-				msg = "";
+				msg = "Variable deleted.";
 			break;
 		case UNDEFINED:
 			if(full_err)
@@ -944,3 +946,10 @@ void synge_end(void) {
 	free(error_msg_container);
 	synge_started = false;
 } /* synge_end() */
+
+int is_success_code(int code) {
+	if(code == SUCCESS ||
+	   code == DELETED_VARIABLE) return true;
+
+	else return false;
+} /* is_success_code() */
