@@ -40,12 +40,25 @@
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
+#ifndef __WIN32
+
 #define ANSI_ERROR	"\x1b[1;31m"
 #define ANSI_GOOD	"\x1b[1;32m"
 #define ANSI_INFO	"\x1b[1;37m"
 #define ANSI_OUTPUT	"\x1b[1;37m"
 #define ANSI_CLEAR	"\x1b[0;m"
 #define OUTPUT_PADDING	""
+
+#else
+/* ANSI Escape Sequences don't work on Windows */
+#define ANSI_ERROR	""
+#define ANSI_GOOD	""
+#define ANSI_INFO	""
+#define ANSI_OUTPUT	""
+#define ANSI_CLEAR	""
+#define OUTPUT_PADDING	""
+
+#endif
 
 #ifndef __SYNGE_CLI_VERSION__
 #define __SYNGE_CLI_VERSION__ ""
