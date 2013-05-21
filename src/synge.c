@@ -226,6 +226,15 @@ char *get_word(char *s, char *list, char **endptr) {
 	return ret;
 } /* get_word() */
 
+/* get number of times a character occurs in the given string */
+int strnchr(char *str, char ch, int len) {
+	int i, ret = 0;
+	for(i = 0; i < len; i++)
+		if(str[i] == ch)
+			ret++;
+	return ret;
+} /* strnchr() */
+
 char *get_from_ch_list(char *ch, char **list, bool delimit) {
 	int i;
 	for(i = 0; list[i] != NULL; i++) {
@@ -403,6 +412,20 @@ bool has_rounding_error(double number) {
 	return false;
 } /* has_rounding_error() */
 
+int recalc_padding(char *str, int len) {
+	int ret = 0, tmp;
+
+	tmp = strnchr(str, '(', len);
+	tmp -= tmp % 2;
+	ret += tmp / 2;
+
+	tmp = strnchr(str, ')', len);
+	tmp -= tmp % 2;
+	ret += tmp / 2;
+
+	return ret;
+} /* recalc_padding() */
+
 error_code tokenise_string(char *string, int offset, stack **ret) {
 	assert(synge_started);
 	char *tmps = replace(string, " ", "");
@@ -415,7 +438,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 	init_stack(*ret);
 	int i, pos;
 	for(i = 0; i < strlen(s); i++) {
-		pos = i + offset + 1;
+		pos = i + offset - recalc_padding(s, i) + 1;
 		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
