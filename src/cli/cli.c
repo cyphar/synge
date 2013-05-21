@@ -27,7 +27,10 @@
 #include <strings.h>
 #include <math.h>
 
+#ifndef __WIN32
 #include <histedit.h> /* readline drop-in replacement */
+#endif
+
 #include <time.h>
 #include <unistd.h>
 
@@ -195,23 +198,42 @@ void sfree(char **pp) {
 	}
 } /* sfree() */
 
-char *cli_get_prompt(EditLine *e) {
+char *cli_get_prompt(void *e) {
 	return ">>> ";
 } /* cli_get_prompt() */
+
+char *fallback_prompt(int *count) {
+	printf("%s", cli_get_prompt(NULL));
+	fflush(stdout);
+
+	char *input = NULL, ch;
+	int len = 0;
+
+	while((ch = getchar()) != '\n') {
+		input = realloc(input, ++len);
+		input[len - 1] = ch;
+	}
+
+	input = realloc(input, ++len);
+	input[len - 1] = '\0';
+
+	*count = len;
+	return input;
+} /* fallback_prompt() */
 
 int main(int argc, char **argv) {
 	synge_start();
 	srand(time(NULL) ^ getpid());
 
 	char *cur_str = NULL;
+	int count;
 	double result = 0;
 	error_code ecode;
-
+#ifndef __WIN32
 	/* Local stuff for libedit */
 	EditLine *cli_el;
 	History *cli_history;
 	HistEvent cli_ev;
-	int count;
 
 	cli_el = el_init(argv[0], stdin, stdout, stderr);
 	el_set(cli_el, EL_PROMPT, &cli_get_prompt);
@@ -221,13 +243,17 @@ int main(int argc, char **argv) {
 	cli_history = history_init();
 	history(cli_history, &cli_ev, H_SETSIZE, 800);
 	el_set(cli_el, EL_HIST, history, cli_history);
-
+#endif
 	/* print banner (cli_banner has a leading newline)*/
 	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 
 	while(true) {
+#ifndef __WIN32
 		cur_str = (char *) el_gets(cli_el, &count); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
+#else
+		cur_str = fallback_prompt(&count);
+#endif
 
 		if(cur_str && strlen(cur_str) && count) {
 			if(cli_is_command(cur_str)) {
@@ -240,14 +266,22 @@ int main(int argc, char **argv) {
 				else printf("%s%s%s%s\n", OUTPUT_PADDING, is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
 			else printf("%s%.*f%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
-
+#ifndef __WIN32
 			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
+#endif
 		}
+#ifdef __WIN32
+		free(cur_str);
+#endif
 	}
 
+#ifndef __WIN32
 	/* free up memory */
 	history_end(cli_history);
 	el_end(cli_el);
+#else
+	free(cur_str);
+#endif
 	synge_end();
 	return 0;
 }

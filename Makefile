@@ -37,12 +37,12 @@ ifeq ($(OS), Windows_NT)
 	OS_SUFFIX	=.exe
 else
 	OS_SHR_CFLAGS	=
-	OS_CLI_CFLAGS	=
+	OS_CLI_CFLAGS	= `pkg-config --cflags libedit`
 	OS_GTK_CFLAGS	= -export-dynamic
 	OS_TEST_CFLAGS	=
 
 	OS_SHR_LFLAGS	=
-	OS_CLI_LFLAGS	=
+	OS_CLI_LFLAGS	= `pkg-config --libs libedit`
 	OS_GTK_LFLAGS	=
 	OS_TEST_LFLAGS	=
 
@@ -72,12 +72,12 @@ GTK_DIR		= $(SRC_DIR)/gtk
 TEST_DIR	= tests
 
 SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char -I$(SRC_DIR)/ $(OS_SHR_CFLAGS)
-CLI_CFLAGS	= `pkg-config --cflags libedit` $(OS_CLI_CFLAGS)
+CLI_CFLAGS	= $(OS_CLI_CFLAGS)
 GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` $(OS_GTK_CFLAGS)
 TEST_CFLAGS	= $(OS_TEST_CFLAGS)
 
 SHR_LFLAGS	= -lm $(OS_SHR_LFLAGS)
-CLI_LFLAGS	= `pkg-config --libs libedit` $(OS_CLI_LFLAGS)
+CLI_LFLAGS	= $(OS_CLI_LFLAGS)
 GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0` $(OS_GTK_LFLAGS)
 TEST_LFLAGS	= $(OS_TEST_LFLAGS)
 
