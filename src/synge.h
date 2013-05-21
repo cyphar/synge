@@ -38,6 +38,7 @@ typedef struct {
 		NUM_OVERFLOW,
 		INVALID_VARIABLE_NAME,
 		RESERVED_VARIABLE,
+		UNDEFINED,
 		UNKNOWN_ERROR
 	} code;
 	int position;
