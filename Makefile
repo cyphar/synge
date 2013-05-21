@@ -106,8 +106,8 @@ INSTALL_DIR	= $(PREFIX)/bin
 
 # Compile "production" engine and wrappers
 all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
-	make $(EXEC_CLI)
-	make $(EXEC_GTK)
+	make $(NAME_CLI)
+	make $(NAME_GTK)
 
 # Compile "production" engine and command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
