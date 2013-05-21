@@ -38,6 +38,7 @@
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
 #define ANSI_ERROR	"\x1b[1;31m"
+#define ANSI_GOOD	"\x1b[1;32m"
 #define ANSI_INFO	"\x1b[1;37m"
 #define ANSI_OUTPUT	"\x1b[1;37m"
 #define ANSI_CLEAR	"\x1b[0;m"
@@ -236,7 +237,7 @@ int main(int argc, char **argv) {
 			}
 			else if((ecode = compute_infix_string(cur_str, &result)).code != SUCCESS) {
 				if(ecode.code == EMPTY_STACK) continue;
-				else if(ecode.code != DELETED_VARIABLE) printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+				else printf("%s%s%s%s\n", OUTPUT_PADDING, is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
 			else printf("%s%.*f%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
 

@@ -69,7 +69,7 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	if((ecode = compute_infix_string(text, &result)).code != SUCCESS) {
 		gtk_label_set_selectable(GTK_LABEL(output), FALSE);
 
-		char *markup = g_markup_printf_escaped("<b><span color=\"red\">%s</span></b>", get_error_msg(ecode));
+		char *markup = g_markup_printf_escaped("<b><span color=\"%s\">%s</span></b>", is_success_code(ecode.code) ? "green" : "red", get_error_msg(ecode));
 
 		gtk_label_set_markup(GTK_LABEL(output), markup);
 		g_free(markup);
