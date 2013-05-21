@@ -66,7 +66,7 @@
 
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
 			"Copyright (C) 2013 Cyphar\n" \
-			"This free software is licensed under the terms of the MIT License with ABSOLUTELY NO WARRANTY\n" \
+			"This free software is licensed under the terms of the MIT License and is provided with ABSOLUTELY NO WARRANTY\n" \
 			"For more information, type 'version', 'license' and 'warranty'\n"
 
 typedef struct __cli_command__ {
