@@ -436,6 +436,7 @@ error_code tokenise_string(char *string, stack **ret) {
 			push_valstack(num, number, pos, *ret);
 			free(word);
 			if(has_rounding_error(*num)) return to_error_code(NUM_OVERFLOW, pos);
+			else if(*num != *num) return to_error_code(UNDEFINED, pos);
 		}
 		else if(get_from_ch_list(s+i, op_list, true)) {
 			s_type type;
@@ -779,6 +780,12 @@ char *get_error_msg(error_code error) {
 			else
 				msg = "Variable name is reserved.";
 			break;
+		case UNDEFINED:
+			if(full_err)
+				msg = "Result is undefined @ %d.";
+			else
+				msg = "Result is undefined.";
+			break;
 		default:
 			if(full_err)
 				msg = "An unknown error has occured @ %d.";
@@ -843,6 +850,10 @@ error_code compute_infix_string(char *original_str, double *result) {
 				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
 					/* set the answer variable */
 					set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
+
+	/* is it a nan? */
+	if(*result != *result)
+		ecode = to_error_code(UNDEFINED, -1);
 
 	int operation = 0;
 	if(var && ((ecode.code == SUCCESS && ++operation) || (ecode.code == EMPTY_STACK && --operation))) {
