@@ -75,6 +75,16 @@ double sy_factorial(double x) {
 	return factorial;
 } /* sy_factorial() */
 
+double sy_series(double x) {
+	x = floor(x);
+	double ret = x;
+
+	while(x)
+		ret += --x;
+
+	return ret;
+} /* sy_series() */
+
 function func_list[] = {
 	{"abs",		fabs,		"abs(x)",	"Absolute value of x"},
 	{"sqrt",	sqrt,		"sqrt(x)",	"Square root of x"},
@@ -90,6 +100,7 @@ function func_list[] = {
 
 	{"rand",	sy_rand,	"rand(x)",	"Generate a psedu-random integer between 0 and floor(x)"},
 	{"fact",	sy_factorial,	"fact(x)",	"Factorial of floor(x)"},
+	{"series",	sy_series,	"series(x)",	"Gives addition of all integers up to floor(x)"},
 
 	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"Convert x degrees to radians"},
 	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"Convert x radians to degrees"},
