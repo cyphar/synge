@@ -653,7 +653,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				break;
 			case func:
 				if(stack_size(tmpstack) < 1)
-					return safe_free_stack(FUNCTION_WRONG_ARGC, pos, &tmpstack, rpn);
+					return safe_free_stack(FUNCTION_WRONG_ARGC, pos < 1 ? pos + 1 : pos, &tmpstack, rpn);
 				arg[0] = *(double *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
