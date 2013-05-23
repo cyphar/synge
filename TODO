@@ -4,7 +4,8 @@ Things to fix/implement:
 	 + Documentation
 	 * More comments
 	SYNGE:
-	 + Variables (a = 1)
+	 + Functions (f(x,y)=x+y) -- maybe
+	 + Multiple evalutations per line (a=1;a+2;a=a+1;a)
 	 * Generalise helper functions
 	 * Improve precision (try to fix rounding errors)
 	CLI:
