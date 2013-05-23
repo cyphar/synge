@@ -77,12 +77,7 @@ double sy_factorial(double x) {
 
 double sy_series(double x) {
 	x = floor(x);
-	double ret = x;
-
-	while(x)
-		ret += --x;
-
-	return ret;
+	return (x * (x+1)) / 2;
 } /* sy_series() */
 
 function func_list[] = {
