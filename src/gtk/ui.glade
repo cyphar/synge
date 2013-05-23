@@ -57,13 +57,12 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
     </child>
   </object>
   <object class="GtkWindow" id="basewindow">
-    <property name="width_request">440</property>
-    <property name="height_request">515</property>
+    <property name="width_request">280</property>
+    <property name="height_request">355</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Synge Calculator</property>
-    <property name="resizable">False</property>
-    <property name="default_width">440</property>
-    <property name="default_height">250</property>
+    <property name="default_width">230</property>
+    <property name="default_height">255</property>
     <signal name="delete-event" handler="kill_window" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box1">
@@ -624,7 +623,7 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
     <property name="width_request">380</property>
     <property name="height_request">400</property>
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Synge Function Selection</property>
+    <property name="title" translatable="yes">Synge Functions</property>
     <signal name="delete-event" handler="gui_close_function_list" swapped="no"/>
     <child>
       <object class="GtkVBox" id="box5">
@@ -698,7 +697,7 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
             <property name="width_request">250</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="hscrollbar_policy">never</property>
+            <property name="hscrollbar_policy">automatic</property>
             <property name="vscrollbar_policy">automatic</property>
             <child>
               <object class="GtkViewport" id="viewport2">
