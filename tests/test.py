@@ -148,12 +148,12 @@ CASES = [
 
 	("deg2rad(180/pi)+rad2deg(pi)",	["181"],			0,	"Angle Conversion	"),
 
-	("2^2^2-15-14-12-11-10^5",	["-100036"],			0,	"Complex Expression	"),
-	("57-(-2)^2-floor(log10(23))",	["52"],				0,	"Complex Expression	"),
-	("2+floor(log10(23))/32",	["2.03125"],			0,	"Complex Expression	"),
-	("ceil((e%2.5)*300)",		["66"],				0,	"Complex Expression	"),
+	("2^2^2-15-14-12-11-10^5",	["-100036"],			0,	"Long Expression		"),
+	("57-(-2)^2-floor(log10(23))",	["52"],				0,	"Long Expression		"),
+	("2+floor(log10(23))/32",	["2.03125"],			0,	"Long Expression		"),
+	("ceil((e%2.5)*300)",		["66"],				0,	"Long Expression		"),
 	("(fact(4)+8)/4+(2+3*4)^2-3^4+(9+10)*(15-21)+7*(17-15)",
-					["23"],				0,	"Complex Expression	"),
+					["23"],				0,	"Long Expression		"),
 
 	("987654321012/987654321012",	["1"],				0,	"Big Numbers		"),
 
