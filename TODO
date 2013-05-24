@@ -6,8 +6,7 @@ Things to fix/implement:
 	SYNGE:
 	 + Functions (f(x,y)=x+y) -- maybe
 	 + Multiple evalutations per line (a=1;a+2;a=a+1;a)
-	 * Generalise helper functions
-	 * Improve precision (try to fix rounding errors)
+	 * Refactor helper functions
 	CLI:
 	 + Getopt command line options for cli
 	 + Add help page
