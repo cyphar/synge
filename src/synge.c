@@ -482,6 +482,9 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 				case '(':
 					type = lparen;
 					pos -= 1;
+					/* every open paren with no operators before it has an implied * */
+					if(top_stack(*ret) && (top_stack(*ret)->tp == number || top_stack(*ret)->tp == rparen))
+						push_valstack(get_from_ch_list("*", op_list, true), multop, pos + 1, *ret);
 					break;
 				case ')':
 					type = rparen;
