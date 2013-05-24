@@ -451,6 +451,15 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			}
 			else if(ohm_search(variable_list, word, strlen(word) + 1)) {
 				*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
+
+				if(top_stack(*ret) && top_stack(*ret)->tp == addop) {
+					s_content *popped = pop_stack(*ret), *tmpp = top_stack(*ret);
+					if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen))
+						*num = -(*num);
+					else
+						push_ststack(*popped, *ret);
+				}
+
 				i += strlen(word) - 1;
 			}
 			else {
