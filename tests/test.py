@@ -86,6 +86,15 @@ CASES = [
 	("1+(-2)",			["-1"],				0,	"Parenthesis		"),
 	("(0.5+0.5)*(1.5+1.5)",		["3"],				0,	"Parenthesis		"),
 
+	("1(2)",			["2"],				0,	"Implied Multiplication	"),
+	("-3(6)",			["-18"],			0,	"Implied Multiplication	"),
+	("4(-3)",			["-12"],			0,	"Implied Multiplication	"),
+	("-1(-3)",			["3"],				0,	"Implied Multiplication	"),
+	("4(0.25)",			["1"],				0,	"Implied Multiplication	"),
+	("-3.5(2)",			["-7"],				0,	"Implied Multiplication	"),
+	("7.2(-5)",			["-36"],			0,	"Implied Multiplication	"),
+	("-2.9(-2.4)",			["6.96"],			0,	"Implied Multiplication	"),
+
 	("10^2",			["100"],			0,	"Indicies		"),
 	("(-3)^2",			["9"],				0,	"Indicies		"),
 	("16^(1/4)",			["2"],				0,	"Fractional Indicies	"),
