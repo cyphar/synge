@@ -441,7 +441,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 	int i, pos;
 	for(i = 0; i < strlen(s); i++) {
 		pos = i + offset - recalc_padding(s, i - 1) + 1;
-		if(isnum(s+i) && (!i || (i > 0 && top_stack(*ret)->tp != number && top_stack(*ret)->tp != rparen))) {
+		if(isnum(s+i) && (!top_stack(*ret) || ((top_stack(*ret)->tp != number || (*(s+i) != '+' && *(s+i) != '-')) && top_stack(*ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
 			if(isspecialnum(word)) {
@@ -452,12 +452,25 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			else if(ohm_search(variable_list, word, strlen(word) + 1)) {
 				*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
 
-				if(top_stack(*ret) && top_stack(*ret)->tp == addop) {
-					s_content *popped = pop_stack(*ret), *tmpp = top_stack(*ret);
-					if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen))
-						*num = -(*num);
-					else
-						push_ststack(*popped, *ret);
+				if(top_stack(*ret)) {
+					s_content *tmppop, *tmpp;
+					switch(top_stack(*ret)->tp) {
+						case addop:
+							tmppop = pop_stack(*ret);
+							tmpp = top_stack(*ret);
+							if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) {
+								if(((char *) tmppop->val)[0] == '-')
+									*num = -(*num);
+							}
+							else
+								push_ststack(*tmppop, *ret);
+							break;
+						case number:
+							push_valstack("*", multop, pos, *ret);
+							break;
+						default:
+							break;
+					}
 				}
 
 				i += strlen(word) - 1;
@@ -493,7 +506,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					pos -= 1;
 					/* every open paren with no operators before it has an implied * */
 					if(top_stack(*ret) && (top_stack(*ret)->tp == number || top_stack(*ret)->tp == rparen))
-						push_valstack(get_from_ch_list("*", op_list, true), multop, pos + 1, *ret);
+						push_valstack("*", multop, pos + 1, *ret);
 					break;
 				case ')':
 					type = rparen;
@@ -518,6 +531,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			free(s);
 			return to_error_code(UNKNOWN_TOKEN, pos);
 		}
+		print_stack(*ret);
 	}
 	free(s);
 	if(!stack_size(*ret)) return to_error_code(EMPTY_STACK, -1);
