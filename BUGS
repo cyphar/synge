@@ -1,3 +1,1 @@
 List of known bugs and limitations
-
-	+ Putting a co-efficient infront of a variable causes an error (a=2; 12a)
