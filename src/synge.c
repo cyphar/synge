@@ -64,6 +64,7 @@ double rad2deg(double rad) {
 double sy_rand(double to) {
 	int min = 0;
 	int max = (int) floor(to);
+	/* better than the standard skewed (rand() % max + min + 1) range */
 	return (rand() % (max + 1 - min)) + min;
 } /* sy_rand() */
 
@@ -77,6 +78,7 @@ double sy_factorial(double x) {
 
 double sy_series(double x) {
 	x = floor(x);
+	/* an epic formula i learnt in year 5 */
 	return (x * (x+1)) / 2;
 } /* sy_series() */
 
@@ -146,6 +148,7 @@ special_number number_list[] = {
 	{NULL,					0.0},
 };
 
+/* used for when a (char *) is needed, but needn't be freed */
 char *op_list[] = {
 	"+",
 	"-",
@@ -165,7 +168,6 @@ synge_settings active_settings = {
 };
 
 static char *error_msg_container = NULL; /* needs to be freed at program termination using synge_free() (if you want valgrind to be happy) */
-
 #define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1) /* hack to get amount of memory needed to store a sprintf() */
 
 void print_stack(stack *s) {
@@ -213,21 +215,22 @@ char *replace(char *str, char *old, char *new) {
 
 char *get_word(char *s, char *list, char **endptr) {
 	int i, j, found;
-	for(i = 0; i < strlen(s); i++) {
-		found = false;
+	for(i = 0; i < strlen(s); i++) { /* for the entire string */
+		found = false; /* reset found variable */
 		for(j = 0; j < strlen(list); j++)
 			if(s[i] == list[j]) {
-				found = true;
-				break;
+				found = true; /* found a match! */
+				break; /* gtfo. */
 			}
-		if(!found) break;
+		if(!found) break; /* current character not in string -- end of word */
 	}
 
+	/* copy over the word */
 	char *ret = malloc(i + 1);
 	strncpy(ret, s, i);
 	ret[i] = '\0';
 
-	strlower(ret);
+	strlower(ret); /* make the word lowercase -- since everything is case insensitive */
 
 	*endptr = s+i;
 	return ret;
@@ -238,16 +241,16 @@ int strnchr(char *str, char ch, int len) {
 	int i, ret = 0;
 	for(i = 0; i < len; i++)
 		if(str[i] == ch)
-			ret++;
+			ret++; /* found a match */
 	return ret;
 } /* strnchr() */
 
 char *get_from_ch_list(char *ch, char **list, bool delimit) {
 	int i;
-	for(i = 0; list[i] != NULL; i++) {
+	for(i = 0; list[i] != NULL; i++)
+		/* checks against part or entire string against the given list */
 		if((delimit && !strncmp(list[i], ch, strlen(list[i]))) ||
 		   (!delimit && !strcmp(list[i], ch))) return list[i];
-	}
 	return NULL;
 } /* get_from_ch_list() */
 
@@ -258,14 +261,16 @@ double *double_dup(double num) {
 } /* double_dup() */
 
 int get_precision(double num) {
-	int tmpsize = lenprintf("%.*f", SYNGE_MAX_PRECISION, num);
+	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
+	int tmpsize = lenprintf("%.*f", SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
-	sprintf(tmp, "%.*f", SYNGE_MAX_PRECISION, num);
-	tmp[tmpsize - 1] = '\0';
+
+	sprintf(tmp, "%.*f", SYNGE_MAX_PRECISION, num); /* sprintf it */
+	tmp[tmpsize - 1] = '\0'; /* force null termination */
 
 	char *p = tmp + tmpsize - 2;
 	int precision = SYNGE_MAX_PRECISION;
-	while(*p == '0' && *p != '.') {
+	while(*p == '0') { /* find all trailing zeros */
 		precision--;
 		p--;
 	}
@@ -290,35 +295,32 @@ bool isspecialch(s_type type) {
 	return (type == lparen || type == rparen);
 } /* isspecialch() */
 
-bool isspecialnum(char *s) {
-	int i;
-	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strcmp(number_list[i].name, s)) return true;
-	return false;
-} /* isspecialnum() */
+/* linear search functions -- cuz honeybadger don't give a f*** */
 
-special_number getspecialnum(char *s) {
+special_number get_special_num(char *s) {
 	int i;
 	special_number ret = {NULL, 0.0};
 	for(i = 0; number_list[i].name != NULL; i++)
 		if(!strcmp(number_list[i].name, s)) return number_list[i];
 	return ret;
-} /* getspecialnum() */
+} /* get_special_num() */
 
 function *get_func(char *val) {
 	int i;
-	for(i = 0; func_list[i].name != NULL; i++)
-		if(!strcmp(val, func_list[i].name)) return &func_list[i];
-	return NULL;
-} /* get_func() */
-
-bool is_func(char *val) {
 	char *endptr = NULL, *word = get_word(val, SYNGE_FUNCTION_CHARS, &endptr);
-	bool ret = (get_func(word) ? true : false);
+	function *ret = NULL;
+
+	for(i = 0; func_list[i].name != NULL; i++)
+		if(!strcmp(word, func_list[i].name)) {
+			ret = &func_list[i];
+			break;
+		}
 
 	free(word);
 	return ret;
-} /* is_func() */
+} /* get_func() */
+
+/* end linear search functions */
 
 bool isnum(char *string) {
 	int ret = false;
@@ -328,7 +330,8 @@ bool isnum(char *string) {
 	endptr = NULL;
 	strtold(string, &endptr);
 
-	if(isspecialnum(s) || ohm_search(variable_list, s, strlen(s) + 1) || string != endptr) ret = true;
+	/* all cases where word is a number */
+	if(get_special_num(s).name || ohm_search(variable_list, s, strlen(s) + 1) || string != endptr) ret = true;
 	else ret = false;
 
 	free(s);
@@ -336,6 +339,7 @@ bool isnum(char *string) {
 } /* isnum() */
 
 void set_special_number(char *s, double val, special_number *list) {
+	/* specifically made for the ans "variable" -- use the hashmap for real variables */
 	int i;
 	for(i = 0; list[i].name != NULL; i++)
 		if(!strcmp(list[i].name, s)) list[i].value = val;
@@ -347,7 +351,8 @@ error_code set_variable(char *str, double val) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
-	if(isspecialnum(s))
+	if(get_special_num(s).name)
+		/* name is reserved -- give error */
 		ret = to_error_code(RESERVED_VARIABLE, -1);
 	else
 		ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
@@ -362,7 +367,11 @@ error_code del_variable(char *str) {
 	error_code ret = to_error_code(DELETED_VARIABLE, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
-	if(!ohm_search(variable_list, s, strlen(s) + 1))
+	if(get_special_num(s).name)
+		/* name is reserved -- give error */
+		ret = to_error_code(RESERVED_VARIABLE, -1);
+	else if(!ohm_search(variable_list, s, strlen(s) + 1))
+		/* variable doesn't exist */
 		ret = to_error_code(UNKNOWN_VARIABLE, -1);
 	else
 		ohm_remove(variable_list, s, strlen(s) + 1);
@@ -376,20 +385,26 @@ char *function_process_replace(char *string) {
 
 	int i;
 	for(i = 0; alias_list[i].alias != NULL; i++) {
+		/* replace all aliases*/
 		char *tmppass = replace(firstpass ? firstpass : string, alias_list[i].alias, alias_list[i].function);
 		free(firstpass);
 		firstpass = tmppass;
 	}
 
+	/* a hack for function division i thought of in maths ...
+	 * ... basically, double every open and close bracket ... */
 	char *secondpass = replace(firstpass, "(", "((");
 	char *final = replace(secondpass, ")", "))");
 
+	/* ... then for each function name, turn f((x)) into (f(x)) */
 	for(i = 0; func_list[i].name != NULL; i++) {
-		char *tmpfrom = malloc(strlen(func_list[i].name) + 3);
+		/* make search string */
+		char *tmpfrom = malloc(strlen(func_list[i].name) + 3); /* +2 for brackets, +1 for null terminator */
 		strcpy(tmpfrom, func_list[i].name);
 		strcat(tmpfrom, "((");
 
-		char *tmpto = malloc(strlen(func_list[i].name) + 3);
+		/* make replacement string */
+		char *tmpto = malloc(strlen(func_list[i].name) + 3); /* +2 for brackets, +1 for null terminator */
 		strcpy(tmpto, "(");
 		strcat(tmpto, func_list[i].name);
 		strcat(tmpto, "(");
@@ -402,10 +417,10 @@ char *function_process_replace(char *string) {
 		}
 #endif
 		free(final);
-		final = tmpfinal;
-
 		free(tmpfrom);
 		free(tmpto);
+
+		final = tmpfinal;
 	}
 
 	free(firstpass);
@@ -414,6 +429,7 @@ char *function_process_replace(char *string) {
 }
 
 bool has_rounding_error(double number) {
+	/* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
 	if(number + 1 == number || number - 1 == number)
 		return true;
 	return false;
@@ -422,6 +438,7 @@ bool has_rounding_error(double number) {
 int recalc_padding(char *str, int len) {
 	int ret = 0, tmp;
 
+	/* the number of open and close brackets is double the amount in the original string (except for mismatched parens) */
 	tmp = strnchr(str, ')', len) + strnchr(str, '(', len);
 	ret += tmp / 2 + tmp % 2;
 
@@ -444,8 +461,8 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 		if(isnum(s+i) && (!top_stack(*ret) || ((top_stack(*ret)->tp != number || (*(s+i) != '+' && *(s+i) != '-')) && top_stack(*ret)->tp != rparen))) {
 			double *num = malloc(sizeof(double));
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
-			if(isspecialnum(word)) {
-				special_number stnum = getspecialnum(word);
+			if(get_special_num(word).name) {
+				special_number stnum = get_special_num(word);
 				*num = stnum.value;
 				i += strlen(stnum.name) - 1;
 			}
@@ -463,9 +480,11 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 									*num = -(*num);
 							}
 							else
+								/* whoops! didn't match criteria. push it back. */
 								push_ststack(*tmppop, *ret);
 							break;
 						case number:
+							/* two numbers together have an impiled*/
 							push_valstack("*", multop, pos, *ret);
 							break;
 						default:
@@ -518,7 +537,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			}
 			push_valstack(get_from_ch_list(s+i, op_list, true), type, pos, *ret);
 		}
-		else if(is_func(s+i)) {
+		else if(get_func(s+i)) {
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr);
 
 			function *funcname = get_func(word);
@@ -541,12 +560,13 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 } /* tokenise_string() */
 
 bool op_precedes(s_type op1, s_type op2) {
-	/* IMPORTANT:	returns true if:
-	 * 			op1 > op2 (or op1 > op2 - 0)
-	 * 			op2 is left associative and op1 >= op2 (or op1 > op2 - 1)
-	 * 		returns false otherwise
+	/* returns true if:
+	 * 	op1 > op2 (or op1 > op2 - 0)
+	 * 	op2 is left associative and op1 >= op2 (or op1 > op2 - 1)
+	 * returns false otherwise
 	 */
 	int lassoc;
+	/* here be dragons! obscure integer hacks follow. */
 	switch(op2) {
 		case addop:
 		case multop:
@@ -559,10 +579,8 @@ bool op_precedes(s_type op1, s_type op2) {
 			return false; /* what the hell you doing? */
 			break;
 	}
-	if(op1 > op2 - lassoc) return true;
-	else return false;
+	return (op1 > op2 - lassoc);
 } /* op_precedes() */
-
 
 error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 	s_content stackp, *tmpstackp;
@@ -758,6 +776,8 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 char *get_error_msg(error_code error) {
 	bool full_err = (error.position > 0 && active_settings.error >= position);
 	char *msg = NULL;
+
+	/* get correct printf string */
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
 			if(full_err)
@@ -858,6 +878,8 @@ char *get_error_msg(error_code error) {
 	}
 
 	free(error_msg_container);
+
+	/* allocates memory and sets error_msg_container() */
 	if(full_err) {
 		error_msg_container = malloc(lenprintf(msg, error.position));
 		sprintf(error_msg_container, msg, error.position);
@@ -910,10 +932,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 			/* convert to postfix (or RPN) stack */
 			if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)).code == SUCCESS)
 				/* evaluate postfix (or RPN) stack */
-				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
-					/* set the answer variable */
-					set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
-
+				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS);
 	/* is it a nan? */
 	if(*result != *result)
 		ecode = to_error_code(UNDEFINED, -1);
@@ -927,7 +946,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 			error_code tmpecode = to_error_code(SUCCESS, -1);
 			if(strlen(tmp) < 1 || strlen(tmpword) < 1) tmpecode = to_error_code(INVALID_VARIABLE_NAME, -1);
-			else if(isspecialnum(tmpword)) tmpecode = to_error_code(RESERVED_VARIABLE, -1);
+			else if(get_special_num(tmpword).name) tmpecode = to_error_code(RESERVED_VARIABLE, -1);
 
 			if(tmpecode.code != SUCCESS) {
 				ecode = tmpecode;
@@ -951,6 +970,10 @@ error_code compute_infix_string(char *original_str, double *result) {
 			} while((var = strchr(var, '=')) != NULL);
 		}
 	}
+
+	/* FINALLY, set answer variable */
+	if(is_success_code(ecode.code))
+		set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
 
 	free(final_pass_str);
 	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
