@@ -51,7 +51,7 @@ enum {
 	FUNCL_N_COLUMNS
 };
 
-static GObject *input, *output, *func_window, *func_tree;
+static GObject *input, *output, *statusbar, *func_window, *func_tree;
 GtkBuilder *builder;
 GtkWidget *window;
 
@@ -70,17 +70,20 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 		gtk_label_set_selectable(GTK_LABEL(output), FALSE);
 
 		char *markup = g_markup_printf_escaped("<b><span color=\"%s\">%s</span></b>", is_success_code(ecode.code) ? "#008800" : "red", get_error_msg(ecode));
+		gtk_label_set_markup(GTK_LABEL(statusbar), markup);
+		gtk_label_set_text(GTK_LABEL(output), "");
 
-		gtk_label_set_markup(GTK_LABEL(output), markup);
 		g_free(markup);
+
 	} else {
 		gtk_label_set_selectable(GTK_LABEL(output), TRUE);
 
-		char *outputs = malloc((snprintf(NULL, 0, "= %.*f", get_precision(result), result) + 1) * sizeof(char));
-		sprintf(outputs, "= %.*f", get_precision(result), result);
+		char *outputs = malloc((snprintf(NULL, 0, "%.*f", get_precision(result), result) + 1) * sizeof(char));
+		sprintf(outputs, "%.*f", get_precision(result), result);
 
 		char *markup = g_markup_printf_escaped("<b>%s</b>", outputs);
 		gtk_label_set_markup(GTK_LABEL(output), markup);
+		gtk_label_set_text(GTK_LABEL(statusbar), "");
 
 		free(outputs);
 		g_free(markup);
@@ -108,6 +111,7 @@ __EXPORT_SYMBOL void gui_backspace_string(GtkWidget *widget, gpointer data) {
 __EXPORT_SYMBOL void gui_clear_string(GtkWidget *widget, gpointer data) {
 	gtk_entry_set_text(GTK_ENTRY(input), "");
 	gtk_label_set_text(GTK_LABEL(output), "");
+	gtk_label_set_text(GTK_LABEL(statusbar), "");
 } /* gui_clear_string() */
 
 __EXPORT_SYMBOL void gui_about_popup(GtkWidget *widget, gpointer data) {
@@ -211,6 +215,7 @@ int main(int argc, char **argv) {
 
 	input = gtk_builder_get_object(builder, "input");
 	output = gtk_builder_get_object(builder, "output");
+	statusbar = gtk_builder_get_object(builder, "statusbar");
 	func_window = gtk_builder_get_object(builder, "function_select");
 	func_tree = gtk_builder_get_object(builder, "function_tree");
 
