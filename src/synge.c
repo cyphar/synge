@@ -84,6 +84,10 @@ double sy_series(double x) {
 	return (x * (x+1)) / 2;
 } /* sy_series() */
 
+double sy_assert(double x) {
+	return x ? 1.0 : 0.0;
+} /* sy_assert */
+
 function func_list[] = {
 	{"abs",		fabs,		"abs(x)",	"Absolute value of x"},
 	{"sqrt",	sqrt,		"sqrt(x)",	"Square root of x"},
@@ -100,6 +104,7 @@ function func_list[] = {
 	{"rand",	sy_rand,	"rand(x)",	"Generate a psedu-random integer between 0 and floor(x)"},
 	{"fact",	sy_factorial,	"fact(x)",	"Factorial of floor(x)"},
 	{"series",	sy_series,	"series(x)",	"Gives addition of all integers up to floor(x)"},
+	{"assert",	sy_assert,	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise"},
 
 	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"Convert x degrees to radians"},
 	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"Convert x radians to degrees"},
