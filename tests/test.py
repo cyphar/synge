@@ -34,8 +34,8 @@ ansi_reset = "\x1b[0m"
 errors = {
 		"zerodiv"	: "Cannot divide by zero",
 		"zeromod"	: "Cannot modulo by zero",
-		"lparen"	: "Missing closing parenthesis for opening parenthesis",
-		"rparen"	: "Missing opening parenthesis for closing parenthesis",
+		"lparen"	: "Missing closing bracket for opening bracket",
+		"rparen"	: "Missing opening bracket for closing bracket",
 		"token"		: "Unknown token or function in expression",
 		"opvals"	: "Not enough values for operator",
 		"funcvals"	: "Not enough arguments for function",
