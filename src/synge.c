@@ -467,6 +467,17 @@ int recalc_padding(char *str, int len) {
 	return ret;
 } /* recalc_padding() */
 
+int next_offset(char *str, int offset) {
+	int i;
+	/* continue from given offset */
+	for(i = offset; i < strlen(str); i++)
+		if(str[i] != ' ' && str[i] != '\t')
+			/* found a non-whitespace character */
+			return i;
+	/* nothing left */
+	return -1;
+} /* next_offset() */
+
 error_code tokenise_string(char *string, int offset, stack **ret) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
@@ -481,9 +492,10 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 		if(s[i] == ' ') continue; /* ignore spaces */
 		/* full is num */
 		else if(isnum(s+i) && /* does it fit the description of a number? */
-		  (!top_stack(*ret) || /* if nothing before, it's a number */
-		 ((top_stack(*ret)->tp != number || (*(s+i) != '+' && *(s+i) != '-')) && /* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
-		   top_stack(*ret)->tp != rparen))) {
+		       (!top_stack(*ret) || /* if nothing before, it's a number */
+		/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
+		       ((top_stack(*ret)->tp != number || (*(s+i) != '+' && *(s+i) != '-')) &&
+		        (top_stack(*ret)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
 			double *num = malloc(sizeof(double)); /* allocate memory to be pushed onto the stack */
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
 			if(get_special_num(word).name) {
@@ -536,6 +548,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 				return to_error_code(UNDEFINED, pos);
 		}
 		else if(get_from_ch_list(s+i, op_list, true)) {
+			int postpush = false;
 			s_type type;
 			/* find and set type appropriate to operator */
 			switch(s[i]) {
@@ -562,12 +575,18 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 				case ')':
 					type = rparen;
 					pos -= 1; /* 'hack' to ensure the error position is correct */
+					if(isnum(s+next_offset(s, i+1)) && !get_from_ch_list(s+next_offset(s, i+1), op_list, true))
+						postpush = true;
 					break;
 				default:
 					free(s);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
 			push_valstack(get_from_ch_list(s+i, op_list, true), type, pos, *ret); /* push operator onto stack */
+
+			if(postpush)
+				push_valstack("*", multop, pos, *ret);
+
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
@@ -657,7 +676,8 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 					push_ststack(*tmpstackp, *rpn_stack); /* push it onto the stack */
 				}
 				if(!found)
-					return safe_free_stack(UNMATCHED_RIGHT_PARENTHESIS, pos + 1, infix_stack, &op_stack, rpn_stack); /* if no lparen was found, this is an unmatched right bracket*/
+					/* if no lparen was found, this is an unmatched right bracket*/
+					return safe_free_stack(UNMATCHED_RIGHT_PARENTHESIS, pos + 1, infix_stack, &op_stack, rpn_stack);
 				break;
 			case addop:
 			case multop:
@@ -845,7 +865,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 
 	/* if there is not one item on the stack, there are too many values on the stack */
 	if(stack_size(tmpstack) != 1)
-		return safe_free_stack(TOO_MANY_VALUES, pos, &tmpstack, rpn);
+		return safe_free_stack(TOO_MANY_VALUES, -1, &tmpstack, rpn);
 
 	/* otherwise, the last item is the result */
 	*ret = *(double *) top_stack(tmpstack)->val;
