@@ -36,7 +36,8 @@ typedef struct {
 		TOO_MANY_VALUES,
 		EMPTY_STACK,
 		NUM_OVERFLOW,
-		INVALID_VARIABLE_NAME,
+		INVALID_VARIABLE_CHAR,
+		EMPTY_VARIABLE_NAME,
 		RESERVED_VARIABLE,
 		DELETED_VARIABLE,
 		UNDEFINED,
@@ -72,8 +73,9 @@ void set_synge_settings(synge_settings); /* set active settings to given setting
 
 char *get_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
 char *get_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
+
 error_code compute_infix_string(char *, double *); /* takes an infix-style string and runs it through the "engine" */
 int is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
 
 void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
-void synge_end(void); /* run at program termination -- memory may leak if not run at end */
+void synge_end(void); /* run at program termination -- memory WILL leak if not run at end */
