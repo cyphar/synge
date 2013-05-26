@@ -135,6 +135,8 @@ CASES = [
 	("ln(100)/ln(10)",		["2"],				0,	"Function Division	"),
 	("ceil(11.01)/floor(12.01)",	["1"],				0,	"Function Division	"),
 
+	("3+4*2/(1-5)^2^3",		["3.0001220703"],			0,	"Operator Precedence	"),
+
 	("rand(100)",			["32"],				0,	'"Random" Number		'),
 	("rand(26)",			["19"],				0,	'"Random" Number		'),
 	("rand(146.7)",			["64"],				0,	'"Random" Number		'),
