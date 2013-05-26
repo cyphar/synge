@@ -176,7 +176,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 ###################
 
 # Install both wrappers
-install: $(EXEC_CLI) $(EXEC_GTK)
+install:
 	make install-cli
 	make install-gtk
 
