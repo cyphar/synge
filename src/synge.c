@@ -116,9 +116,9 @@ function func_list[] = {
 	{"cosh",	cosh,		"cosh(x)",	"Hyperbolic cosine of x"},
 	{"tanh",	tanh,		"tanh(x)",	"Hyperbolic tangent of x"},
 
-	{"sini",	asin,		"sini(x)",	"Inverse sine of x"},
-	{"cosi",	acos,		"cosi(x)",	"Inverse cosine of x"},
-	{"tani",	atan,		"tani(x)",	"Inverse tangent of x"},
+	{"sini",	asin,		"asin(x)",	"Inverse sine of x"},
+	{"cosi",	acos,		"acos(x)",	"Inverse cosine of x"},
+	{"tani",	atan,		"atan(x)",	"Inverse tangent of x"},
 	{"sin",		sin,		"sin(x)",	"Sine of x"},
 	{"cos",		cos,		"cos(x)",	"Cosine of x"},
 	{"tan",		tan,		"tan(x)",	"Tangent of x"},
