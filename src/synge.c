@@ -263,6 +263,15 @@ double *double_dup(double num) {
 	return ret;
 } /* double_dup() */
 
+char *str_dup(char *s) {
+	char *ret = malloc(strlen(s) + 1);
+
+	strcpy(ret, s);
+	ret[strlen(s)] = '\0'; /* ensure null termination */
+
+	return ret;
+} /* str_dup() */
+
 int get_precision(double num) {
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
 	int tmpsize = lenprintf("%.*f", SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
@@ -458,8 +467,9 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 	int i, pos;
 	for(i = 0; i < strlen(s); i++) {
 		pos = i + offset - recalc_padding(s, i - 1) + 1;
+		if(s[i] == ' ') continue; /* ignore spaces */
 		/* full is num */
-		if(isnum(s+i) && /* does it fit the description of a number? */
+		else if(isnum(s+i) && /* does it fit the description of a number? */
 		  (!top_stack(*ret) || /* if nothing before, it's a number */
 		 ((top_stack(*ret)->tp != number || (*(s+i) != '+' && *(s+i) != '-')) && /* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
 		   top_stack(*ret)->tp != rparen))) {
@@ -985,7 +995,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 	error_code ecode = to_error_code(SUCCESS, -1);
 
 	/* process string */
-	char *final_pass_str = replace(original_str, " ", "");
+	char *final_pass_str = str_dup(original_str);
 	char *string = NULL, *var = NULL;
 
 	/* find any variable assignments (=) in string */
