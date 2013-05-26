@@ -1,3 +1,1 @@
 List of known bugs and limitations
-
-	- Error positions are incorrect if expression contains spaces before it (as the string is stripped of spaces)
