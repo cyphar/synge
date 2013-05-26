@@ -2,7 +2,6 @@ Things to fix/implement:
 
 	ALL:
 	 + Documentation
-	 * More comments
 	SYNGE:
 	 + Functions (f(x,y)=x+y) -- maybe
 	 + Multiple evalutations per line (a=1;a+2;a=a+1;a)
