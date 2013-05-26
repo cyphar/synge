@@ -28,7 +28,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <strings.h>
-#include <assert.h>
 
 #include "stack.h"
 #include "synge.h"
@@ -50,6 +49,9 @@
 
 #define strlower(x) do { char *p = x; for(; *p; ++p) *p = tolower(*p); } while(0)
 #define strupper(x) do { char *p = x; for(; *p; ++p) *p = toupper(*p); } while(0)
+
+/* my own assert() implementation */
+#define assert(x) do { if(!x) { printf("synge: assertion '%s' failed -- aborting!\n", #x); exit(254); }} while(0)
 
 static bool synge_started = false; /* i REALLY reccomend you leave this false, as this is used to ensure that synge_start has been run */
 
