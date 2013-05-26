@@ -147,10 +147,14 @@ typedef struct __special_number__ {
 
 ohm_t *variable_list = NULL;
 
-special_number number_list[] = {
+special_number constant_list[] = {
 	{"pi",			3.14159265358979323},
 	{"e",			2.71828182845904523},
 	{"life",			       42.0}, /* Sorry, I couldn't resist */
+
+	{"true",				1.0},
+	{"false",				0.0},
+
 	{SYNGE_PREV_ANSWER,			0.0},
 	{NULL,					0.0},
 };
@@ -316,9 +320,9 @@ bool isop(s_type type) {
 special_number get_special_num(char *s) {
 	int i;
 	special_number ret = {NULL, 0.0};
-	for(i = 0; number_list[i].name != NULL; i++)
-		if(!strcmp(number_list[i].name, s))
-			return number_list[i];
+	for(i = 0; constant_list[i].name != NULL; i++)
+		if(!strcmp(constant_list[i].name, s))
+			return constant_list[i];
 	return ret;
 } /* get_special_num() */
 
@@ -1084,7 +1088,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 	/* FINALLY, set the answer variable */
 	if(is_success_code(ecode.code))
-		set_special_number(SYNGE_PREV_ANSWER, *result, number_list);
+		set_special_number(SYNGE_PREV_ANSWER, *result, constant_list);
 
 	free(final_pass_str);
 	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
