@@ -1026,7 +1026,10 @@ error_code compute_infix_string(char *original_str, double *result) {
 			/* convert to postfix (or RPN) stack */
 			if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)).code == SUCCESS)
 				/* evaluate postfix (or RPN) stack */
-				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS);
+				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
+					/* fix up negative zeros */
+					if(*result == abs(*result))
+						*result = abs(*result);
 
 	/* is it a nan? */
 	if(*result != *result)
