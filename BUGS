@@ -1,1 +1,3 @@
 List of known bugs and limitations
+
+	- There is no implied * if you put a number after a paren group (i.e. (12 - 3)2)
