@@ -87,10 +87,10 @@ CASES = [
 	("(0.5+0.5)*(1.5+1.5)",		["3"],				0,	"Parenthesis		"),
 
 	("1(2)",			["2"],				0,	"Implied Multiplication	"),
-	("-3(6)",			["-18"],			0,	"Implied Multiplication	"),
-	("4(-3)",			["-12"],			0,	"Implied Multiplication	"),
-	("-1(-3)",			["3"],				0,	"Implied Multiplication	"),
-	("4(0.25)",			["1"],				0,	"Implied Multiplication	"),
+	("-3(6)",			["-18"],			0,	"implied multiplication	"),
+	("4(-3)",			["-12"],			0,	"implied multiplication	"),
+	("-1(-3)",			["3"],				0,	"implied multiplication	"),
+	("4(0.25)",			["1"],				0,	"implied multiplication	"),
 	("-3.5(2)",			["-7"],				0,	"Implied Multiplication	"),
 	("7.2(-5)",			["-36"],			0,	"Implied Multiplication	"),
 	("-2.9(-2.4)",			["6.96"],			0,	"Implied Multiplication	"),
@@ -135,7 +135,7 @@ CASES = [
 	("ln(100)/ln(10)",		["2"],				0,	"Function Division	"),
 	("ceil(11.01)/floor(12.01)",	["1"],				0,	"Function Division	"),
 
-	("3+4*2/(1-5)^2^3",		["3.0001220703"],			0,	"Operator Precedence	"),
+	("3+4*2/(1-5)^2^3",		["3.0001220703"],		0,	"Operator Precedence	"),
 
 	("rand(100)",			["32"],				0,	'"Random" Number		'),
 	("rand(26)",			["19"],				0,	'"Random" Number		'),
@@ -167,6 +167,20 @@ CASES = [
 					["23"],				0,	"Long Expression		"),
 
 	("987654321012/987654321012",	["1"],				0,	"Big Numbers		"),
+
+	("1 +1 ",			["2"],				0,	"Spaces			"),
+	("  41 + 1",			["42"],				0,	"Spaces			"),
+	(" 43.7+ 2.3  ",		["46"],				0,	"Spaces			"),
+	("-3( 6)",			["-18"],			0,	"Spaces			"),
+	("4 ( -3 )",			["-12"],			0,	"Spaces			"),
+	("-1  (-3)",			["3"],				0,	"Spaces			"),
+	(" 4( 0.25)",			["1"],				0,	"Spaces			"),
+	("  -3.5( 2)",			["-7"],				0,	"Spaces			"),
+	("1+  -1",			["0"],				0,	"Spaces			"),
+	(" 5  -3",			["2"],				0,	"Spaces			"),
+	("( -3  )   ^ 2",		["9"],				0,	"Spaces			"),
+	("16  ^( 1 /  4 )",		["2"],				0,	"Spaces			"),
+	("3 +4  *2 / ( 1- 5)^ 2 ^ 3",	["3.0001220703"],		0,	"Spaces			"),
 
 	# expected errors
 	("",				error_get("empty"),		0,	"Empty Expression Error	"),
