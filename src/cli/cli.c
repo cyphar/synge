@@ -76,24 +76,23 @@ typedef struct __cli_command__ {
 } cli_command;
 
 void cli_version(void) {
-	printf(	"\n%s"
+	printf(	"%s"
 		"Synge:       %s\n"
 		"Synge-Cli:   %s\n"
-		"\n"
 		"Compiled:    %s, %s\n"
-		"%s\n", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__, __TIME__, __DATE__, ANSI_CLEAR);
+		"%s", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__, __TIME__, __DATE__, ANSI_CLEAR);
 } /* cli_version() */
 
 void cli_license(void) {
-	printf("\n%s%s%s\n", ANSI_INFO, SYNGE_CLI_LICENSE, ANSI_CLEAR);
+	printf("%s%s%s", ANSI_INFO, SYNGE_CLI_LICENSE, ANSI_CLEAR);
 } /* cli_license() */
 
 void cli_warranty(void) {
-	printf("\n%s%s%s\n", ANSI_INFO, SYNGE_WARRANTY, ANSI_CLEAR);
+	printf("%s%s%s", ANSI_INFO, SYNGE_WARRANTY, ANSI_CLEAR);
 } /* cli_warranty() */
 
 void cli_banner(void) {
-	printf("\n%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
+	printf("%s%s%s", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 } /* cli_banner() */
 
 void cli_print_list(char *s) {
@@ -101,10 +100,8 @@ void cli_print_list(char *s) {
 	int i;
 	if(!strcmp(args, "functions")) {
 		function *function_list = get_synge_function_list();
-		printf("\n");
 		for(i = 0; function_list[i].name != NULL; i++)
-			printf("%s%*s -- %s%s\n", ANSI_INFO, 10, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
-		printf("\n");
+			printf("%s%*s - %s%s\n", ANSI_INFO, 10, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
 	}
 	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 } /* cli_print_list() */
@@ -137,7 +134,7 @@ void cli_print_settings(char *s) {
 
 	if(!ret)
 		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
-	else printf("\n%s%s%s\n\n", ANSI_INFO, ret, ANSI_CLEAR);
+	else printf("%s%s%s\n", ANSI_INFO, ret, ANSI_CLEAR);
 } /* cli_print_settings() */
 
 void cli_set_settings(char *s) {
@@ -166,7 +163,18 @@ void cli_set_settings(char *s) {
 
 	if(err)
 		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
-	else set_synge_settings(new_settings);
+	else {
+		set_synge_settings(new_settings);
+
+		char *tmp = malloc(strlen(s));
+		strcpy(tmp, s);
+
+		tmp[0] = 'g';
+		*strrchr(tmp, ' ') = '\0';
+
+		cli_print_settings(tmp);
+		free(tmp);
+	}
 } /* cli_set_settings() */
 
 cli_command cli_command_list[] = {
