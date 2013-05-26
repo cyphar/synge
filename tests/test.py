@@ -103,6 +103,8 @@ CASES = [
 	("pi-pi%1",			["3"],				0,	"Magic Numbers		"),
 	("e-e%1",			["2"],				0,	"Magic Numbers		"),
 
+	("-0",				["0"],				0,	"Negative Zero		"),
+
 	("0xDEADBEEF + 0xA",		["3735928569"],			0,	"Hexadecimal Addition	"),
 	("0xDEADBEEF - 0xA",		["3735928549"],			0,	"Hexadecimal Subtraction	"),
 	("0xA0 / 0xA",			["16"],				0,	"Hexadecimal Division	"),
