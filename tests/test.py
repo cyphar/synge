@@ -75,8 +75,8 @@ CASES = [
 
 	("4\\2",			["2"],				0,	"Integer Division	"),
 	("-9\\3",			["-3"],				0,	"Integer Division	"),
-	("5.2412\\1.223",		["5"],				0,	"Integer Division	"),
-	("-4.2394\\2.3",		["-2"],				0,	"Integer Division	"),
+	("5.2412\\1.223",		["4"],				0,	"Integer Division	"),
+	("-4.2394\\2.3",		["-1"],				0,	"Integer Division	"),
 
 	("5%2",				["1"],				0,	"Modulo			"),
 	("13%-2",			["1"],				0,	"Modulo			"),
