@@ -122,7 +122,7 @@ function func_list[] = {
 	{"sin",		sin,		"sin(x)",	"Sine of x"},
 	{"cos",		cos,		"cos(x)",	"Cosine of x"},
 	{"tan",		tan,		"tan(x)",	"Tangent of x"},
-	{NULL,		NULL,		NULL}
+	{NULL,		NULL,		NULL,		NULL}
 };
 
 typedef struct __function_alias__ {
@@ -982,7 +982,7 @@ char *get_error_msg(error_code error) {
 		default:
 			if(full_err)
 				msg = "An unknown error has occured @ %d.";
-			else;
+			else
 				msg = "An unknown error has occured.";
 			break;
 	}
