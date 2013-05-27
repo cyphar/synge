@@ -761,7 +761,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 	init_stack(tmpstack);
 
 	s_content stackp;
-	int i, pos = 0;
+	int i, pos = 0, tmp = 0;
 	double *result = NULL, arg[2];
 	for(i = 0; i < stack_size(*rpn); i++) {
 		/* debugging */
@@ -814,7 +814,6 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				free_scontent(pop_stack(tmpstack));
 
 				result = malloc(sizeof(double));
-
 				/* find correct evaluation and do it */
 				switch(*(char *) stackp.val) {
 					case '+':
@@ -827,9 +826,8 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 						*result = arg[0] * arg[1];
 						break;
 					case '\\':
-						/* division, just with the integer part of decimals */
-						modf(arg[0], &arg[0]);
-						modf(arg[1], &arg[1]);
+						/* division, but the result ignores the decimals */
+						tmp = 1;
 					case '/':
 						if(!arg[1]) {
 							/* the 11th commandment -- thoust shalt not divide by zero*/
@@ -837,6 +835,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 							return safe_free_stack(DIVIDE_BY_ZERO, pos, &tmpstack, rpn);
 						}
 						*result = arg[0] / arg[1];
+						if(tmp) modf(*result, result);
 						break;
 					case '%':
 						if(!arg[1]) {
