@@ -1025,7 +1025,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 	error_code ecode = to_error_code(SUCCESS, -1);
 
 	/* process string */
-	char *final_pass_str = str_dup(original_str);
+	char *final_pass_str = str_dup(original_str), *final_pass_var = NULL;
 	char *string = NULL, *var = NULL;
 
 	/* find any variable assignments (=) in string */
@@ -1034,7 +1034,8 @@ error_code compute_infix_string(char *original_str, double *result) {
 		string = strrchr(final_pass_str, '=');
 		*string++ = '\0';
 
-		char *endptr = NULL, *word = get_word(var, SYNGE_VARIABLE_CHARS "=", &endptr); /* get variable name */
+		var = final_pass_var = replace(var, " ", "");
+		char *endptr = NULL, *word = get_word(final_pass_var, SYNGE_VARIABLE_CHARS "=", &endptr); /* get variable name */
 
 		if(strlen(word) != strlen(var))
 			/* invalid characters */
@@ -1109,6 +1110,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 	if(is_success_code(ecode.code))
 		set_special_number(SYNGE_PREV_ANSWER, *result, constant_list);
 
+	free(final_pass_var);
 	free(final_pass_str);
 	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
 } /* calculate_infix_string() */
