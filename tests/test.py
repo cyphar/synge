@@ -242,9 +242,9 @@ def run_tests(program):
 	print "--- Test Summary ---"
 	print "Cases run: %d" % (counter)
 	if failures > 0:
-		print "Failed cases: %d" % (failures)
+		print "%sFailed cases: %d%s" % (ansi_error, failures, ansi_reset)
 	else:
-		print "All tests passed"
+		print "%sAll tests passed%s" % (ansi_good, ansi_reset)
 
 def main():
 	print "--- Beginning Synge Test Suite ---"
