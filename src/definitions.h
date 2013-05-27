@@ -20,6 +20,9 @@
  * SOFTWARE.
  */
 
+#ifndef __SYNGE_DEF_H__
+#define __SYNGE_DEF_H__
+
 #define SYNGE_CLI_LICENSE	"Synge-CLI: A command-line wrapper for Synge\n" \
 				SYNGE_LICENSE
 
@@ -50,3 +53,5 @@
 #ifndef __SYNGE_VERSION__
 #define __SYNGE_VERSION__ ""
 #endif
+
+#endif /* __SYNGE_DEF_H__ */

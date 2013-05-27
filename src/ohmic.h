@@ -20,7 +20,8 @@
  * SOFTWARE.
  */
 
-#pragma once
+#ifndef __OHMIC_H__
+#define __OHMIC_H__
 
 typedef struct ohm_node {
 	void *key;
@@ -71,3 +72,5 @@ void ohm_iter_inc(ohm_iter *);
 
 /* default hashing function (modulo of djb2 hash -- not reccomended) */
 int ohm_hash(void *, int, int);
+
+#endif /* __OHMIC_H__ */

@@ -20,7 +20,8 @@
  * SOFTWARE.
  */
 
-#pragma once
+#ifndef __SYNGE_STACK_H__
+#define __SYNGE_STACK_H__
 
 #include <stdbool.h>
 #include "synge.h"
@@ -72,3 +73,5 @@ error_code usafe_free_stack(int ecode, int pos, stack **s, ...);
 #define safe_free_stack(...) usafe_free_stack(__VA_ARGS__, NULL)
 
 #define stack_size(x) ((x)->top + 1)
+
+#endif /* __SYNGE_STACK_H__ */
