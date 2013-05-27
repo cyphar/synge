@@ -259,6 +259,27 @@ int strnchr(char *str, char ch, int len) {
 	return ret;
 } /* strnchr() */
 
+char *trim_spaces(char *str) {
+	while(isspace(*str))
+		str++; /* move starting pointer to first non-space character */
+
+	if(*str == '\0')
+		return NULL; /* return null if entire string was spaces */
+
+	char *end = str + strlen(str) - 1;
+	while(end > str && isspace(*end))
+		end--; /* move end pointer back to last non-space character */
+
+	/* get the length and allocate memory */
+	int len = ++end - str;
+	char *ret = malloc(len + 1);
+
+	strncpy(ret, str, len); /* copy stripped section */
+	ret[len] = '\0'; /* ensure null termination */
+
+	return ret;
+} /* trim_spaces() */
+
 char *get_from_ch_list(char *ch, char **list, bool delimit) {
 	int i;
 	for(i = 0; list[i] != NULL; i++)
@@ -1034,7 +1055,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 		string = strrchr(final_pass_str, '=');
 		*string++ = '\0';
 
-		var = final_pass_var = replace(var, " ", "");
+		var = final_pass_var = trim_spaces(var);
 		char *endptr = NULL, *word = get_word(final_pass_var, SYNGE_VARIABLE_CHARS "=", &endptr); /* get variable name */
 
 		if(strlen(word) != strlen(var))
