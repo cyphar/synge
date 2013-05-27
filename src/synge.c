@@ -181,6 +181,8 @@ synge_settings active_settings = {
 static char *error_msg_container = NULL; /* needs to be freed at program termination using synge_free() (if you want valgrind to be happy) */
 #define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1) /* hack to get amount of memory needed to store a sprintf() */
 
+/* __DEBUG__ FUNCTIONS */
+
 void print_stack(stack *s) {
 #ifdef __DEBUG__
 	int i;
@@ -198,6 +200,21 @@ void print_stack(stack *s) {
 	printf("\n");
 #endif
 } /* print_stack() */
+
+void udebug(char *format, ...) {
+#ifdef __DEBUG__
+	va_list ap;
+	va_start(ap, NULL);
+
+	vprintf(format, ap);
+
+	va_end(ap);
+#endif
+} /* debug */
+
+#define debug(...) udebug(__VA_ARGS__, NULL)
+
+/* END __DEBUG__ FUNCTIONS */
 
 char *replace(char *str, char *old, char *new) {
 	char *ret, *s = str;
@@ -455,10 +472,9 @@ char *function_process_replace(char *string) {
 
 		char *tmpfinal = replace(final, tmpfrom, tmpto);
 
-#ifdef __DEBUG__
 		if(strcmp(final, tmpfinal))
-			printf("(%s)\t%s => %s\n", func_list[i].name, final, tmpfinal);
-#endif
+			debug("(%s)\t%s => %s\n", func_list[i].name, final, tmpfinal);
+
 		free(final);
 		free(tmpfrom);
 		free(tmpto);
@@ -503,9 +519,8 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
 
-#ifdef __DEBUG__
-	printf("%s\n%s\n", string, s);
-#endif
+	debug("%s\n%s\n", string, s);
+
 	init_stack(*ret);
 	int i, pos;
 	for(i = 0; i < strlen(s); i++) {
@@ -1018,9 +1033,7 @@ char *get_error_msg(error_code error) {
 		strcpy(error_msg_container, msg);
 	}
 
-#ifdef __DEBUG__
-	printf("position of error: %d\n", error.position);
-#endif
+	debug("position of error: %d\n", error.position);
 
 	return error_msg_container;
 } /* get_error_msg() */
@@ -1118,11 +1131,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 				else if(operation == -1)
 					/* delete variable */
 					ecode = del_variable(var);
-#ifdef __DEBUG__
-				char *tmpp, *tmp = get_word(var, SYNGE_VARIABLE_CHARS, &tmpp);
-				printf("%s -> %s\n", tmp, string);
-				free(tmp);
-#endif
+
 			} while((var = strchr(var, '=')) != NULL);
 		}
 	}
