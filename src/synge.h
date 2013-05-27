@@ -20,7 +20,8 @@
  * SOFTWARE.
  */
 
-#pragma once
+#ifndef __SYNGE_H__
+#define __SYNGE_H__
 
 typedef struct {
 	enum {
@@ -47,11 +48,11 @@ typedef struct {
 } error_code;
 
 typedef struct __synge_settings__ {
-	enum {
+	enum __mode {
 		degrees,
 		radians
 	} mode;
-	enum {
+	enum __error {
 		simple,
 		position
 	} error;
@@ -79,3 +80,5 @@ int is_success_code(int); /* returns true if the return code should be treated a
 
 void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
 void synge_end(void); /* run at program termination -- memory WILL leak if not run at end */
+
+#endif /* __SYNGE_H__ */
