@@ -195,7 +195,7 @@ cli_command cli_command_list[] = {
 
 bool cli_is_command(char *s) {
 	int i;
-	for(i = 0; i < length(cli_command_list); i++) {
+	for(i = 0; i < (int) length(cli_command_list); i++) {
 		if(cli_command_list[i].whole && !strcmp(cli_command_list[i].name, s)) return true;
 		else if(!cli_command_list[i].whole && !strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return true;
 	}
@@ -208,7 +208,7 @@ cli_command cli_get_command(char *s) {
 		if(cli_command_list[i].whole && !strcmp(cli_command_list[i].name, s)) return cli_command_list[i];
 		else if(!cli_command_list[i].whole && !strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))) return cli_command_list[i];
 	}
-	cli_command empty = {NULL, NULL};
+	cli_command empty = {NULL, NULL, false};
 	return empty;
 } /* cli_get_command() */
 

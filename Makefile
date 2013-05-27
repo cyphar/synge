@@ -57,7 +57,7 @@ PYTHON		= python
 # CONSTANTS SECTION #
 #####################
 
-CC		?= gcc
+CC		?= cc
 EXEC_BASE	= synge
 
 NAME_CLI	= $(EXEC_BASE)-cli
@@ -73,7 +73,8 @@ CLI_DIR		= $(SRC_DIR)/cli
 GTK_DIR		= $(SRC_DIR)/gtk
 TEST_DIR	= tests
 
-SHR_CFLAGS	= -Wall -pedantic -std=c99 -fsigned-char -I$(SRC_DIR)/ $(OS_SHR_CFLAGS)
+WARNINGS	= -Wall -Wextra -Werror -pedantic -Wno-overlength-strings -Wno-sign-compare -Wno-unused-parameter
+SHR_CFLAGS	= -std=c99 -fsigned-char -I$(SRC_DIR)/ $(OS_SHR_CFLAGS)
 CLI_CFLAGS	= $(OS_CLI_CFLAGS)
 GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` $(OS_GTK_CFLAGS)
 TEST_CFLAGS	= $(OS_TEST_CFLAGS)
@@ -116,7 +117,8 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
+		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
+		$(WARNINGS)
 	strip $(EXEC_CLI)
 
 # Compile "production" engine and gui wrapper
@@ -125,7 +127,8 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
+		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
+		$(WARNINGS)
 	strip $(EXEC_GTK)
 
 ################
@@ -136,7 +139,8 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 test: $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	$(CC) $(SHR_SRC) $(TEST_SRC) $(SHR_LFLAGS) $(TEST_LFLAGS) \
 		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_TEST) \
-		-D__SYNGE_VERSION__='"$(VERSION)"'
+		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		$(WARNINGS)
 	strip $(EXEC_TEST)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found - required for test suite"; \
@@ -160,7 +164,8 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"'
+		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
+		$(WARNINGS)
 
 # Compile "debug" engine and gui wrapper
 debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
@@ -169,7 +174,8 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"'
+		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
+		$(WARNINGS)
 
 ###################
 # INSTALL SECTION #
