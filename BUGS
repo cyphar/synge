@@ -1,1 +1,8 @@
-List of known bugs and limitations
+List of known bugs and limitations:
+
+  - Space padding in variable assignment causes an error ( ap   = 2)
+
+List of "bugs" which are not to be fixed:
+
+  - Putting two variables together doesn't multiply them (x=2; y=3; xy isn't 6)
+  -

@@ -1,15 +1,15 @@
 Things to fix/implement:
 
-	ALL:
-	 + Documentation
-	SYNGE:
-	 + Functions (f(x,y)=x+y) -- maybe
-	 + Multiple evalutations per line (a=1;a+2;a=a+1;a)
-	 * Refactor helper functions
-	CLI:
-	 + Getopt command line options for cli
-	 + Add help page
-	GTK:
-	 * (Better) GTK+ interface
-	TESTS:
-	 * Add more tests
+  ALL:
+   + Documentation
+  SYNGE:
+   + Functions (f(x,y)=x+y) -- maybe
+   + Multiple evalutations per line (a=1;a+2;a=a+1;a)
+   * Refactor helper functions
+  CLI:
+   + Getopt command line options for cli
+   + Add help page
+  GTK:
+   * (Better) GTK+ interface
+  TESTS:
+   * Add more tests
