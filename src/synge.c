@@ -47,7 +47,7 @@
 #define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ_"
 #define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
 
-#define SYNGE_TRACEBACK_FORMAT	"<synge traceback>\n" \
+#define SYNGE_TRACEBACK_FORMAT	"Synge Traceback:\n" \
 				"%s: %s"
 
 #define PI 3.14159265358979323
@@ -1070,8 +1070,10 @@ char *get_error_msg(error_code error) {
 	/* allocates memory and sets error_msg_container to correct (printf'd) string */
 	switch(active_settings.error) {
 		case traceback:
-			trace = malloc(lenprintf(SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg));
-			sprintf(trace, SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg);
+			if(!is_success_code(error.code)) {
+				trace = malloc(lenprintf(SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg));
+				sprintf(trace, SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg);
+			}
 		case position:
 			if(error.position > 0) {
 				error_msg_container = malloc(lenprintf("%s @ %d", trace ? trace : msg, error.position));
