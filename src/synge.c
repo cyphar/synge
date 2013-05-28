@@ -47,6 +47,9 @@
 #define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ_"
 #define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
 
+#define SYNGE_TRACEBACK_FORMAT	"<synge traceback>\n" \
+				"%s: %s"
+
 #define PI 3.14159265358979323
 
 #define strlower(x) do { char *p = x; for(; *p; ++p) *p = tolower(*p); } while(0)
@@ -956,6 +959,43 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 	return safe_free_stack(SUCCESS, -1, &tmpstack, rpn);
 } /* eval_rpnstack() */
 
+char *get_error_tp(error_code error) {
+	switch(error.code) {
+		case DIVIDE_BY_ZERO:
+		case MODULO_BY_ZERO:
+		case NUM_OVERFLOW:
+		case UNDEFINED:
+			return "MathError";
+			break;
+		case UNMATCHED_LEFT_PARENTHESIS:
+		case UNMATCHED_RIGHT_PARENTHESIS:
+		case FUNCTION_WRONG_ARGC:
+		case OPERATOR_WRONG_ARGC:
+		case EMPTY_STACK:
+		case TOO_MANY_VALUES:
+			return "SyntaxError";
+			break;
+		case UNKNOWN_TOKEN:
+		case UNKNOWN_VARIABLE:
+		case UNKNOWN_FUNCTION:
+		case INVALID_VARIABLE_CHAR:
+		case EMPTY_VARIABLE_NAME:
+		case RESERVED_VARIABLE:
+			return "NameError";
+			break;
+		case DELETED_VARIABLE:
+		case DELETED_FUNCTION:
+			return "FalsePositive";
+			break;
+		case TOO_DEEP:
+		default:
+			return "OtherError";
+			break;
+
+	}
+	return "IHaveNoIdea";
+}
+
 char *get_error_msg(error_code error) {
 	char *msg = NULL;
 
@@ -1025,22 +1065,28 @@ char *get_error_msg(error_code error) {
 
 	free(error_msg_container);
 
+	char *trace = NULL;
+
 	/* allocates memory and sets error_msg_container to correct (printf'd) string */
 	switch(active_settings.error) {
+		case traceback:
+			trace = malloc(lenprintf(SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg));
+			sprintf(trace, SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg);
 		case position:
 			if(error.position > 0) {
-				error_msg_container = malloc(lenprintf("%s @ %d.", msg, error.position));
-				sprintf(error_msg_container, "%s @ %d.", msg, error.position);
+				error_msg_container = malloc(lenprintf("%s @ %d", trace ? trace : msg, error.position));
+				sprintf(error_msg_container, "%s @ %d", trace ? trace : msg, error.position);
 			} else {
 		case simple:
-				error_msg_container = malloc(lenprintf("%s.", msg));
-				sprintf(error_msg_container, "%s.", msg);
+				error_msg_container = malloc(lenprintf("%s", trace ? trace : msg));
+				sprintf(error_msg_container, "%s", trace ? trace : msg);
 			}
 			break;
 	}
 
-	debug("position of error: %d\n", error.position);
+	free(trace);
 
+	debug("position of error: %d\n", error.position);
 	return error_msg_container;
 } /* get_error_msg() */
 

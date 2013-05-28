@@ -129,6 +129,9 @@ void cli_print_settings(char *s) {
 			case position:
 				ret = "Position";
 				break;
+			case traceback:
+				ret = "Traceback";
+				break;
 		}
 	}
 
@@ -157,6 +160,8 @@ void cli_set_settings(char *s) {
 			new_settings.error = simple;
 		else if(!strcasecmp(val, "position"))
 			new_settings.error = position;
+		else if(!strcasecmp(val, "traceback"))
+			new_settings.error = traceback;
 		else err = true;
 	}
 	else err = true;

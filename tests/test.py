@@ -46,9 +46,9 @@ errors = {
 
 def error_get(key, position = 0):
 	if position:
-		return ['%s @ %d.' % (errors[key], position)]
+		return ['%s @ %d' % (errors[key], position)]
 	else:
-		return [errors[key] + '.']
+		return [errors[key]]
 
 # List of case tuples
 

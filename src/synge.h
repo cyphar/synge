@@ -57,7 +57,8 @@ typedef struct __synge_settings__ {
 	} mode;
 	enum __error {
 		simple,
-		position
+		position,
+		traceback,
 	} error;
 } synge_settings;
 
