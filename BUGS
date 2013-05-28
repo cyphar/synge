@@ -1,6 +1,6 @@
 List of known bugs and limitations:
 
-  - Varaibles cannot become functions (:= doesn't implicitely free the variable)
+  -
 
 List of "bugs" which are not to be fixed:
 

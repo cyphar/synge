@@ -416,7 +416,7 @@ error_code set_variable(char *str, double val) {
 		/* name is reserved -- give error */
 		ret = to_error_code(RESERVED_VARIABLE, -1);
 	} else {
-		ohm_remove(function_list, s, strlen(s));
+		ohm_remove(function_list, s, strlen(s) + 1);
 		ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
 	}
 
@@ -434,7 +434,7 @@ error_code set_function(char *str, char *exp) {
 		/* name is reserved -- give error */
 		ret = to_error_code(RESERVED_VARIABLE, -1);
 	} else {
-		ohm_remove(variable_list, s, strlen(s));
+		ohm_remove(variable_list, s, strlen(s) + 1);
 		ohm_insert(function_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
 	}
 
@@ -1129,7 +1129,6 @@ error_code compute_infix_string(char *original_str, double *result) {
 		string = strrchr(final_pass_str, '=');
 		*string++ = '\0';
 
-//		var = final_pass_var = trim_spaces(var);
 		char *endptr = NULL, *word = get_word(var, SYNGE_VARIABLE_CHARS " :=", &endptr); /* get variable name */
 
 		if(strlen(word) != strlen(var))
