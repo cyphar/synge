@@ -41,6 +41,8 @@
  */
 
 #define SYNGE_MAX_PRECISION	10
+#define SYNGE_MAX_DEPTH		10
+
 #define SYNGE_PREV_ANSWER	"ans"
 #define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ_"
 #define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
@@ -146,6 +148,7 @@ typedef struct __special_number__ {
 } special_number;
 
 ohm_t *variable_list = NULL;
+ohm_t *function_list = NULL;
 
 special_number constant_list[] = {
 	{"pi",			3.14159265358979323},
@@ -294,6 +297,7 @@ char *trim_spaces(char *str) {
 	strncpy(ret, str, len); /* copy stripped section */
 	ret[len] = '\0'; /* ensure null termination */
 
+	debug("original: '%s'\nnew: '%s'\n", str, ret);
 	return ret;
 } /* trim_spaces() */
 
@@ -390,11 +394,7 @@ bool isnum(char *string) {
 	strtold(string, &endptr);
 
 	/* all cases where word is a number */
-	if(get_special_num(s).name || ohm_search(variable_list, s, strlen(s) + 1) || string != endptr)
-		ret = true;
-	else
-		ret = false;
-
+	ret = (get_special_num(s).name || ohm_search(variable_list, s, strlen(s) + 1) || ohm_search(function_list, s, strlen(s) + 1) || string != endptr);
 	free(s);
 	return ret;
 } /* isnum() */
@@ -412,30 +412,56 @@ error_code set_variable(char *str, double val) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
-	if(get_special_num(s).name)
+	if(get_special_num(s).name) {
 		/* name is reserved -- give error */
 		ret = to_error_code(RESERVED_VARIABLE, -1);
-	else
+	} else {
+		ohm_remove(function_list, s, strlen(s));
 		ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
+	}
 
 	free(s);
 	return ret;
 } /* set_variable() */
 
-error_code del_variable(char *str) {
+error_code set_function(char *str, char *exp) {
 	assert(synge_started);
 
-	error_code ret = to_error_code(DELETED_VARIABLE, -1);
+	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
+
+	if(get_special_num(s).name) {
+		/* name is reserved -- give error */
+		ret = to_error_code(RESERVED_VARIABLE, -1);
+	} else {
+		ohm_remove(variable_list, s, strlen(s));
+		ohm_insert(function_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
+	}
+
+	free(s);
+	return ret;
+} /* set_variable() */
+
+error_code del_word(char *str, bool variable) {
+	assert(synge_started);
+
+	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
+	error_code ret = to_error_code(variable ? DELETED_VARIABLE : DELETED_FUNCTION, -1);
 
 	if(get_special_num(s).name)
 		/* name is reserved -- give error */
 		ret = to_error_code(RESERVED_VARIABLE, -1);
-	else if(!ohm_search(variable_list, s, strlen(s) + 1))
-		/* variable doesn't exist */
-		ret = to_error_code(UNKNOWN_VARIABLE, -1);
-	else
-		ohm_remove(variable_list, s, strlen(s) + 1);
+
+	else if(!ohm_search(variable_list, s, strlen(s) + 1) &&
+		!ohm_search(function_list, s, strlen(s) + 1))
+
+		/* word doesn't exist */
+		ret = to_error_code(variable ? UNKNOWN_VARIABLE : UNKNOWN_FUNCTION, -1);
+
+	else {
+		if(!ohm_remove(variable_list, s, strlen(s) + 1)) ret.code = DELETED_VARIABLE;
+		if(!ohm_remove(function_list, s, strlen(s) + 1)) ret.code = DELETED_FUNCTION;
+	}
 
 	free(s);
 	return ret;
@@ -518,11 +544,12 @@ int next_offset(char *str, int offset) {
 error_code tokenise_string(char *string, int offset, stack **ret) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
+	error_code tmpecode = {SUCCESS, -1};
 
 	debug("%s\n%s\n", string, s);
 
 	init_stack(*ret);
-	int i, pos;
+	int i, pos, tmp = 0;
 	for(i = 0; i < strlen(s); i++) {
 		pos = i + offset - recalc_padding(s, i - 1) + 1;
 		if(s[i] == ' ') continue; /* ignore spaces */
@@ -532,15 +559,29 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 		/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
 		       ((top_stack(*ret)->tp != number || (*(s+i) != '+' && *(s+i) != '-')) &&
 		        (top_stack(*ret)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
+
 			double *num = malloc(sizeof(double)); /* allocate memory to be pushed onto the stack */
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
+
 			if(get_special_num(word).name) {
 				special_number stnum = get_special_num(word);
 				*num = stnum.value;
 				i += strlen(stnum.name) - 1; /* update iterator to correct offset */
 			}
-			else if(ohm_search(variable_list, word, strlen(word) + 1)) {
-				*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
+
+			else if((ohm_search(variable_list, word, strlen(word) + 1) && (tmp = 1)) ||
+				ohm_search(function_list, word, strlen(word) + 1)) {
+
+				if(tmp)
+					*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
+				else {
+					tmpecode = compute_infix_string((char *) ohm_search(function_list, word, strlen(word)), num);
+					if(!is_success_code(tmpecode.code)) {
+						free(num);
+						free(word);
+						return to_error_code(tmpecode.code, pos);
+					}
+				}
 
 				if(top_stack(*ret)) {
 					s_content *tmppop, *tmpp;
@@ -569,6 +610,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 
 				i += strlen(word) - 1; /* update iterator to correct offset */
 			}
+
 			else {
 				char *endptr;
 				*num = strtold(s+i, &endptr);
@@ -811,7 +853,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				push_valstack(double_dup(*(double *) stackp.val), number, pos, tmpstack);
 				break;
 			case func:
-				/* check if there is enough numbers for function arguments*/
+				/* check if there is enough numbers for function arguments */
 				if(stack_size(tmpstack) < 1)
 					return safe_free_stack(FUNCTION_WRONG_ARGC, pos < 1 ? pos + 1 : pos, &tmpstack, rpn);
 
@@ -954,6 +996,12 @@ char *get_error_msg(error_code error) {
 			else
 				msg = "Unknown variable to delete.";
 			break;
+		case UNKNOWN_FUNCTION:
+			if(full_err)
+				msg = "Unknown function to delete @ %d.";
+			else
+				msg = "Unknown function to delete.";
+			break;
 		case FUNCTION_WRONG_ARGC:
 			if(full_err)
 				msg = "Not enough arguments for function @ %d.";
@@ -1008,11 +1056,20 @@ char *get_error_msg(error_code error) {
 			else
 				msg = "Variable deleted.";
 			break;
+		case DELETED_FUNCTION:
+			if(full_err)
+				msg = "Function deleted @ %d.";
+			else
+				msg = "Function deleted.";
+			break;
 		case UNDEFINED:
 			if(full_err)
 				msg = "Result is undefined @ %d.";
 			else
 				msg = "Result is undefined.";
+			break;
+		case TOO_DEEP:
+			msg = "Delved too deep.";
 			break;
 		default:
 			if(full_err)
@@ -1043,6 +1100,7 @@ char *get_error_msg_pos(int code, int pos) {
 } /* get_error_msg_pos() */
 
 error_code compute_infix_string(char *original_str, double *result) {
+	static int depth = 0;
 	assert(synge_started);
 
 	if(variable_list->count > variable_list->size)
@@ -1051,6 +1109,9 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 	/* initialise result with a value of 0.0 */
 	*result = 0.0;
+
+	if(depth++ > SYNGE_MAX_DEPTH)
+		return to_error_code(TOO_DEEP, -1);
 
 	/* initialise all local variables */
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
@@ -1069,7 +1130,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 		*string++ = '\0';
 
 		var = final_pass_var = trim_spaces(var);
-		char *endptr = NULL, *word = get_word(final_pass_var, SYNGE_VARIABLE_CHARS "=", &endptr); /* get variable name */
+		char *endptr = NULL, *word = get_word(final_pass_var, SYNGE_VARIABLE_CHARS ":=", &endptr); /* get variable name */
 
 		if(strlen(word) != strlen(var))
 			/* invalid characters */
@@ -1088,15 +1149,25 @@ error_code compute_infix_string(char *original_str, double *result) {
 					/* fix up negative zeros */
 					if(*result == abs(*result))
 						*result = abs(*result);
+	depth--;
 
 	/* is it a nan? */
 	if(*result != *result)
 		ecode = to_error_code(UNDEFINED, -1);
 
+	enum {
+		VAR	= 1,
+		FUNC	= 2,
+
+		SET	= 1,
+		DEL	= -1
+	};
+
 	int operation = 0;
 
 	/* check and set operation based on "success" code */
-	if(var && ((ecode.code == SUCCESS && ++operation) || (ecode.code == EMPTY_STACK && --operation))) {
+	if(var && ((ecode.code == SUCCESS && (operation = SET)) ||
+		  (ecode.code == EMPTY_STACK && (operation = DEL)))) {
 		char *tmp = --var;
 
 		/* dry run -- don't change any variables if there is an error later in the assignment */
@@ -1104,6 +1175,13 @@ error_code compute_infix_string(char *original_str, double *result) {
 			tmp++;
 			char *tmpp = NULL, *tmpword = get_word(tmp, SYNGE_VARIABLE_CHARS, &tmpp);
 			error_code tmpecode = to_error_code(SUCCESS, -1);
+
+			if(*tmpp == ':') {
+				tmp++;
+				operation *= FUNC;
+			}
+
+			debug("operation: %s%s %s %s\n", tmpword, tmp, operation > 0 ? "set" : "del", abs(operation) == VAR ? "var" : "function");
 
 			/* check if it is correct to edit a variable */
 			if(strlen(tmp) < 1 || strlen(tmpword) < 1)
@@ -1125,12 +1203,25 @@ error_code compute_infix_string(char *original_str, double *result) {
 			do {
 				var++;
 
-				if(operation == 1)
-					/* set/update variable */
-					ecode = set_variable(var, *result);
-				else if(operation == -1)
-					/* delete variable */
-					ecode = del_variable(var);
+				switch(operation) {
+					case 1:
+						/* set/update variable */
+						ecode = set_variable(var, *result);
+						break;
+					case 2:
+						/* set/update function/function */
+						ecode = set_function(var, string);
+						break;
+					/* my name's benny and i like to party when i go to class late they call me tardy */
+					case -1:
+					case -2:
+						/* delete variable */
+						ecode = del_word(var, (operation % FUNC) ? true : false);
+						break;
+					default:
+						ecode = to_error_code(UNKNOWN_ERROR, -1);
+						break;
+				}
 
 			} while((var = strchr(var, '=')) != NULL);
 		}
@@ -1159,20 +1250,27 @@ function *get_synge_function_list(void) {
 
 void synge_start(void) {
 	variable_list = ohm_init(2, NULL);
+	function_list = ohm_init(2, NULL);
+
 	synge_started = true;
 } /* synge_end() */
 
 void synge_end(void) {
 	assert(synge_started);
+
 	if(variable_list)
 		ohm_free(variable_list);
+	if(function_list)
+		ohm_free(function_list);
+
 	free(error_msg_container);
 	synge_started = false;
 } /* synge_end() */
 
 int is_success_code(int code) {
 	if(code == SUCCESS ||
-	   code == DELETED_VARIABLE) return true;
+	   code == DELETED_VARIABLE ||
+	   code == DELETED_FUNCTION) return true;
 
 	else return false;
 } /* is_success_code() */
