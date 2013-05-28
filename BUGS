@@ -1,6 +1,7 @@
 List of known bugs and limitations:
 
   - Putting spaces in a chained variable or expression assignment causes errors (a  = b  = c   =  2  )
+  - Errors while assigning variables go completely crazy (a=1/0 gives you random error positions)
 
 List of "bugs" which are not to be fixed:
 
