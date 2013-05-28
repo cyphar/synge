@@ -45,40 +45,41 @@
 
 synge_settings test_settings;
 
-char *bake_args(int argc, char **argv) {
+void bake_args(int argc, char ***argv) {
+	test_settings = get_synge_settings();
+
 	int i;
 	for(i = 1; i < argc; i++) {
-		if(!strcmp(argv[i], "-m") || !strcmp(argv[i], "-mode") || !strcmp(argv[i], "--mode")) {
+		if(!strcmp((*argv)[i], "-m") || !strcmp((*argv)[i], "-mode") || !strcmp((*argv)[i], "--mode")) {
 				i++;
-				if(!strcasecmp(argv[i], "radians")) test_settings.mode = radians;
-				else if(!strcasecmp(argv[i], "degrees")) test_settings.mode = degrees;
-				argv[i-1] = NULL;
-				argv[i] = NULL;
+				if(!strcasecmp((*argv)[i], "radians")) test_settings.mode = radians;
+				else if(!strcasecmp((*argv)[i], "degrees")) test_settings.mode = degrees;
+				(*argv)[i-1] = NULL;
+				(*argv)[i] = NULL;
 		}
 	}
 
-	for(i = 1; i < argc; i++)
-		if(argv[i]) return argv[i];
-	return NULL;
+	set_synge_settings(test_settings);
 } /* bake_args() */
 
 int main(int argc, char **argv) {
 	if(argc < 2) return 1;
 	synge_start();
 	srand(0); /* seed random number generator, to make it predicatable for testing */
+	bake_args(argc, &argv);
 
 	double result;
 	error_code ecode;
 
-	test_settings = get_synge_settings();
-	char *expression = bake_args(argc, argv);
-	set_synge_settings(test_settings);
+	int i;
+	for(i = 1; i < argc; i++) {
+		if(!argv[i]) continue;
 
-	if(!expression) return 1;
-	if((ecode = compute_infix_string(expression, &result)).code != SUCCESS)
-		printf("%s\n", get_error_msg(ecode));
-	else
-		printf("%.*f\n", get_precision(result), result);
+		if((ecode = compute_infix_string(argv[i], &result)).code != SUCCESS)
+			printf("%s\n", get_error_msg(ecode));
+		else
+			printf("%.*f\n", get_precision(result), result);
+	}
 
 	synge_end();
 	return 0;
