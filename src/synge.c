@@ -1120,7 +1120,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 	error_code ecode = to_error_code(SUCCESS, -1);
 
 	/* process string */
-	char *final_pass_str = str_dup(original_str), *final_pass_var = NULL;
+	char *final_pass_str = str_dup(original_str);
 	char *string = NULL, *var = NULL;
 
 	/* find any variable assignments (=) in string */
@@ -1129,12 +1129,13 @@ error_code compute_infix_string(char *original_str, double *result) {
 		string = strrchr(final_pass_str, '=');
 		*string++ = '\0';
 
-		var = final_pass_var = trim_spaces(var);
-		char *endptr = NULL, *word = get_word(final_pass_var, SYNGE_VARIABLE_CHARS ":=", &endptr); /* get variable name */
+//		var = final_pass_var = trim_spaces(var);
+		char *endptr = NULL, *word = get_word(var, SYNGE_VARIABLE_CHARS " :=", &endptr); /* get variable name */
 
 		if(strlen(word) != strlen(var))
 			/* invalid characters */
 			ecode = to_error_code(INVALID_VARIABLE_CHAR, endptr - var + 1);
+
 		free(word);
 	}
 	else string = final_pass_str;
@@ -1173,7 +1174,9 @@ error_code compute_infix_string(char *original_str, double *result) {
 		/* dry run -- don't change any variables if there is an error later in the assignment */
 		do {
 			tmp++;
-			char *tmpp = NULL, *tmpword = get_word(tmp, SYNGE_VARIABLE_CHARS, &tmpp);
+
+			char *spacetmp = trim_spaces(tmp);
+			char *tmpp = NULL, *tmpword = get_word(spacetmp, SYNGE_VARIABLE_CHARS, &tmpp);
 			error_code tmpecode = to_error_code(SUCCESS, -1);
 
 			if(*tmpp == ':') {
@@ -1196,6 +1199,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 				break;
 			}
 			free(tmpword);
+			free(spacetmp);
 		} while((tmp = strchr(tmp, '=')) != NULL);
 
 		/* everything was good in the dry run -- let's do it for real */
@@ -1203,10 +1207,11 @@ error_code compute_infix_string(char *original_str, double *result) {
 			do {
 				var++;
 
-				char *tmpp = NULL, *tmpword = get_word(var, SYNGE_VARIABLE_CHARS, &tmpp);
+				char *spacevar = trim_spaces(var);
+				char *tmpp = NULL, *tmpword = get_word(spacevar, SYNGE_VARIABLE_CHARS, &tmpp);
 				operation = stackop * ((*tmpp == ':') ? FUNC : VAR);
 
-				debug("operation: %s %s %s\n", tmpword, operation > 0 ? "set" : "del", abs(operation) == VAR ? "var" : "function");
+				debug("var %s -> %s -> %s\n", var, spacevar, tmpword);
 
 				switch(operation) {
 					case 1:
@@ -1227,9 +1232,8 @@ error_code compute_infix_string(char *original_str, double *result) {
 						ecode = to_error_code(UNKNOWN_ERROR, -1);
 						break;
 				}
-
 				free(tmpword);
-
+				free(spacevar);
 			} while((var = strchr(var, '=')) != NULL);
 		}
 	}
@@ -1238,7 +1242,6 @@ error_code compute_infix_string(char *original_str, double *result) {
 	if(is_success_code(ecode.code))
 		set_special_number(SYNGE_PREV_ANSWER, *result, constant_list);
 
-	free(final_pass_var);
 	free(final_pass_str);
 	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
 } /* calculate_infix_string() */
