@@ -908,7 +908,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 						tmp = 1;
 					case '/':
 						if(!arg[1]) {
-							/* the 11th commandment -- thoust shalt not divide by zero*/
+							/* the 11th commandment -- thoust shalt not divide by zero */
 							free(result);
 							return safe_free_stack(DIVIDE_BY_ZERO, pos, &tmpstack, rpn);
 						}
@@ -917,7 +917,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 						break;
 					case '%':
 						if(!arg[1]) {
-							/* the 11.5th commandment -- thoust shalt not modulo by zero*/
+							/* the 11.5th commandment -- thoust shalt not modulo by zero */
 							free(result);
 							return safe_free_stack(MODULO_BY_ZERO, pos, &tmpstack, rpn);
 						}
@@ -1163,11 +1163,11 @@ error_code compute_infix_string(char *original_str, double *result) {
 		DEL	= -1
 	};
 
-	int operation = 0;
+	int stackop = 0, operation = 0;
 
 	/* check and set operation based on "success" code */
-	if(var && ((ecode.code == SUCCESS && (operation = SET)) ||
-		  (ecode.code == EMPTY_STACK && (operation = DEL)))) {
+	if(var && ((ecode.code == SUCCESS && (stackop = SET)) ||
+		  (ecode.code == EMPTY_STACK && (stackop = DEL)))) {
 		char *tmp = --var;
 
 		/* dry run -- don't change any variables if there is an error later in the assignment */
@@ -1178,10 +1178,10 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 			if(*tmpp == ':') {
 				tmp++;
-				operation *= FUNC;
-			}
+				operation = stackop * FUNC;
+			} else operation = stackop * VAR;
 
-			debug("operation: %s%s %s %s\n", tmpword, tmp, operation > 0 ? "set" : "del", abs(operation) == VAR ? "var" : "function");
+			debug("operation: %s %s %s\n", tmpword, operation > 0 ? "set" : "del", abs(operation) == VAR ? "var" : "function");
 
 			/* check if it is correct to edit a variable */
 			if(strlen(tmp) < 1 || strlen(tmpword) < 1)
@@ -1203,25 +1203,32 @@ error_code compute_infix_string(char *original_str, double *result) {
 			do {
 				var++;
 
+				char *tmpp = NULL, *tmpword = get_word(var, SYNGE_VARIABLE_CHARS, &tmpp);
+				operation = stackop * ((*tmpp == ':') ? FUNC : VAR);
+
+				debug("operation: %s %s %s\n", tmpword, operation > 0 ? "set" : "del", abs(operation) == VAR ? "var" : "function");
+
 				switch(operation) {
 					case 1:
 						/* set/update variable */
-						ecode = set_variable(var, *result);
+						ecode = set_variable(tmpword, *result);
 						break;
 					case 2:
 						/* set/update function/function */
-						ecode = set_function(var, string);
+						ecode = set_function(tmpword, string);
 						break;
 					/* my name's benny and i like to party when i go to class late they call me tardy */
 					case -1:
 					case -2:
 						/* delete variable */
-						ecode = del_word(var, (operation % FUNC) ? true : false);
+						ecode = del_word(tmpword, (operation % FUNC) ? true : false);
 						break;
 					default:
 						ecode = to_error_code(UNKNOWN_ERROR, -1);
 						break;
 				}
+
+				free(tmpword);
 
 			} while((var = strchr(var, '=')) != NULL);
 		}
