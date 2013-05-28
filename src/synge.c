@@ -575,8 +575,10 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 				if(tmp)
 					*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
 				else {
+					/* recursion - not your daddy's sort of program structure */
 					tmpecode = compute_infix_string((char *) ohm_search(function_list, word, strlen(word)), num);
 					if(!is_success_code(tmpecode.code)) {
+						/* error was encountered */
 						free(num);
 						free(word);
 						return to_error_code(tmpecode.code, pos);
@@ -955,139 +957,86 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 } /* eval_rpnstack() */
 
 char *get_error_msg(error_code error) {
-	bool full_err = (error.position > 0 && active_settings.error >= position);
 	char *msg = NULL;
 
 	/* get correct printf string */
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
-			if(full_err)
-				msg = "Cannot divide by zero @ %d.";
-			else
-				msg = "Cannot divide by zero.";
+			msg = "Cannot divide by zero";
 			break;
 		case MODULO_BY_ZERO:
-			if(full_err)
-				msg = "Cannot modulo by zero @ %d.";
-			else
-				msg = "Cannot modulo by zero.";
+			msg = "Cannot modulo by zero";
 			break;
 		case UNMATCHED_LEFT_PARENTHESIS:
-			if(full_err)
-				msg = "Missing closing bracket for opening bracket @ %d.";
-			else
-				msg = "Missing closing bracket for opening bracket.";
+			msg = "Missing closing bracket for opening bracket";
 			break;
 		case UNMATCHED_RIGHT_PARENTHESIS:
-			if(full_err)
-				msg = "Missing opening bracket for closing bracket @ %d.";
-			else
-				msg = "Missing opening bracket for closing bracket.";
+			msg = "Missing opening bracket for closing bracket";
 			break;
 		case UNKNOWN_TOKEN:
-			if(full_err)
-				msg = "Unknown token or function in expression @ %d.";
-			else
-				msg = "Unknown token or function in expression.";
+			msg = "Unknown token or function in expression";
 			break;
 		case UNKNOWN_VARIABLE:
-			if(full_err)
-				msg = "Unknown variable to delete @ %d.";
-			else
-				msg = "Unknown variable to delete.";
+			msg = "Unknown variable to delete";
 			break;
 		case UNKNOWN_FUNCTION:
-			if(full_err)
-				msg = "Unknown function to delete @ %d.";
-			else
-				msg = "Unknown function to delete.";
+			msg = "Unknown function to delete";
 			break;
 		case FUNCTION_WRONG_ARGC:
-			if(full_err)
-				msg = "Not enough arguments for function @ %d.";
-			else
-				msg = "Not enough arguments for function.";
+			msg = "Not enough arguments for function";
 			break;
 		case OPERATOR_WRONG_ARGC:
-			if(full_err)
-				msg = "Not enough values for operator @ %d.";
-			else
-				msg = "Not enough values for operator.";
+			msg = "Not enough values for operator";
 			break;
 		case TOO_MANY_VALUES:
-			if(full_err)
-				msg = "Too many values in expression @ %d.";
-			else
-				msg = "Too many values in expression.";
+			msg = "Too many values in expression";
 			break;
 		case EMPTY_STACK:
-			if(full_err)
-				msg = "Expression was empty @ %d.";
-			else
-				msg = "Expression was empty.";
+			msg = "Expression was empty";
 			break;
 		case NUM_OVERFLOW:
-			if(full_err)
-				msg = "Number caused overflow @ %d.";
-			else
-				msg = "Number caused overflow.";
+			msg = "Number caused overflow";
 			break;
 		case INVALID_VARIABLE_CHAR:
-			if(full_err)
-				msg = "Invalid character in variable name @ %d.";
-			else
-				msg = "Invalid character in variable name.";
+			msg = "Invalid character in variable name";
 			break;
 		case EMPTY_VARIABLE_NAME:
-			if(full_err)
-				msg = "Empty variable name @ %d.";
-			else
-				msg = "Empty variable name.";
+			msg = "Empty variable name";
 			break;
 		case RESERVED_VARIABLE:
-			if(full_err)
-				msg = "Variable name is reserved @ %d.";
-			else
-				msg = "Variable name is reserved.";
+			msg = "Variable name is reserved";
 			break;
 		case DELETED_VARIABLE:
-			if(full_err)
-				msg = "Variable deleted @ %d.";
-			else
-				msg = "Variable deleted.";
+			msg = "Variable deleted";
 			break;
 		case DELETED_FUNCTION:
-			if(full_err)
-				msg = "Function deleted @ %d.";
-			else
-				msg = "Function deleted.";
+			msg = "Function deleted";
 			break;
 		case UNDEFINED:
-			if(full_err)
-				msg = "Result is undefined @ %d.";
-			else
-				msg = "Result is undefined.";
+			msg = "Result is undefined";
 			break;
 		case TOO_DEEP:
-			msg = "Delved too deep.";
+			msg = "Delved too deep";
 			break;
 		default:
-			if(full_err)
-				msg = "An unknown error has occured @ %d.";
-			else
-				msg = "An unknown error has occured.";
+			msg = "An unknown error has occured";
 			break;
 	}
 
 	free(error_msg_container);
 
 	/* allocates memory and sets error_msg_container to correct (printf'd) string */
-	if(full_err) {
-		error_msg_container = malloc(lenprintf(msg, error.position));
-		sprintf(error_msg_container, msg, error.position);
-	} else {
-		error_msg_container = malloc(strlen(msg) + 1);
-		strcpy(error_msg_container, msg);
+	switch(active_settings.error) {
+		case position:
+			if(error.position > 0) {
+				error_msg_container = malloc(lenprintf("%s @ %d.", msg, error.position));
+				sprintf(error_msg_container, "%s @ %d.", msg, error.position);
+			} else {
+		case simple:
+				error_msg_container = malloc(lenprintf("%s.", msg));
+				sprintf(error_msg_container, "%s.", msg);
+			}
+			break;
 	}
 
 	debug("position of error: %d\n", error.position);
@@ -1109,6 +1058,13 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 	/* initialise result with a value of 0.0 */
 	*result = 0.0;
+
+	/*
+	 * We have delved too greedily and too deep.
+	 * We have awoken a creature in the darkness of recursion.
+	 * A creature of shadow, flame and segmentation faults.
+	 * YOU SHALL NOT PASS!
+	 */
 
 	if(depth++ > SYNGE_MAX_DEPTH)
 		return to_error_code(TOO_DEEP, -1);
@@ -1149,6 +1105,8 @@ error_code compute_infix_string(char *original_str, double *result) {
 					/* fix up negative zeros */
 					if(*result == abs(*result))
 						*result = abs(*result);
+
+	/* measure depth, not length */
 	depth--;
 
 	/* is it a nan? */
