@@ -1,6 +1,7 @@
 List of known bugs and limitations:
 
-  -
+  - Cannot chain variable and expression allocation
+  - Putting spaces in a chained variable or expression allocation causes errors (a  = b  = c   =  2  )
 
 List of "bugs" which are not to be fixed:
 
