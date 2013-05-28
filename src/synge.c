@@ -1141,7 +1141,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 	if(ecode.code == SUCCESS)
 		/* generate infix stack */
-		if((ecode = tokenise_string(string, var ? string - var : 0, &infix_stack)).code == SUCCESS)
+		if((ecode = tokenise_string(string, var ? strlen(var) + 1 : 0, &infix_stack)).code == SUCCESS)
 			/* convert to postfix (or RPN) stack */
 			if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)).code == SUCCESS)
 				/* evaluate postfix (or RPN) stack */
