@@ -5,6 +5,7 @@ Things to fix/implement:
   SYNGE:
    + Multiple evalutations per line (a=1;a+2;a=a+1;a)
    * Refactor helper functions
+   * Improve traceback and errors
   CLI:
    + Getopt command line options for cli
    + Add help page
