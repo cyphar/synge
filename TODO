@@ -2,14 +2,20 @@ Things to fix/implement:
 
   ALL:
    + Documentation
+
   SYNGE:
    + Multiple evalutations per line (a=1;a+2;a=a+1;a)
+   + Functions to:
+	- Get factors of a number
    * Refactor helper functions
    * Improve traceback and errors
+
   CLI:
    + Getopt command line options for cli
    + Add help page
+
   GTK:
    * (Better) GTK+ interface
+
   TESTS:
    * Add more tests
