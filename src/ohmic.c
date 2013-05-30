@@ -100,7 +100,7 @@ void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuele
 		if(current_node->keylen == keylen)
 			if(!memcmp(current_node->key, key, keylen)) {
 				/* key found */
-				if(current_node->valuelen != current_node->valuelen) {
+				if(current_node->valuelen != valuelen) {
 					/* node value needs to change size */
 					free(current_node->value);
 					current_node->value = malloc(valuelen);

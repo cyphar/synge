@@ -264,7 +264,7 @@ char *get_word(char *s, char *list, char **endptr) {
 
 	/* copy over the word */
 	char *ret = malloc(i + 1);
-	strncpy(ret, s, i);
+	memcpy(ret, s, i + 1);
 	ret[i] = '\0';
 
 	strlower(ret); /* make the word lowercase -- since everything is case insensitive */
@@ -322,7 +322,7 @@ double *double_dup(double num) {
 char *str_dup(char *s) {
 	char *ret = malloc(strlen(s) + 1);
 
-	strcpy(ret, s);
+	memcpy(ret, s, strlen(s) + 1);
 	ret[strlen(s)] = '\0'; /* ensure null termination */
 
 	return ret;
@@ -582,6 +582,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					tmpecode = compute_infix_string((char *) ohm_search(function_list, word, strlen(word)), num);
 					if(!is_success_code(tmpecode.code)) {
 						/* error was encountered */
+						free(s);
 						free(num);
 						free(word);
 						return to_error_code(tmpecode.code, pos);
@@ -625,10 +626,14 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			free(word);
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
-			if(has_rounding_error(*num))
+			if(has_rounding_error(*num)) {
+				free(s);
 				return to_error_code(NUM_OVERFLOW, pos);
-			else if(*num != *num)
+			}
+			else if(*num != *num) {
+				free(s);
 				return to_error_code(UNDEFINED, pos);
+			}
 		}
 		else if(get_from_ch_list(s+i, op_list, true)) {
 			int postpush = false;
@@ -1238,6 +1243,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 						ecode = to_error_code(UNKNOWN_ERROR, -1);
 						break;
 				}
+
 				free(tmpword);
 				free(spacevar);
 			} while((var = strchr(var, '=')) != NULL);
