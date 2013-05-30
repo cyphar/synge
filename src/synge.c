@@ -1172,7 +1172,7 @@ error_code compute_infix_string(char *original_str, double *result) {
 	int stackop = 0, operation = 0;
 
 	/* check and set operation based on "success" code */
-	if(var && ((ecode.code == SUCCESS && (stackop = SET)) ||
+	if(var && ((ecode.code != EMPTY_STACK && (stackop = SET)) ||
 		  (ecode.code == EMPTY_STACK && (stackop = DEL)))) {
 		char *tmp = --var;
 
@@ -1220,12 +1220,13 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 				switch(operation) {
 					case 1:
+						if(ecode.code != SUCCESS) break; /* we care if variables are assigned to errors */
 						/* set/update variable */
 						ecode = set_variable(tmpword, *result);
 						break;
 					case 2:
 						/* set/update function/function */
-						ecode = set_function(tmpword, string);
+						ecode = set_function(tmpword, string); /* but functions should work despite any errs*/
 						break;
 					/* my name's benny and i like to party when i go to class late they call me tardy */
 					case -1:
