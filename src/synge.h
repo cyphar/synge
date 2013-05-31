@@ -51,15 +51,19 @@ typedef struct {
 } error_code;
 
 typedef struct __synge_settings__ {
-	enum __mode {
+	enum {
 		degrees,
 		radians
 	} mode;
-	enum __error {
+	enum {
 		simple,
 		position,
 		traceback,
 	} error;
+	enum {
+		flexible,
+		strict
+	} strict;
 } synge_settings;
 
 typedef struct __function__ {

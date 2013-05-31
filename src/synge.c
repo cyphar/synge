@@ -181,7 +181,8 @@ char *op_list[] = {
 
 synge_settings active_settings = {
 	degrees,
-	position
+	position,
+	strict
 };
 
 static char *error_msg_container = NULL; /* needs to be freed at program termination using synge_free() (if you want valgrind to be happy) */
@@ -791,8 +792,12 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 		stackp = *pop_stack(op_stack);
 		pos = stackp.position;
 		if(stackp.tp == lparen ||
-		   stackp.tp == rparen) /* if there is a left or right bracket, there is an unmatched left bracket */
-			return safe_free_stack(UNMATCHED_LEFT_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
+		   stackp.tp == rparen) {
+			/* if there is a left or right bracket, there is an unmatched left bracket */
+			if(active_settings.strict >= strict)
+				return safe_free_stack(UNMATCHED_LEFT_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
+			else continue;
+		}
 		push_ststack(stackp, *rpn_stack);
 	}
 
