@@ -134,6 +134,16 @@ void cli_print_settings(char *s) {
 				break;
 		}
 	}
+	else if(!strcmp(args, "strict")) {
+		switch(current_settings.strict) {
+			case flexible:
+				ret = "Flexible";
+				break;
+			case strict:
+				ret = "Strict";
+				break;
+		}
+	}
 
 	if(!ret)
 		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
@@ -143,11 +153,11 @@ void cli_print_settings(char *s) {
 void cli_set_settings(char *s) {
 	synge_settings new_settings = get_synge_settings();
 	char *args = strchr(s, ' ') + 1;
+	char *val = strchr(args, ' ') + 1;
 	bool err = false;
 
 	/* should be replaced with a struct lookup */
 	if(!strncmp(args, "mode ", strlen("mode "))) {
-		char *val = strchr(args, ' ') + 1;
 		if(!strcasecmp(val, "degrees"))
 			new_settings.mode = degrees;
 		else if(!strcasecmp(val, "radians"))
@@ -155,13 +165,19 @@ void cli_set_settings(char *s) {
 		else err = true;
 	}
 	else if(!strncmp(args, "error ", strlen("error "))) {
-		char *val = strchr(args, ' ') + 1;
 		if(!strcasecmp(val, "simple"))
 			new_settings.error = simple;
 		else if(!strcasecmp(val, "position"))
 			new_settings.error = position;
 		else if(!strcasecmp(val, "traceback"))
 			new_settings.error = traceback;
+		else err = true;
+	}
+	else if(!strncmp(args, "strict ", strlen("strict "))) {
+		if(!strcasecmp(val, "flexible"))
+			new_settings.strict = flexible;
+		else if(!strcasecmp(val, "strict"))
+			new_settings.strict = strict;
 		else err = true;
 	}
 	else err = true;
