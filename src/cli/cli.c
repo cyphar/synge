@@ -204,8 +204,9 @@ void cli_set_settings(char *s) {
 		else err = true;
 	}
 	else if(!strncmp(args, "precision ", strlen("precision "))) {
+		errno = 0;
 		new_settings.precision = strtol(val, NULL, 10);
-		if(errno == ERANGE)
+		if(errno)
 			err = true;
 	}
 	else err = true;

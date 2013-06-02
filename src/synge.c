@@ -1274,6 +1274,10 @@ synge_settings get_synge_settings(void) {
 
 void set_synge_settings(synge_settings new_settings) {
 	active_settings = new_settings;
+
+	/* sanitise precision */
+	if(new_settings.precision > SYNGE_MAX_PRECISION)
+		active_settings.precision = SYNGE_MAX_PRECISION;
 } /* set_synge_settings() */
 
 function *get_synge_function_list(void) {
