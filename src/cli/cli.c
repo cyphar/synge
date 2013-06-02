@@ -88,8 +88,19 @@ void cli_version(void) {
 	printf(	"%s"
 		"Synge:       %s\n"
 		"Synge-Cli:   %s\n"
+
+#ifdef __SYNGE_GIT_VERSION__
+		"Revision:    %s\n"
+#endif
+
 		"Compiled:    %s, %s\n"
-		"%s", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__, __TIME__, __DATE__, ANSI_CLEAR);
+		"%s", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__,
+
+#ifdef __SYNGE_GIT_VERSION__
+		__SYNGE_GIT_VERSION__,
+#endif
+
+		__TIME__, __DATE__, ANSI_CLEAR);
 } /* cli_version() */
 
 void cli_license(void) {
