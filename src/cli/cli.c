@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+#define _BSD_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -48,7 +50,7 @@
 #define ANSI_INFO	"\x1b[1;37m"
 #define ANSI_OUTPUT	"\x1b[1;37m"
 #define ANSI_CLEAR	"\x1b[0;m"
-#define OUTPUT_PADDING	""
+#define ERR_TO_OUT	" 2>&1"
 
 #else
 /* ANSI Escape Sequences don't work on Windows */
@@ -57,8 +59,14 @@
 #define ANSI_INFO	""
 #define ANSI_OUTPUT	""
 #define ANSI_CLEAR	""
+#define ERR_TO_OUT	" 2>&1"
+
+#endif
+
 #define OUTPUT_PADDING	""
 
+#ifndef BLOCKSIZE
+#define BLOCKSIZE 1024
 #endif
 
 #ifndef __SYNGE_CLI_VERSION__
@@ -236,6 +244,39 @@ void cli_set_settings(char *s) {
 	}
 } /* cli_set_settings() */
 
+void cli_exec(char *str) {
+	char *command = malloc(strlen(str + 1) + strlen(ERR_TO_OUT) + 1);
+	strcpy(command, str + 1);
+	strcat(command, ERR_TO_OUT);
+
+	FILE *outf = popen(command, "r");
+	if(!outf) {
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, strerror(errno), ANSI_CLEAR);
+		return;
+	}
+
+	char *output = malloc(1), *buf = malloc(BLOCKSIZE + 1);
+	*output = '\0';
+
+	while(fgets(buf, BLOCKSIZE, outf) != NULL) {
+		output = realloc(output, strlen(output) + strlen(buf) + 1);
+		strcat(output, buf);
+	}
+
+	if(output && output[strlen(output) - 1] == '\n')
+		output[strlen(output) - 1] = '\0';
+
+	int ret = fclose(outf);
+	printf("%s%s%s\n", !ret ? ANSI_INFO : ANSI_ERROR, output, ANSI_CLEAR);
+
+	fflush(stdout);
+	fflush(stderr);
+
+	free(buf);
+	free(output);
+	free(command);
+} /* cli_exec() */
+
 cli_command cli_command_list[] = {
 	{"exit",	NULL,			true},
 	{"exit()",	NULL,			true},
@@ -246,6 +287,8 @@ cli_command cli_command_list[] = {
 	{"license",	cli_license,		true},
 	{"warranty",	cli_warranty,		true},
 	{"banner",	cli_banner,		true},
+
+	{"!",		cli_exec,		false},
 
 	{"list ",	cli_print_list,		false},
 	{"set ",	cli_set_settings,	false},
