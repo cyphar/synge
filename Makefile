@@ -36,6 +36,8 @@ ifeq ($(OS), Windows_NT)
 
 	OS_PREFIX	=
 	OS_SUFFIX	=.exe
+
+	OS_GIT_VERSION	=
 else
 	OS_SHR_CFLAGS	=
 	OS_CLI_CFLAGS	= `pkg-config --cflags libedit`
@@ -49,6 +51,8 @@ else
 
 	OS_PREFIX	=./
 	OS_SUFFIX	=
+
+	OS_GIT_VERSION	= $(shell git rev-parse --verify HEAD)
 endif
 
 PYTHON		= python
@@ -120,6 +124,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
 		$(WARNINGS)
 	strip $(EXEC_CLI)
@@ -130,6 +135,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		$(WARNINGS)
 	strip $(EXEC_GTK)
@@ -139,6 +145,7 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
 		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
 		$(WARNINGS)
 	strip $(EXEC_EVAL)
@@ -171,6 +178,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
 		$(WARNINGS)
 
@@ -181,6 +189,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		$(WARNINGS)
 
