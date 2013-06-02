@@ -33,6 +33,7 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <stack.h>
 #include <synge.h>
@@ -106,9 +107,27 @@ void cli_print_list(char *s) {
 	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 } /* cli_print_list() */
 
+#define intlen(number) (int) (number ? floor(log10(abs(number))) + 1 : 1) /* magical math hack to get number of digits in an integer */
+
+char *itoa(int i) {
+	char *buf = malloc(intlen(i) + (i < 0 ? 2 : 1)); /* this makes buf exactly the size it needs to be */
+	char *p = buf + intlen(i) + (i < 0 ? 2 : 1); /* point *p to the end of buf */
+	*--p = '\0'; /* null terminate string */
+
+	/* generate the string backwards */
+	long j = 1;
+	do {
+		*--p = '0' + (abs(i / j) % 10); /* '0' + a one-digit number = the ascii val of the number */
+		j *= 10;
+	} while (i / j);
+
+	if(i < 0) *--p = '-'; /* if number is negative, add a negative sign */
+	return buf; /* must be freed! */
+} /* itoa() */
+
 void cli_print_settings(char *s) {
 	synge_settings current_settings = get_synge_settings();
-	char *args = strchr(s, ' ') + 1, *ret = NULL;
+	char *args = strchr(s, ' ') + 1, *ret = NULL, *tmpfree = NULL;
 
 	/* should be replaced with a struct lookup */
 	if(!strcmp(args, "mode")) {
@@ -144,10 +163,14 @@ void cli_print_settings(char *s) {
 				break;
 		}
 	}
+	else if(!strcmp(args, "precision"))
+		tmpfree = ret = itoa(current_settings.precision);
 
 	if(!ret)
 		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 	else printf("%s%s%s\n", ANSI_INFO, ret, ANSI_CLEAR);
+
+	free(tmpfree);
 } /* cli_print_settings() */
 
 void cli_set_settings(char *s) {
@@ -179,6 +202,11 @@ void cli_set_settings(char *s) {
 		else if(!strcasecmp(val, "strict"))
 			new_settings.strict = strict;
 		else err = true;
+	}
+	else if(!strncmp(args, "precision ", strlen("precision "))) {
+		new_settings.precision = strtol(val, NULL, 10);
+		if(errno == ERANGE)
+			err = true;
 	}
 	else err = true;
 

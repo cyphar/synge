@@ -64,6 +64,7 @@ typedef struct __synge_settings__ {
 		flexible,
 		strict
 	} strict;
+	int precision;
 } synge_settings;
 
 typedef struct __function__ {
