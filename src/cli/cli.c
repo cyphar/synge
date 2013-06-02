@@ -387,8 +387,10 @@ int main(int argc, char **argv) {
 				tmp.exec(cur_str);
 			}
 			else if((ecode = compute_infix_string(cur_str, &result)).code != SUCCESS) {
-				if(ecode.code == EMPTY_STACK) continue;
-				else printf("%s%s%s%s\n", OUTPUT_PADDING, is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+				if(ecode.code == EMPTY_STACK)
+					continue;
+				else if(!ignore_code(ecode.code))
+					printf("%s%s%s%s\n", OUTPUT_PADDING, is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
 			else printf("%s%.*f%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
 #ifndef __WIN32

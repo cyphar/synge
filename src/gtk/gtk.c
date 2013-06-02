@@ -66,7 +66,7 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 
 	char *text = (char *) gtk_entry_get_text(GTK_ENTRY(input));
 
-	if((ecode = compute_infix_string(text, &result)).code != SUCCESS) {
+	if((ecode = compute_infix_string(text, &result)).code != SUCCESS && !ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), FALSE);
 
 		char *markup = g_markup_printf_escaped("<b><span color=\"%s\">%s</span></b>", is_success_code(ecode.code) ? "#008800" : "red", get_error_msg(ecode));
@@ -75,7 +75,8 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 
 		g_free(markup);
 
-	} else {
+	}
+	else if(!ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), TRUE);
 
 		char *outputs = malloc((snprintf(NULL, 0, "%.*f", get_precision(result), result) + 1) * sizeof(char));
@@ -87,6 +88,10 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 
 		free(outputs);
 		g_free(markup);
+	}
+	else {
+		gtk_label_set_text(GTK_LABEL(output), "");
+		gtk_label_set_text(GTK_LABEL(statusbar), "");
 	}
 } /* gui_compute_string() */
 

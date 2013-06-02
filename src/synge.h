@@ -43,6 +43,7 @@ typedef struct {
 		RESERVED_VARIABLE,
 		DELETED_VARIABLE,
 		DELETED_FUNCTION,
+		ERROR_FUNC_ASSIGNMENT,
 		UNDEFINED,
 		TOO_DEEP,
 		UNKNOWN_ERROR
@@ -86,6 +87,7 @@ char *get_error_msg_pos(int, int); /* returns a string which describes the error
 
 error_code compute_infix_string(char *, double *); /* takes an infix-style string and runs it through the "engine" */
 int is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
+int ignore_code(int); /* returns true if the return code and result should be ignored, otherwise false */
 
 void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
 void synge_end(void); /* run at program termination -- memory WILL leak if not run at end */
