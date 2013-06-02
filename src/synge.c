@@ -182,7 +182,8 @@ char *op_list[] = {
 synge_settings active_settings = {
 	degrees,
 	position,
-	strict
+	strict,
+	-1
 };
 
 static char *error_msg_container = NULL; /* needs to be freed at program termination using synge_free() (if you want valgrind to be happy) */
@@ -330,6 +331,10 @@ char *str_dup(char *s) {
 } /* str_dup() */
 
 int get_precision(double num) {
+	/* use the current settings' precision if given */
+	if(active_settings.precision >= 0)
+		return active_settings.precision;
+
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
 	int tmpsize = lenprintf("%.*f", SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
