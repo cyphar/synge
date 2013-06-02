@@ -1241,7 +1241,9 @@ error_code compute_infix_string(char *original_str, double *result) {
 						break;
 					case 2:
 						/* set/update function/function */
-						ecode = set_function(tmpword, string); /* but functions should work despite any errs*/
+						if(ecode.code != SUCCESS)
+							ecode.code = ERROR_FUNC_ASSIGNMENT;
+						set_function(tmpword, string); /* but functions should work despite any errors */
 						break;
 					/* my name's benny and i like to party when i go to class late they call me tardy */
 					case -1:
@@ -1310,3 +1312,10 @@ int is_success_code(int code) {
 
 	else return false;
 } /* is_success_code() */
+
+int ignore_code(int code) {
+	if(code == EMPTY_STACK ||
+	   code == ERROR_FUNC_ASSIGNMENT) return true;
+
+	else return false;
+} /* ignore_code() */
