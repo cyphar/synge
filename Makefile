@@ -39,7 +39,7 @@ ifeq ($(OS), Windows_NT)
 
 	OS_GIT_VERSION	=
 else
-	OS_SHR_CFLAGS	=
+	OS_SHR_CFLAGS	= -Werror
 	OS_CLI_CFLAGS	= `pkg-config --cflags libedit`
 	OS_GTK_CFLAGS	= -export-dynamic
 	OS_EVAL_CFLAGS	=
@@ -78,7 +78,7 @@ GTK_DIR		= $(SRC_DIR)/gtk
 EVAL_DIR	= $(SRC_DIR)/eval
 TEST_DIR	= tests
 
-WARNINGS	= -Wall -Wextra -Werror -pedantic -Wno-overlength-strings -Wno-sign-compare -Wno-unused-parameter
+WARNINGS	= -Wall -Wextra -pedantic -Wno-overlength-strings -Wno-sign-compare -Wno-unused-parameter
 SHR_CFLAGS	= -std=c99 -fsigned-char -I$(SRC_DIR)/ $(OS_SHR_CFLAGS)
 CLI_CFLAGS	= $(OS_CLI_CFLAGS)
 GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` $(OS_GTK_CFLAGS)
