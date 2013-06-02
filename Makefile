@@ -27,12 +27,12 @@ ifeq ($(OS), Windows_NT)
 	OS_SHR_CFLAGS	=
 	OS_CLI_CFLAGS	=
 	OS_GTK_CFLAGS	=
-	OS_TEST_CFLAGS	=
+	OS_EVAL_CFLAGS	=
 
 	OS_SHR_LFLAGS	=
 	OS_CLI_LFLAGS	=
 	OS_GTK_LFLAGS	= -mwindows
-	OS_TEST_LFLAGS	=
+	OS_EVAL_LFLAGS	=
 
 	OS_PREFIX	=
 	OS_SUFFIX	=.exe
@@ -40,12 +40,12 @@ else
 	OS_SHR_CFLAGS	=
 	OS_CLI_CFLAGS	= `pkg-config --cflags libedit`
 	OS_GTK_CFLAGS	= -export-dynamic
-	OS_TEST_CFLAGS	=
+	OS_EVAL_CFLAGS	=
 
 	OS_SHR_LFLAGS	=
 	OS_CLI_LFLAGS	= `pkg-config --libs libedit`
 	OS_GTK_LFLAGS	=
-	OS_TEST_LFLAGS	=
+	OS_EVAL_LFLAGS	=
 
 	OS_PREFIX	=./
 	OS_SUFFIX	=
@@ -62,43 +62,45 @@ EXEC_BASE	= synge
 
 NAME_CLI	= $(EXEC_BASE)-cli
 NAME_GTK	= $(EXEC_BASE)-gtk
-NAME_TEST	= $(EXEC_BASE)-test
+NAME_EVAL	= $(EXEC_BASE)-eval
 
 EXEC_CLI	= $(NAME_CLI)$(OS_SUFFIX)
 EXEC_GTK	= $(NAME_GTK)$(OS_SUFFIX)
-EXEC_TEST	= $(NAME_TEST)$(OS_SUFFIX)
+EXEC_EVAL	= $(NAME_EVAL)$(OS_SUFFIX)
 
 SRC_DIR		= src
 CLI_DIR		= $(SRC_DIR)/cli
 GTK_DIR		= $(SRC_DIR)/gtk
+EVAL_DIR	= $(SRC_DIR)/eval
 TEST_DIR	= tests
 
 WARNINGS	= -Wall -Wextra -Werror -pedantic -Wno-overlength-strings -Wno-sign-compare -Wno-unused-parameter
 SHR_CFLAGS	= -std=c99 -fsigned-char -I$(SRC_DIR)/ $(OS_SHR_CFLAGS)
 CLI_CFLAGS	= $(OS_CLI_CFLAGS)
 GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` $(OS_GTK_CFLAGS)
-TEST_CFLAGS	= $(OS_TEST_CFLAGS)
+EVAL_CFLAGS	= $(OS_EVAL_CFLAGS)
 
 SHR_LFLAGS	= -lm $(OS_SHR_LFLAGS)
 CLI_LFLAGS	= $(OS_CLI_LFLAGS)
 GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0` $(OS_GTK_LFLAGS)
-TEST_LFLAGS	= $(OS_TEST_LFLAGS)
+EVAL_LFLAGS	= $(OS_EVAL_LFLAGS)
 
 SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c
 CLI_SRC		= $(CLI_DIR)/cli.c
 GTK_SRC		= $(GTK_DIR)/gtk.c
-TEST_SRC	= $(TEST_DIR)/test.c
+EVAL_SRC	= $(EVAL_DIR)/eval.c
 
 SHR_DEPS	= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/ohmic.h
 CLI_DEPS	=
 GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
-TEST_DEPS	=
+EVAL_DEPS	=
 
 VERSION		= 1.2.8
 CLI_VERSION	= 1.0.9
 GTK_VERSION	= 1.0.1 [CONCEPT]
+EVAL_VERSION	= 1.0.1
 
-TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_TEST) $(GTK_DIR)/xmlui.h
+TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_DIR)/xmlui.h
 
 PREFIX		?=
 INSTALL_DIR	= $(PREFIX)/bin
@@ -108,9 +110,10 @@ INSTALL_DIR	= $(PREFIX)/bin
 ######################
 
 # Compile "production" engine and wrappers
-all: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
+all:
 	make $(NAME_CLI)
 	make $(NAME_GTK)
+	make $(NAME_EVAL)
 
 # Compile "production" engine and command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
@@ -131,22 +134,26 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 		$(WARNINGS)
 	strip $(EXEC_GTK)
 
+# Compile "production" engine and simple eval wrapper
+$(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
+	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
+		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
+		$(WARNINGS)
+	strip $(EXEC_EVAL)
+
 ################
 # TEST SECTION #
 ################
 
 # Compile "production" engine and test suite wrapper + execute test suite
-test: $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
-	$(CC) $(SHR_SRC) $(TEST_SRC) $(SHR_LFLAGS) $(TEST_LFLAGS) \
-		$(SHR_CFLAGS) $(TEST_CFLAGS) -o $(EXEC_TEST) \
-		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		$(WARNINGS)
-	strip $(EXEC_TEST)
+test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
-		$(PYTHON) $(TEST_DIR)/test.py $(OS_PREFIX)$(EXEC_TEST)$(OS_SUFFIX); \
+		$(PYTHON) $(TEST_DIR)/test.py "$(OS_PREFIX)$(EXEC_EVAL)$(OS_SUFFIX) -R"; \
 	fi
 
 #################

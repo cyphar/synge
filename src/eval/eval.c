@@ -1,4 +1,4 @@
-/* Synge-Test: A testing wrapper for Synge
+/* Synge-Eval: A simple evaluation wrapper for Synge
  * Copyright (C) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -22,24 +22,28 @@
 
 /*
  * To Compile:
- * cc <source files> test/test.c -lm -Isrc/ -std=c99 -fsigned-char
+ * cc <source files> src/eval/eval.c -lm -Isrc/ -std=c99
  *
  * Command-line Arguments:
  *
  * SYNPOSIS:
- *        ./test expression [-m mode]
+ *        ./synge-eval expression[s] [-m mode] [=R]
  *
  * DESCRIPION:
  *        Run the expression through Synge, using the given settings, and defaults otherwise.
  *
  * OPTIONS:
- *        -m <mode>, --mode <mode> 	Sets the mode to <mode> (radians, degrees)
+ *        -m <mode>, --mode <mode> 	Sets the mode to <mode> (radians || degrees)
+ *        -R, --no-random		Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+
+#include <time.h>
+#include <unistd.h>
 
 #include <synge.h>
 
@@ -57,6 +61,10 @@ void bake_args(int argc, char ***argv) {
 				(*argv)[i-1] = NULL;
 				(*argv)[i] = NULL;
 		}
+		else if(!strcmp((*argv)[i], "-R") || !strcmp((*argv)[i], "-no-random") || !strcmp((*argv)[i], "--no-random")) {
+			srand(0); /* seed random number generator, to make it predicatable for testing */
+			(*argv)[i] = NULL;
+		}
 	}
 
 	set_synge_settings(test_settings);
@@ -65,7 +73,7 @@ void bake_args(int argc, char ***argv) {
 int main(int argc, char **argv) {
 	if(argc < 2) return 1;
 	synge_start();
-	srand(0); /* seed random number generator, to make it predicatable for testing */
+	srand(time(NULL) ^ getpid());
 	bake_args(argc, &argv);
 
 	double result;
