@@ -35,6 +35,7 @@
  * OPTIONS:
  *        -m <mode>, --mode <mode> 	Sets the mode to <mode> (radians || degrees)
  *        -R, --no-random		Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)
+ *        -S, --no-skip			Do not skip "ignorable" error messages
  */
 
 #include <stdio.h>
@@ -48,6 +49,8 @@
 #include <synge.h>
 
 synge_settings test_settings;
+
+int skip_ignorable = 1;
 
 void bake_args(int argc, char ***argv) {
 	test_settings = get_synge_settings();
@@ -63,6 +66,10 @@ void bake_args(int argc, char ***argv) {
 		}
 		else if(!strcmp((*argv)[i], "-R") || !strcmp((*argv)[i], "-no-random") || !strcmp((*argv)[i], "--no-random")) {
 			srand(0); /* seed random number generator, to make it predicatable for testing */
+			(*argv)[i] = NULL;
+		}
+		else if(!strcmp((*argv)[i], "-S") || !strcmp((*argv)[i], "-no-skip") || !strcmp((*argv)[i], "--no-skip")) {
+			skip_ignorable = 0;
 			(*argv)[i] = NULL;
 		}
 	}
@@ -82,8 +89,10 @@ int main(int argc, char **argv) {
 	int i;
 	for(i = 1; i < argc; i++) {
 		if(!argv[i]) continue;
+		ecode = compute_infix_string(argv[i], &result);
 
-		if((ecode = compute_infix_string(argv[i], &result)).code != SUCCESS)
+		if(skip_ignorable && ignore_code(ecode.code)) continue;
+		else if(ecode.code != SUCCESS)
 			printf("%s\n", get_error_msg(ecode));
 		else
 			printf("%.*f\n", get_precision(result), result);
