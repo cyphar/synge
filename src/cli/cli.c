@@ -163,8 +163,12 @@ void cli_print_settings(char *s) {
 				break;
 		}
 	}
-	else if(!strcmp(args, "precision"))
-		tmpfree = ret = itoa(current_settings.precision);
+	else if(!strcmp(args, "precision")) {
+		if(current_settings.precision >= 0)
+			tmpfree = ret = itoa(current_settings.precision);
+		else
+			ret = "Dynamic";
+	}
 
 	if(!ret)
 		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
@@ -205,7 +209,12 @@ void cli_set_settings(char *s) {
 	}
 	else if(!strncmp(args, "precision ", strlen("precision "))) {
 		errno = 0;
-		new_settings.precision = strtol(val, NULL, 10);
+
+		if(!strcasecmp(val, "dynamic"))
+			new_settings.precision = -1;
+		else
+			new_settings.precision = strtol(val, NULL, 10);
+
 		if(errno)
 			err = true;
 	}
