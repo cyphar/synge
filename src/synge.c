@@ -585,7 +585,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
 				else {
 					/* recursion - not your daddy's sort of program structure */
-					tmpecode = compute_infix_string((char *) ohm_search(function_list, word, strlen(word)), num);
+					tmpecode = compute_infix_string((char *) ohm_search(function_list, word, strlen(word) + 1), num);
 					if(!is_success_code(tmpecode.code)) {
 						/* error was encountered */
 						free(s);
