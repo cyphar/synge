@@ -1,4 +1,4 @@
-/* ohmic: A fairly reliable hashmap "library"
+/* ohmic: a fairly reliable hashmap library
  * Copyright (c) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
