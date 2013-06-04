@@ -45,25 +45,20 @@
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
 #ifndef __WIN32
-
 #define ANSI_ERROR	"\x1b[1;31m"
 #define ANSI_GOOD	"\x1b[1;32m"
 #define ANSI_INFO	"\x1b[1;37m"
 #define ANSI_OUTPUT	"\x1b[1;37m"
 #define ANSI_CLEAR	"\x1b[0;m"
-#define ERR_TO_OUT	" 2>&1"
-
 #else
-/* ANSI Escape Sequences don't work on Windows */
 #define ANSI_ERROR	""
 #define ANSI_GOOD	""
 #define ANSI_INFO	""
 #define ANSI_OUTPUT	""
 #define ANSI_CLEAR	""
-#define ERR_TO_OUT	" 2>&1"
-
 #endif
 
+#define ERR_TO_OUT	" 2>&1"
 #define OUTPUT_PADDING	""
 
 #ifndef BLOCKSIZE
@@ -72,6 +67,10 @@
 
 #ifndef __SYNGE_CLI_VERSION__
 #define __SYNGE_CLI_VERSION__ ""
+#endif
+
+#ifndef __SYNGE_GIT_VERSION__
+#define __SYNGE_GIT_VERSION__ ""
 #endif
 
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
@@ -86,22 +85,16 @@ typedef struct __cli_command__ {
 } cli_command;
 
 void cli_version(void) {
+	char *revision = "";
+	if(strlen(__SYNGE_GIT_VERSION__) == 40)
+		revision = "Revision:    " __SYNGE_GIT_VERSION__ "\n";
+
 	printf(	"%s"
 		"Synge:       %s\n"
 		"Synge-Cli:   %s\n"
-
-#ifdef __SYNGE_GIT_VERSION__
-		"Revision:    %s\n"
-#endif
-
+		"%s"
 		"Compiled:    %s, %s\n"
-		"%s", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__,
-
-#ifdef __SYNGE_GIT_VERSION__
-		__SYNGE_GIT_VERSION__,
-#endif
-
-		__TIME__, __DATE__, ANSI_CLEAR);
+		"%s", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__, revision, __TIME__, __DATE__, ANSI_CLEAR);
 } /* cli_version() */
 
 void cli_license(void) {
