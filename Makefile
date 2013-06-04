@@ -106,7 +106,7 @@ EVAL_VERSION	= 1.0.1
 
 TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_DIR)/xmlui.h
 
-PREFIX		?=
+PREFIX		?= /usr
 INSTALL_DIR	= $(PREFIX)/bin
 
 ######################
