@@ -39,6 +39,10 @@
 #define __SYNGE_GTK_VERSION__ ""
 #endif
 
+#ifndef __SYNGE_GIT_VERSION__
+#define __SYNGE_GIT_VERSION__ "unknown"
+#endif
+
 #ifdef _WIN32
 #define __EXPORT_SYMBOL __declspec(dllexport)
 #else
@@ -234,7 +238,15 @@ int main(int argc, char **argv) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
 	gtk_builder_connect_signals(builder, NULL);
 
-	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), "Version " __SYNGE_GTK_VERSION__);
+	char *comments = NULL;
+
+	/* git commit information is always 40 chars long*/
+	if(strlen(__SYNGE_GIT_VERSION__) != 40)
+		comments = "Version " __SYNGE_GTK_VERSION__;
+	else
+		comments = "Version " __SYNGE_GTK_VERSION__ "\n" __SYNGE_GIT_VERSION__;
+
+	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), comments);
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n" SYNGE_WARRANTY);
 
 	gtk_widget_show(GTK_WIDGET(window));
