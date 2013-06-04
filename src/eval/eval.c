@@ -36,6 +36,8 @@
  *        -m <mode>, --mode <mode> 	Sets the mode to <mode> (radians || degrees)
  *        -R, --no-random		Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)
  *        -S, --no-skip			Do not skip "ignorable" error messages
+ *
+ *        -V, --version			Print version information
  */
 
 #include <stdio.h>
@@ -47,6 +49,10 @@
 #include <unistd.h>
 
 #include <synge.h>
+
+#ifndef __SYNGE_GIT_VERSION__
+#define __SYNGE_GIT_VERSION__ "unknown"
+#endif
 
 synge_settings test_settings;
 
@@ -71,6 +77,13 @@ void bake_args(int argc, char ***argv) {
 		else if(!strcmp((*argv)[i], "-S") || !strcmp((*argv)[i], "-no-skip") || !strcmp((*argv)[i], "--no-skip")) {
 			skip_ignorable = 0;
 			(*argv)[i] = NULL;
+		}
+		else if(!strcmp((*argv)[i], "-V") || !strcmp((*argv)[i], "-version") || !strcmp((*argv)[i], "--version")) {
+			printf(	"Synge:       %s\n"
+				"Synge-Eval:  %s\n"
+				"Revision:    %s\n"
+				"Compiled:    %s, %s\n", __SYNGE_VERSION__, __SYNGE_EVAL_VERSION__, __SYNGE_GIT_VERSION__, __TIME__, __DATE__);
+			exit(0);
 		}
 	}
 
