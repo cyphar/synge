@@ -171,6 +171,7 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 	make debug-cli
 	make debug-gtk
+	make debug-eval
 
 # Compile "debug" engine and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
@@ -193,6 +194,16 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		$(WARNINGS)
 
+# Compile "debug" engine and simple eval wrapper
+debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
+	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
+		-g -O0 -D__DEBUG__ \
+		-D__SYNGE_VERSION__='"$(VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
+		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
+		$(WARNINGS)
+
 ###################
 # INSTALL SECTION #
 ###################
@@ -201,6 +212,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 install:
 	make install-cli
 	make install-gtk
+	make install-eval
 
 # Install cli wrapper
 install-cli: $(EXEC_CLI)
@@ -209,6 +221,10 @@ install-cli: $(EXEC_CLI)
 # Install gtk wrapper
 install-gtk: $(EXEC_GTK)
 	cp $(EXEC_GTK) $(INSTALL_DIR)/$(EXEC_GTK)
+
+# Install eval wrapper
+install-eval: $(EXEC_EVAL)
+	cp $(EXEC_EVAL) $(INSTALL_DIR)/$(EXEC_EVAL)
 
 #################
 # CLEAN SECTION #
@@ -222,6 +238,7 @@ clean:
 uninstall:
 	make uninstall-cli
 	make uninstall-gtk
+	make uninstall-eval
 
 # Uninstall cli wrapper
 uninstall-cli:
@@ -230,6 +247,10 @@ uninstall-cli:
 # Uninstall gtk wrapper
 uninstall-gtk:
 	rm -f $(INSTALL_DIR)/$(EXEC_GTK)
+
+# Uninstall eval wrapper
+uninstall-eval:
+	rm -f $(INSTALL_DIR)/$(EXEC_EVAL)
 
 ################
 # MISC SECTION #
