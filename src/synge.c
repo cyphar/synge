@@ -58,6 +58,17 @@
 /* my own assert() implementation */
 #define assert(x) do { if(!x) { printf("synge: assertion '%s' failed -- aborting!\n", #x); exit(254); }} while(0)
 
+/* -- useful macros -- */
+#define isaddop(ch) (ch == '+' || ch == '-')
+#define ismultop(ch) (ch == '*' || ch == '/' || ch == '\\' || ch == '%')
+#define isexpop(ch) (ch == '^')
+#define isparen(ch) (ch == '(' || ch == ')')
+
+#define isop(type) (type == addop || type == multop || type == expop)
+
+/* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
+#define has_rounding_error(number) (number + 1 == number || number - 1 == number)
+
 static bool synge_started = false; /* i REALLY reccomend you leave this false, as this is used to ensure that synge_start has been run */
 
 double deg2rad(double deg) {
@@ -362,10 +373,6 @@ error_code to_error_code(int error, int position) {
 	return ret;
 } /* to_error_code() */
 
-bool isop(s_type type) {
-	return (type == addop || type == multop || type == expop);
-} /* isop() */
-
 /* linear search functions -- cuz honeybadger don't give a f*** */
 
 special_number get_special_num(char *s) {
@@ -425,7 +432,7 @@ error_code set_variable(char *str, double val) {
 		/* name is reserved -- give error */
 		ret = to_error_code(RESERVED_VARIABLE, -1);
 	} else {
-		ohm_remove(function_list, s, strlen(s) + 1);
+		ohm_remove(function_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
 		ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
 	}
 
@@ -443,7 +450,7 @@ error_code set_function(char *str, char *exp) {
 		/* name is reserved -- give error */
 		ret = to_error_code(RESERVED_VARIABLE, -1);
 	} else {
-		ohm_remove(variable_list, s, strlen(s) + 1);
+		ohm_remove(variable_list, s, strlen(s) + 1); /* remove word from variable list (fake dynamic typing) */
 		ohm_insert(function_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
 	}
 
@@ -522,13 +529,6 @@ char *function_process_replace(char *string) {
 	return final;
 }
 
-bool has_rounding_error(double number) {
-	/* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
-	if(number + 1 == number || number - 1 == number)
-		return true;
-	return false;
-} /* has_rounding_error() */
-
 int recalc_padding(char *str, int len) {
 	int ret = 0, tmp;
 
@@ -553,7 +553,7 @@ int next_offset(char *str, int offset) {
 error_code tokenise_string(char *string, int offset, stack **ret) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
-	error_code tmpecode = {SUCCESS, -1};
+	error_code tmpecode = to_error_code(SUCCESS, -1);
 
 	debug("%s\n%s\n", string, s);
 
@@ -566,7 +566,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 		else if(isnum(s+i) && /* does it fit the description of a number? */
 		       (!top_stack(*ret) || /* if nothing before, it's a number */
 		/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
-		       ((top_stack(*ret)->tp != number || (*(s+i) != '+' && *(s+i) != '-')) &&
+		       ((top_stack(*ret)->tp != number || !isaddop(*(s+i))) &&
 		        (top_stack(*ret)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
 
 			double *num = malloc(sizeof(double)); /* allocate memory to be pushed onto the stack */
