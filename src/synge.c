@@ -220,16 +220,14 @@ void print_stack(stack *s) {
 #endif
 } /* print_stack() */
 
-void udebug(char *format, ...) {
+void debug(char *format, ...) {
 #ifdef __DEBUG__
 	va_list ap;
-	va_start(ap, NULL);
+	va_start(ap, format);
 	vprintf(format, ap);
 	va_end(ap);
 #endif
-} /* debug */
-
-#define debug(...) udebug(__VA_ARGS__, NULL)
+} /* debug() */
 
 /* END __DEBUG__ FUNCTIONS */
 
