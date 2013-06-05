@@ -204,8 +204,8 @@ static char *error_msg_container = NULL; /* needs to be freed at program termina
 
 void print_stack(stack *s) {
 #ifdef __DEBUG__
-	int i;
-	for(i = 0; i < stack_size(s); i++) {
+	int i, size = stack_size(s);
+	for(i = 0; i < size; i++) {
 		s_content tmp = s->content[i];
 		if(!tmp.val) continue;
 
@@ -224,9 +224,7 @@ void udebug(char *format, ...) {
 #ifdef __DEBUG__
 	va_list ap;
 	va_start(ap, NULL);
-
 	vprintf(format, ap);
-
 	va_end(ap);
 #endif
 } /* debug */
@@ -264,10 +262,11 @@ char *replace(char *str, char *old, char *new) {
 } /* replace() */
 
 char *get_word(char *s, char *list, char **endptr) {
+	int lenstr = strlen(s), lenlist = strlen(list);
 	int i, j, found;
-	for(i = 0; i < strlen(s); i++) { /* for the entire string */
+	for(i = 0; i < lenstr; i++) { /* for the entire string */
 		found = false; /* reset found variable */
-		for(j = 0; j < strlen(list); j++)
+		for(j = 0; j < lenlist; j++)
 			if(s[i] == list[j]) {
 				found = true; /* found a match! */
 				break; /* gtfo. */
@@ -288,6 +287,9 @@ char *get_word(char *s, char *list, char **endptr) {
 
 /* get number of times a character occurs in the given string */
 int strnchr(char *str, char ch, int len) {
+	if(len < 0)
+		len = strlen(str);
+
 	int i, ret = 0;
 	for(i = 0; i < len; i++)
 		if(str[i] == ch)
@@ -470,13 +472,15 @@ error_code del_word(char *str, bool variable) {
 
 	else if(!ohm_search(variable_list, s, strlen(s) + 1) &&
 		!ohm_search(function_list, s, strlen(s) + 1))
-
 		/* word doesn't exist */
 		ret = to_error_code(variable ? UNKNOWN_VARIABLE : UNKNOWN_FUNCTION, -1);
 
 	else {
-		if(!ohm_remove(variable_list, s, strlen(s) + 1)) ret.code = DELETED_VARIABLE;
-		if(!ohm_remove(function_list, s, strlen(s) + 1)) ret.code = DELETED_FUNCTION;
+		/* try to remove it from both lists -- just to be sure */
+		if(!ohm_remove(variable_list, s, strlen(s) + 1))
+			ret.code = DELETED_VARIABLE;
+		if(!ohm_remove(function_list, s, strlen(s) + 1))
+			ret.code = DELETED_FUNCTION;
 	}
 
 	free(s);
@@ -540,9 +544,9 @@ int recalc_padding(char *str, int len) {
 } /* recalc_padding() */
 
 int next_offset(char *str, int offset) {
-	int i;
+	int i, len = strlen(str);
 	/* continue from given offset */
-	for(i = offset; i < strlen(str); i++)
+	for(i = offset; i < len; i++)
 		if(str[i] != ' ' && str[i] != '\t')
 			/* found a non-whitespace character */
 			return i;
@@ -558,33 +562,41 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 	debug("%s\n%s\n", string, s);
 
 	init_stack(*ret);
-	int i, pos, tmp = 0;
-	for(i = 0; i < strlen(s); i++) {
-		pos = i + offset - recalc_padding(s, i - 1) + 1;
+	int i, pos, tmp = 0, len = strlen(s);
+	for(i = 0; i < len; i++) {
+		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
 		if(s[i] == ' ') continue; /* ignore spaces */
-		/* full is num */
+
+		/* full number check */
 		else if(isnum(s+i) && /* does it fit the description of a number? */
-		       (!top_stack(*ret) || /* if nothing before, it's a number */
-		/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
+			/* if it is the first token in the string, it's a number */
+		       (!top_stack(*ret) ||
+			/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
 		       ((top_stack(*ret)->tp != number || !isaddop(*(s+i))) &&
+			/* same as above, but for parenthesis */
 		        (top_stack(*ret)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
 
 			double *num = malloc(sizeof(double)); /* allocate memory to be pushed onto the stack */
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
 
+			/* if it is a "special" number */
 			if(get_special_num(word).name) {
 				special_number stnum = get_special_num(word);
 				*num = stnum.value;
 				i += strlen(stnum.name) - 1; /* update iterator to correct offset */
 			}
 
+			/* is it a variable or user function? */
 			else if((ohm_search(variable_list, word, strlen(word) + 1) && (tmp = 1)) ||
 				ohm_search(function_list, word, strlen(word) + 1)) {
 
 				if(tmp)
+					/* variable */
 					*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
 				else {
-					/* recursion - not your daddy's sort of program structure */
+					/* function */
+
+					/* recursively evaluate a user function's value */
 					tmpecode = compute_infix_string((char *) ohm_search(function_list, word, strlen(word) + 1), num);
 					if(!is_success_code(tmpecode.code)) {
 						/* error was encountered */
@@ -597,7 +609,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 
 				if(top_stack(*ret)) {
 					s_content *tmppop, *tmpp;
-					/* make variables act more ... variable-y */
+					/* make variables act more like numbers (and more like variables) */
 					switch(top_stack(*ret)->tp) {
 						case addop:
 							/* if there is a +/- in front of a variable, it should set the sign of that variable (i.e. 1--x is 1+x) */
@@ -742,9 +754,10 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 	init_stack(op_stack);
 	init_stack(*rpn_stack);
 
-	int i, found, pos;
-	/* reorder stack in reverse (since we are poping from a full stack and pushing to an empty one) */
-	for(i = 0; i < stack_size(*infix_stack); i++) {
+	int i, found, pos, size = stack_size(*infix_stack);
+
+	/* reorder stack, in reverse (since we are poping from a full stack and pushing to an empty one) */
+	for(i = 0; i < size; i++) {
 		stackp = (*infix_stack)->content[i]; /* pointer to current stack item (to make the code more readable) */
 		pos = stackp.position; /* shorthand for the position of errors */
 
@@ -859,9 +872,9 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 	init_stack(tmpstack);
 
 	s_content stackp;
-	int i, pos = 0, tmp = 0;
+	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
 	double *result = NULL, arg[2];
-	for(i = 0; i < stack_size(*rpn); i++) {
+	for(i = 0; i < size; i++) {
 		/* debugging */
 		print_stack(tmpstack);
 
