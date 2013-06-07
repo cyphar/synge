@@ -1,6 +1,6 @@
 List of known bugs and limitations:
 
-  - Weird incorrect errors (1/cos(90) isn't registered as a divide by zero error) -- due to result not being exactly zero (just 1e-30)
+  -
 
 List of "bugs" which are not to be fixed:
 

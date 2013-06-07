@@ -40,6 +40,7 @@
  * 1 Addition, Subtraction (left associative)
  */
 
+#define EPSILON			10e-11
 #define SYNGE_MAX_PRECISION	10
 #define SYNGE_MAX_DEPTH		10
 
@@ -65,6 +66,8 @@
 #define isparen(ch) (ch == '(' || ch == ')')
 
 #define isop(type) (type == addop || type == multop || type == expop)
+
+#define iszero(x) (fabs(x) <= EPSILON)
 
 /* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
 #define has_rounding_error(number) (number + 1 == number || number - 1 == number)
@@ -938,7 +941,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 						/* division, but the result ignores the decimals */
 						tmp = 1;
 					case '/':
-						if(!arg[1]) {
+						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
 							free(result);
 							return safe_free_stack(DIVIDE_BY_ZERO, pos, &tmpstack, rpn);
@@ -947,7 +950,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 						if(tmp) modf(*result, result);
 						break;
 					case '%':
-						if(!arg[1]) {
+						if(iszero(arg[1])) {
 							/* the 11.5th commandment -- thoust shalt not modulo by zero */
 							free(result);
 							return safe_free_stack(MODULO_BY_ZERO, pos, &tmpstack, rpn);
