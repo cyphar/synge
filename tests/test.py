@@ -205,7 +205,12 @@ CASES = [
 
 	(["1/0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
 	(["1\\0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
+
+	(["1/cos(90)"],				error_get("zerodiv", 2),	deg,	"Zero Division Error	"),
+	(["1\\sin(0)"],				error_get("zerodiv", 2),	deg,	"Zero Division Error	"),
+
 	(["1%(2-(2^2/2))"],			error_get("zeromod", 2),	0,	"Modulo by Zero Error	"),
+	(["1%(cos(45) - sin(45))"],		error_get("zeromod", 2),	deg,	"Modulo by Zero Error	"),
 
 	(["1+(1"],				error_get("lparen", 3),		0,	"Parenthesis Error	"),
 	(["1+((1"],				error_get("lparen", 4),		0,	"Parenthesis Error	"),
