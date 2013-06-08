@@ -89,7 +89,7 @@ CLI_LFLAGS	= $(OS_CLI_LFLAGS)
 GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0` $(OS_GTK_LFLAGS)
 EVAL_LFLAGS	= $(OS_EVAL_LFLAGS)
 
-SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c
+SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c $(SRC_DIR)/linked.c
 CLI_SRC		= $(CLI_DIR)/cli.c
 GTK_SRC		= $(GTK_DIR)/gtk.c
 EVAL_SRC	= $(EVAL_DIR)/eval.c

@@ -32,6 +32,7 @@
 #include "stack.h"
 #include "synge.h"
 #include "ohmic.h"
+#include "linked.h"
 
 /* Operator Precedence
  * 4 Parenthesis
@@ -48,8 +49,11 @@
 #define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ_"
 #define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
 
-#define SYNGE_TRACEBACK_FORMAT	"Synge Traceback:\n" \
+#define SYNGE_TRACEBACK_FORMAT	"Synge Traceback (most recent call last):\n" \
+				"%s" \
 				"%s: %s"
+
+#define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
 
 #define PI 3.14159265358979323
 
@@ -64,13 +68,16 @@
 #define ismultop(ch) (ch == '*' || ch == '/' || ch == '\\' || ch == '%')
 #define isexpop(ch) (ch == '^')
 #define isparen(ch) (ch == '(' || ch == ')')
-
 #define isop(type) (type == addop || type == multop || type == expop)
 
+/* checks if a double is technically zero */
 #define iszero(x) (fabs(x) <= EPSILON)
 
 /* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
 #define has_rounding_error(number) (number + 1 == number || number - 1 == number)
+
+/* hack to get amount of memory needed to store a sprintf() */
+#define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1)
 
 static bool synge_started = false; /* i REALLY reccomend you leave this false, as this is used to ensure that synge_start has been run */
 
@@ -200,8 +207,8 @@ synge_settings active_settings = {
 	-1
 };
 
-static char *error_msg_container = NULL; /* needs to be freed at program termination using synge_free() (if you want valgrind to be happy) */
-#define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1) /* hack to get amount of memory needed to store a sprintf() */
+static char *error_msg_container = NULL;
+static link_t *traceback_list = NULL;
 
 /* __DEBUG__ FUNCTIONS */
 
@@ -591,14 +598,14 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			else if((ohm_search(variable_list, word, strlen(word) + 1) && (tmp = 1)) ||
 				ohm_search(function_list, word, strlen(word) + 1)) {
 
-				if(tmp)
+				if(tmp) {
 					/* variable */
 					*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
-				else {
+				} else {
 					/* function */
 
 					/* recursively evaluate a user function's value */
-					tmpecode = compute_infix_string((char *) ohm_search(function_list, word, strlen(word) + 1), num);
+					tmpecode = internal_compute_infix_string((char *) ohm_search(function_list, word, strlen(word) + 1), num, word, pos);
 					if(!is_success_code(tmpecode.code)) {
 						/* error was encountered */
 						free(s);
@@ -993,6 +1000,26 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 	return safe_free_stack(SUCCESS, -1, &tmpstack, rpn);
 } /* eval_rpnstack() */
 
+char *get_trace(link_t *link) {
+	char *ret = str_dup("\0"), *current = NULL;
+	link_iter *ii = link_iter_init(link);
+
+	int len = 0;
+	do {
+		current = (char *) ii->content;
+		if(!current)
+			continue;
+
+		len += strlen(current);
+
+		ret = realloc(ret, len + 1);
+		sprintf(ret, "%s%s", ret, current);
+	} while(!link_iter_next(ii));
+
+	free(ii);
+	return ret;
+} /* get_trace() */
+
 char *get_error_tp(error_code error) {
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
@@ -1105,8 +1132,12 @@ char *get_error_msg(error_code error) {
 	switch(active_settings.error) {
 		case traceback:
 			if(!is_success_code(error.code)) {
-				trace = malloc(lenprintf(SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg));
-				sprintf(trace, SYNGE_TRACEBACK_FORMAT, get_error_tp(error), msg);
+				char *fulltrace = get_trace(traceback_list);
+
+				trace = malloc(lenprintf(SYNGE_TRACEBACK_FORMAT, fulltrace, get_error_tp(error), msg));
+				sprintf(trace, SYNGE_TRACEBACK_FORMAT, fulltrace, get_error_tp(error), msg);
+
+				free(fulltrace);
 			}
 		case position:
 			if(error.position > 0) {
@@ -1130,7 +1161,7 @@ char *get_error_msg_pos(int code, int pos) {
 	return get_error_msg(to_error_code(code, pos));
 } /* get_error_msg_pos() */
 
-error_code compute_infix_string(char *original_str, double *result) {
+error_code internal_compute_infix_string(char *original_str, double *result, char *caller, int position) {
 	static int depth = 0;
 	assert(synge_started);
 
@@ -1150,6 +1181,22 @@ error_code compute_infix_string(char *original_str, double *result) {
 
 	if(depth++ > SYNGE_MAX_DEPTH)
 		return to_error_code(TOO_DEEP, -1);
+
+	if(!strcmp(caller, SYNGE_MAIN)) {
+		/* reset traceback */
+		link_free(traceback_list);
+		traceback_list = link_init();
+	}
+
+	/* add current level to traceback */
+	char *to_add = malloc(lenprintf(SYNGE_TRACEBACK_TEMPLATE, caller, position));
+	sprintf(to_add, SYNGE_TRACEBACK_TEMPLATE, caller, position);
+
+	link_append(traceback_list, to_add, strlen(to_add) + 1);
+
+	free(to_add);
+
+	debug("currently at: %x: %s", link_end(traceback_list), (char *) link_end(traceback_list));
 
 	/* initialise all local variables */
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
@@ -1282,12 +1329,15 @@ error_code compute_infix_string(char *original_str, double *result) {
 	}
 
 	/* FINALLY, set the answer variable */
-	if(is_success_code(ecode.code))
+	if(is_success_code(ecode.code)) {
 		set_special_number(SYNGE_PREV_ANSWER, *result, constant_list);
+		/* and remove last item from traceback - no errors occured */
+		link_pend(traceback_list);
+	}
 
 	free(final_pass_str);
 	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
-} /* calculate_infix_string() */
+} /* internal_calculate_infix_string() */
 
 synge_settings get_synge_settings(void) {
 	return active_settings;
@@ -1308,6 +1358,7 @@ function *get_synge_function_list(void) {
 void synge_start(void) {
 	variable_list = ohm_init(2, NULL);
 	function_list = ohm_init(2, NULL);
+	traceback_list = link_init();
 
 	synge_started = true;
 } /* synge_end() */
@@ -1319,6 +1370,8 @@ void synge_end(void) {
 		ohm_free(variable_list);
 	if(function_list)
 		ohm_free(function_list);
+	if(traceback_list)
+		link_free(traceback_list);
 
 	free(error_msg_container);
 	synge_started = false;
