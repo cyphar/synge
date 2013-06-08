@@ -69,7 +69,9 @@
 #define isexpop(ch) (ch == '^')
 #define isparen(ch) (ch == '(' || ch == ')')
 #define iscomp(ch) (ch == '<' || ch == '>' || ch == '!')
-#define isop(type) (type == addop || type == multop || type == expop || type == compop)
+#define isbitop(ch) (ch == '&' || ch == '|' || ch == '@')
+
+#define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop)
 
 /* checks if a double is technically zero */
 #define iszero(x) (fabs(x) <= EPSILON)
@@ -203,6 +205,11 @@ char *op_list[] = {
 	">",
 	"<",
 	"!",
+
+	/* bitwise operators */
+	"&",
+	"|",
+	"@",
 
 	NULL
 };
@@ -704,6 +711,11 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 				case '!':
 					type = compop;
 					break;
+				case '&':
+				case '|':
+				case '@':
+					type = bitop;
+					break;
 				default:
 					free(s);
 					return to_error_code(UNKNOWN_TOKEN, pos);
@@ -806,6 +818,7 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 					/* if no lparen was found, this is an unmatched right bracket*/
 					return safe_free_stack(UNMATCHED_RIGHT_PARENTHESIS, pos + 1, infix_stack, &op_stack, rpn_stack);
 				break;
+			case bitop:
 			case compop:
 			case addop:
 			case multop:
@@ -930,6 +943,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				/* push result of evaluation onto the stack */
 				push_valstack(result, number, pos, tmpstack);
 				break;
+			case bitop:
 			case compop:
 			case addop:
 			case multop:
@@ -989,6 +1003,15 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 						break;
 					case '!':
 						*result = arg[0] != arg[1];
+						break;
+					case '&':
+						*result = (int) arg[0] & (int) arg[1];
+						break;
+					case '|':
+						*result = (int) arg[0] | (int) arg[1];
+						break;
+					case '@':
+						*result = (int) arg[0] ^ (int) arg[1];
 						break;
 					default:
 						/* catch-all -- unknown token */
