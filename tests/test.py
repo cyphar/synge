@@ -204,7 +204,7 @@ CASES = [
 	(["does_not_exist"],			error_get("token", 1),		0,	"Unknown Token Error	"),
 	(["fake_function()"],			error_get("token", 1),		0,	"Unknown Token Error	"),
 	(["fake_function()+23"],		error_get("token", 1),		0,	"Unknown Token Error	"),
-	(["1@5"],				error_get("token", 2),		0,	"Unknown Token Error	"),
+	(["1_5"],				error_get("token", 2),		0,	"Unknown Token Error	"),
 
 	(["1/0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
 	(["1\\0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
