@@ -194,6 +194,9 @@ CASES = [
 	(["a=-2", "y:=a+3", "y+3", "a=2", "2y-1"],
 						["-2", "1", "4", "2", "9"],	0,	"Basic User Functions	"),
 
+	(["a=3", "y:=3+a", "a", "y", "y+a", "a+y"],
+						["3", "6", "3", "6", "9", "9"],	0,	"Functions and Variables	"),
+
 	# expected errors
 	([""],					error_get("empty"),		0,	"Empty Expression Error	"),
 	([" "],					error_get("empty"),		0,	"Empty Expression Error	"),
