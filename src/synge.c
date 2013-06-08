@@ -112,7 +112,7 @@ double sy_series(double x) {
 } /* sy_series() */
 
 double sy_assert(double x) {
-	return x ? 1.0 : 0.0;
+	return iszero(x) ? 0.0 : 1.0;
 } /* sy_assert */
 
 function func_list[] = {
