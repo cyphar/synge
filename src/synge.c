@@ -595,8 +595,8 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			}
 
 			/* is it a variable or user function? */
-			else if((ohm_search(variable_list, word, strlen(word) + 1) && (tmp = 1)) ||
-				ohm_search(function_list, word, strlen(word) + 1)) {
+			else if((ohm_search(variable_list, word, strlen(word) + 1) &&  (tmp = 1)) ||
+				(ohm_search(function_list, word, strlen(word) + 1) && !(tmp = 0))) {
 
 				if(tmp) {
 					/* variable */
