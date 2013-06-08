@@ -23,6 +23,8 @@
 #ifndef __SYNGE_H__
 #define __SYNGE_H__
 
+#define SYNGE_MAIN "<main>"
+
 typedef struct {
 	enum {
 		SUCCESS,
@@ -85,7 +87,9 @@ void set_synge_settings(synge_settings); /* set active settings to given setting
 char *get_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
 char *get_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
 
-error_code compute_infix_string(char *, double *); /* takes an infix-style string and runs it through the "engine" */
+error_code internal_compute_infix_string(char *, double *, char *, int); /* takes an infix-style string and runs it through the "engine" */
+#define compute_infix_string(...) internal_compute_infix_string(__VA_ARGS__, SYNGE_MAIN, 0) 
+
 int is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
 int ignore_code(int); /* returns true if the return code and result should be ignored, otherwise false */
 

@@ -8,7 +8,6 @@ Things to fix/implement:
    + Functions to:
 	- Get factors of a number
    * Refactor helper functions
-   * Improve traceback and errors
 
   CLI:
    + Getopt command line options for cli

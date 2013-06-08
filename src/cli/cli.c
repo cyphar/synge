@@ -238,7 +238,7 @@ void cli_set_settings(char *s) {
 	else {
 		set_synge_settings(new_settings);
 
-		char *tmp = malloc(strlen(s));
+		char *tmp = malloc(strlen(s) + 1);
 		strcpy(tmp, s);
 
 		tmp[0] = 'g';
