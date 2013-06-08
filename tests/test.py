@@ -224,8 +224,8 @@ CASES = [
 	(["100000000000000000000000000"],	error_get("overflow", 1),	0,	"Input Overflow Error	"),
 	(["231664726992975794912959502"],	error_get("overflow", 1),	0,	"Input Overflow Error	"),
 	(["1+1000000000000000000000000"],	error_get("overflow", 3),	0,	"Input Overflow Error	"),
-	(["17^68"],				error_get("overflow"),		0,	"Output Overflow Error	"),
-	(["100^23"],				error_get("overflow"),		0,	"Output Overflow Error	"),
+	(["17^68"],				error_get("overflow", 3),	0,	"Output Overflow Error	"),
+	(["100^23"],				error_get("overflow", 4),	0,	"Output Overflow Error	"),
 ]
 
 def test_calc(program, test, expected, mode, description):
