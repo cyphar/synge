@@ -972,6 +972,11 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 				/* catch-all -- unknown token */
 				return safe_free_stack(UNKNOWN_TOKEN, pos, &tmpstack, rpn);
 		}
+
+		/* check if a rounding error occured in above operation */
+		double tmp = *(double *) top_stack(tmpstack)->val;
+		if(has_rounding_error(tmp))
+			return safe_free_stack(NUM_OVERFLOW, pos, &tmpstack, rpn);
 	}
 
 	/* if there is not one item on the stack, there are too many values on the stack */
