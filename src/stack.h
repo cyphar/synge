@@ -31,9 +31,10 @@
 typedef enum __stack_type__ {
 	number,
 
-	addop  = 1,
-	multop = 2,
-	expop  = 3,
+	compop = 1,
+	addop  = 2,
+	multop = 3,
+	expop  = 4,
 
 	func,
 	arg,
