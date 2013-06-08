@@ -763,6 +763,8 @@ bool op_precedes(s_type op1, s_type op2) {
 	int lassoc;
 	/* here be dragons! obscure integer hacks follow. */
 	switch(op2) {
+		case bitop:
+		case compop:
 		case addop:
 		case multop:
 			lassoc = 1;
