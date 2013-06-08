@@ -211,6 +211,8 @@ int link_shorten(link_t *link, int num) {
 		free(current);
 
 		left--;
+		link->length--;
+
 		current = parent;
 		current->next = NULL;
 	}
