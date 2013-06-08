@@ -1,6 +1,6 @@
 List of known bugs and limitations:
 
-  -
+  - Trying to use a mix of user functions and variables causes a segfault (a=2; y:=1/a; c=3; a+y+c)
 
 List of "bugs" which are not to be fixed:
 
