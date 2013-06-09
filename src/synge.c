@@ -625,7 +625,10 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 						free(s);
 						free(num);
 						free(word);
-						return to_error_code(tmpecode.code, pos);
+						if(active_settings.error == traceback)
+							return tmpecode;
+						else
+							return to_error_code(tmpecode.code, pos);
 					}
 				}
 
