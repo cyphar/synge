@@ -1210,7 +1210,7 @@ char *get_error_msg_pos(int code, int pos) {
 } /* get_error_msg_pos() */
 
 error_code internal_compute_infix_string(char *original_str, double *result, char *caller, int position) {
-	static int depth = 0;
+	static int depth = -1;
 	assert(synge_started);
 
 	if(variable_list->count > variable_list->size)
@@ -1227,13 +1227,15 @@ error_code internal_compute_infix_string(char *original_str, double *result, cha
 	 * YOU SHALL NOT PASS!
 	 */
 
-	if(depth++ > SYNGE_MAX_DEPTH)
+	if(++depth >= SYNGE_MAX_DEPTH)
 		return to_error_code(TOO_DEEP, -1);
 
 	if(!strcmp(caller, SYNGE_MAIN)) {
 		/* reset traceback */
 		link_free(traceback_list);
 		traceback_list = link_init();
+
+		depth = -1;
 	}
 
 	/* add current level to traceback */
@@ -1244,7 +1246,7 @@ error_code internal_compute_infix_string(char *original_str, double *result, cha
 
 	free(to_add);
 
-	debug("currently at: %x: %s", link_end(traceback_list), (char *) link_end(traceback_list));
+	debug("depth %d with caller %s\n", depth, caller);
 
 	/* initialise all local variables */
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
@@ -1272,7 +1274,7 @@ error_code internal_compute_infix_string(char *original_str, double *result, cha
 	}
 	else string = final_pass_str;
 
-	if(ecode.code == SUCCESS)
+	if(ecode.code == SUCCESS) {
 		/* generate infix stack */
 		if((ecode = tokenise_string(string, var ? strlen(var) + 1 : 0, &infix_stack)).code == SUCCESS)
 			/* convert to postfix (or RPN) stack */
@@ -1282,6 +1284,7 @@ error_code internal_compute_infix_string(char *original_str, double *result, cha
 					/* fix up negative zeros */
 					if(*result == abs(*result))
 						*result = abs(*result);
+	}
 
 	/* measure depth, not length */
 	depth--;
