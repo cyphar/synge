@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 	srand(time(NULL) ^ getpid());
 	bake_args(argc, &argv);
 
-	double result;
+	synge_t result;
 	error_code ecode;
 
 	int i;
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 		else if(ecode.code != SUCCESS)
 			printf("%s\n", get_error_msg(ecode));
 		else
-			printf("%.*f\n", get_precision(result), result);
+			printf("%.*" SYNGE_FORMAT "\n", get_precision(result), result);
 	}
 
 	synge_end();
