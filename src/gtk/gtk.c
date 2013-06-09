@@ -65,7 +65,7 @@ __EXPORT_SYMBOL gboolean kill_window(GtkWidget *widget, GdkEvent *event, gpointe
 } /* kill_window() */
 
 __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
-	double result;
+	synge_t result;
 	error_code ecode;
 
 	char *text = (char *) gtk_entry_get_text(GTK_ENTRY(input));
@@ -83,8 +83,8 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	else if(!ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), TRUE);
 
-		char *outputs = malloc((snprintf(NULL, 0, "%.*f", get_precision(result), result) + 1) * sizeof(char));
-		sprintf(outputs, "%.*f", get_precision(result), result);
+		char *outputs = malloc((snprintf(NULL, 0, "%.*" SYNGE_FORMAT, get_precision(result), result) + 1) * sizeof(char));
+		sprintf(outputs, "%.*" SYNGE_FORMAT, get_precision(result), result);
 
 		char *markup = g_markup_printf_escaped("<b>%s</b>", outputs);
 		gtk_label_set_markup(GTK_LABEL(output), markup);

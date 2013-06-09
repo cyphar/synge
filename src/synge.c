@@ -41,7 +41,7 @@
  * 1 Addition, Subtraction (left associative)
  */
 
-#define EPSILON			10e-11
+#define SYNGE_EPSILON		10e-11
 #define SYNGE_MAX_PRECISION	10
 #define SYNGE_MAX_DEPTH		10
 
@@ -60,6 +60,11 @@
 #define strlower(x) do { char *p = x; for(; *p; ++p) *p = tolower(*p); } while(0)
 #define strupper(x) do { char *p = x; for(; *p; ++p) *p = toupper(*p); } while(0)
 
+/* to make changes in engine types smoother */
+#define sy_fabs(...) fabs(__VA_ARGS__)
+#define sy_modf(...) modf(__VA_ARGS__)
+#define sy_fmod(...) fmod(__VA_ARGS__)
+
 /* my own assert() implementation */
 #define assert(x) do { if(!x) { printf("synge: assertion '%s' failed -- aborting!\n", #x); exit(254); }} while(0)
 
@@ -73,8 +78,8 @@
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop)
 
-/* checks if a double is technically zero */
-#define iszero(x) (fabs(x) <= EPSILON)
+/* checks if a synge_t is technically zero */
+#define iszero(x) (sy_fabs(x) <= SYNGE_EPSILON)
 
 /* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
 #define has_rounding_error(number) (number + 1 == number || number - 1 == number)
@@ -84,36 +89,36 @@
 
 static bool synge_started = false; /* i REALLY reccomend you leave this false, as this is used to ensure that synge_start has been run */
 
-double deg2rad(double deg) {
+synge_t deg2rad(synge_t deg) {
 	return deg * (PI / 180.0);
 } /* deg2rad() */
 
-double rad2deg(double rad) {
+synge_t rad2deg(synge_t rad) {
 	return rad * (180.0 / PI);
 } /* rad2deg() */
 
-double sy_rand(double to) {
+synge_t sy_rand(synge_t to) {
 	int min = 0;
 	int max = (int) floor(to);
 	/* better than the standard skewed (rand() % max + min + 1) range */
 	return (rand() % (max + 1 - min)) + min;
 } /* sy_rand() */
 
-double sy_factorial(double x) {
-	double number = floor(x);
-	double factorial = number;
+synge_t sy_factorial(synge_t x) {
+	synge_t number = floor(x);
+	synge_t factorial = number;
 	while(number > 1.0)
 		factorial *= --number;
 	return factorial;
 } /* sy_factorial() */
 
-double sy_series(double x) {
+synge_t sy_series(synge_t x) {
 	x = floor(x);
 	/* an epic formula i learnt in year 5 */
 	return (x * (x+1)) / 2;
 } /* sy_series() */
 
-double sy_assert(double x) {
+synge_t sy_assert(synge_t x) {
 	return iszero(x) ? 0.0 : 1.0;
 } /* sy_assert */
 
@@ -171,7 +176,7 @@ function_alias alias_list[] = {
 
 typedef struct __special_number__ {
 	char *name;
-	double value;
+	synge_t value;
 } special_number;
 
 ohm_t *variable_list = NULL;
@@ -218,7 +223,7 @@ synge_settings active_settings = {
 	degrees,
 	position,
 	strict,
-	-1
+	dynamic
 };
 
 static char *error_msg_container = NULL;
@@ -234,7 +239,7 @@ void print_stack(stack *s) {
 		if(!tmp.val) continue;
 
 		if(tmp.tp == number)
-			printf("%f ", *(double *) tmp.val);
+			printf("%" SYNGE_FORMAT " ", *(synge_t *) tmp.val);
 		else if(tmp.tp == func)
 			printf("%s ", ((function *)tmp.val)->name);
 		else
@@ -350,11 +355,11 @@ char *get_from_ch_list(char *ch, char **list, bool delimit) {
 	return NULL;
 } /* get_from_ch_list() */
 
-double *double_dup(double num) {
-	double *ret = malloc(sizeof(double));
+synge_t *num_dup(synge_t num) {
+	synge_t *ret = malloc(sizeof(synge_t));
 	*ret = num;
 	return ret;
-} /* double_dup() */
+} /* num_dup() */
 
 char *str_dup(char *s) {
 	char *ret = malloc(strlen(s) + 1);
@@ -365,16 +370,16 @@ char *str_dup(char *s) {
 	return ret;
 } /* str_dup() */
 
-int get_precision(double num) {
+int get_precision(synge_t num) {
 	/* use the current settings' precision if given */
 	if(active_settings.precision >= 0)
 		return active_settings.precision;
 
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
-	int tmpsize = lenprintf("%.*f", SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
+	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
 
-	sprintf(tmp, "%.*f", SYNGE_MAX_PRECISION, num); /* sprintf it */
+	sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* sprintf it */
 	tmp[tmpsize - 1] = '\0'; /* force null termination */
 
 	char *p = tmp + tmpsize - 2;
@@ -439,14 +444,14 @@ bool isnum(char *string) {
 	return ret;
 } /* isnum() */
 
-void set_special_number(char *s, double val, special_number *list) {
+void set_special_number(char *s, synge_t val, special_number *list) {
 	/* specifically made for the ans "variable" -- use the hashmap for real variables */
 	int i;
 	for(i = 0; list[i].name != NULL; i++)
 		if(!strcmp(list[i].name, s)) list[i].value = val;
 } /* set_special_number() */
 
-error_code set_variable(char *str, double val) {
+error_code set_variable(char *str, synge_t val) {
 	assert(synge_started);
 
 	error_code ret = to_error_code(SUCCESS, -1);
@@ -521,7 +526,7 @@ char *function_process_replace(char *string) {
 	}
 
 	/* a hack for function division i thought of in maths ...
-	 * ... basically, double every open and close bracket ... */
+	 * ... basically, synge_t every open and close bracket ... */
 	char *secondpass = replace(firstpass, "(", "((");
 	char *final = replace(secondpass, ")", "))");
 
@@ -558,7 +563,7 @@ char *function_process_replace(char *string) {
 int recalc_padding(char *str, int len) {
 	int ret = 0, tmp;
 
-	/* the number of open and close brackets is double the amount in the original string (except for mismatched parens) */
+	/* the number of open and close brackets is synge_t the amount in the original string (except for mismatched parens) */
 	tmp = strnchr(str, ')', len) + strnchr(str, '(', len);
 	ret += tmp / 2 + tmp % 2;
 
@@ -598,7 +603,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			/* same as above, but for parenthesis */
 		        (top_stack(*ret)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
 
-			double *num = malloc(sizeof(double)); /* allocate memory to be pushed onto the stack */
+			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
 
 			/* if it is a "special" number */
@@ -614,7 +619,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 
 				if(tmp) {
 					/* variable */
-					*num = *(double *) ohm_search(variable_list, word, strlen(word) + 1);
+					*num = *(synge_t *) ohm_search(variable_list, word, strlen(word) + 1);
 				} else {
 					/* function */
 
@@ -801,7 +806,7 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 		switch(stackp.tp) {
 			case number:
 				/* nothing to do, just push it onto the temporary stack */
-				push_valstack(double_dup(*(double *) stackp.val), number, pos, *rpn_stack);
+				push_valstack(num_dup(*(synge_t *) stackp.val), number, pos, *rpn_stack);
 				break;
 			case lparen:
 			case func:
@@ -872,7 +877,7 @@ char *angle_infunc_list[] = {
 };
 
 /* convert from set mode to radians */
-double settings_to_rad(double in) {
+synge_t settings_to_rad(synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
 			return deg2rad(in);
@@ -893,7 +898,7 @@ char *angle_outfunc_list[] = {
 };
 
 /* convert radians to set mode */
-double rad_to_settings(double in) {
+synge_t rad_to_settings(synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
 			return rad2deg(in);
@@ -906,13 +911,13 @@ double rad_to_settings(double in) {
 } /* rad_to_settings() */
 
 /* evaluate a rpn stack */
-error_code eval_rpnstack(stack **rpn, double *ret) {
+error_code eval_rpnstack(stack **rpn, synge_t *ret) {
 	stack *tmpstack = malloc(sizeof(stack));
 	init_stack(tmpstack);
 
 	s_content stackp;
 	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
-	double *result = NULL, arg[2];
+	synge_t *result = NULL, arg[2];
 	for(i = 0; i < size; i++) {
 		/* debugging */
 		print_stack(tmpstack);
@@ -922,7 +927,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 		switch(stackp.tp) {
 			case number:
 				/* just push it onto the final stack */
-				push_valstack(double_dup(*(double *) stackp.val), number, pos, tmpstack);
+				push_valstack(num_dup(*(synge_t *) stackp.val), number, pos, tmpstack);
 				break;
 			case func:
 				/* check if there is enough numbers for function arguments */
@@ -930,7 +935,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 					return safe_free_stack(FUNCTION_WRONG_ARGC, pos < 1 ? pos + 1 : pos, &tmpstack, rpn);
 
 				/* get the first (and, for now, only) argument */
-				arg[0] = *(double *) top_stack(tmpstack)->val;
+				arg[0] = *(synge_t *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
 				/* does the input need to be converted? */
@@ -938,7 +943,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 					arg[0] = settings_to_rad(arg[0]);
 
 				/* allocate result and evaluate it */
-				result = malloc(sizeof(double));
+				result = malloc(sizeof(synge_t));
 				*result = ((function *)stackp.val)->get(arg[0]);
 
 				/* does the output need to be converted? */
@@ -958,14 +963,14 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 					return safe_free_stack(OPERATOR_WRONG_ARGC, pos, &tmpstack, rpn);
 
 				/* get second argument */
-				arg[1] = *(double *) top_stack(tmpstack)->val;
+				arg[1] = *(synge_t *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
 				/* get first argument */
-				arg[0] = *(double *) top_stack(tmpstack)->val;
+				arg[0] = *(synge_t *) top_stack(tmpstack)->val;
 				free_scontent(pop_stack(tmpstack));
 
-				result = malloc(sizeof(double));
+				result = malloc(sizeof(synge_t));
 				/* find correct evaluation and do it */
 				switch(*(char *) stackp.val) {
 					case '+':
@@ -987,7 +992,8 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 							return safe_free_stack(DIVIDE_BY_ZERO, pos, &tmpstack, rpn);
 						}
 						*result = arg[0] / arg[1];
-						if(tmp) modf(*result, result);
+						if(tmp)
+							sy_modf(*result, result);
 						break;
 					case '%':
 						if(iszero(arg[1])) {
@@ -995,7 +1001,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 							free(result);
 							return safe_free_stack(MODULO_BY_ZERO, pos, &tmpstack, rpn);
 						}
-						*result = fmod(arg[0], arg[1]);
+						*result = sy_fmod(arg[0], arg[1]);
 						break;
 					case '^':
 						*result = pow(arg[0], arg[1]);
@@ -1032,7 +1038,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 		}
 
 		/* check if a rounding error occured in above operation */
-		double tmp = *(double *) top_stack(tmpstack)->val;
+		synge_t tmp = *(synge_t *) top_stack(tmpstack)->val;
 		if(has_rounding_error(tmp))
 			return safe_free_stack(NUM_OVERFLOW, pos, &tmpstack, rpn);
 	}
@@ -1042,7 +1048,7 @@ error_code eval_rpnstack(stack **rpn, double *ret) {
 		return safe_free_stack(TOO_MANY_VALUES, -1, &tmpstack, rpn);
 
 	/* otherwise, the last item is the result */
-	*ret = *(double *) top_stack(tmpstack)->val;
+	*ret = *(synge_t *) top_stack(tmpstack)->val;
 
 	/* check for rounding errors */
 	if(has_rounding_error(*ret))
@@ -1212,7 +1218,7 @@ char *get_error_msg_pos(int code, int pos) {
 	return get_error_msg(to_error_code(code, pos));
 } /* get_error_msg_pos() */
 
-error_code internal_compute_infix_string(char *original_str, double *result, char *caller, int position) {
+error_code internal_compute_infix_string(char *original_str, synge_t *result, char *caller, int position) {
 	static int depth = -1;
 	assert(synge_started);
 

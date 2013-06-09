@@ -362,7 +362,7 @@ int main(int argc, char **argv) {
 
 	char *cur_str = NULL;
 	int count;
-	double result = 0;
+	synge_t result = 0;
 	error_code ecode;
 #ifndef __WIN32
 	/* Local stuff for libedit */
@@ -402,7 +402,7 @@ int main(int argc, char **argv) {
 				else if(!ignore_code(ecode.code))
 					printf("%s%s%s%s\n", OUTPUT_PADDING, is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
 			}
-			else printf("%s%.*f%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
+			else printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
 #ifndef __WIN32
 			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
 #endif

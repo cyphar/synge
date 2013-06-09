@@ -24,6 +24,9 @@
 #define __SYNGE_H__
 
 #define SYNGE_MAIN "<main>"
+#define SYNGE_FORMAT "f"
+
+typedef double synge_t;
 
 typedef struct {
 	enum {
@@ -58,27 +61,32 @@ typedef struct __synge_settings__ {
 		degrees,
 		radians
 	} mode;
+
 	enum {
 		simple,
 		position,
 		traceback,
 	} error;
+
 	enum {
 		flexible,
 		strict
 	} strict;
-	int precision;
+
+	enum {
+		dynamic = -1
+	} precision;
 } synge_settings;
 
 typedef struct __function__ {
 	char *name;
-	double (*get)(double);
+	synge_t (*get)(synge_t);
 	/* to hard-code explanations and name strings */
 	char *prototype;
 	char *description;
 } function;
 
-int get_precision(double); /* returns minimum decimal precision needed to print number */
+int get_precision(synge_t); /* returns minimum decimal precision needed to print number */
 
 synge_settings get_synge_settings(void); /* returns active settings */
 function *get_synge_function_list(void); /* returns list of available functions */
@@ -87,7 +95,7 @@ void set_synge_settings(synge_settings); /* set active settings to given setting
 char *get_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
 char *get_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
 
-error_code internal_compute_infix_string(char *, double *, char *, int); /* takes an infix-style string and runs it through the "engine" */
+error_code internal_compute_infix_string(char *, synge_t *, char *, int); /* takes an infix-style string and runs it through the "engine" */
 #define compute_infix_string(...) internal_compute_infix_string(__VA_ARGS__, SYNGE_MAIN, 0) 
 
 int is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
