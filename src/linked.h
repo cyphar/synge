@@ -71,5 +71,6 @@ int link_truncate(link_t *, int);
 
 link_iter *link_iter_init(link_t *);
 int link_iter_next(link_iter *);
+void link_iter_free(link_iter *);
 
 #endif

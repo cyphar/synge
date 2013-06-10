@@ -1073,7 +1073,7 @@ char *get_trace(link_t *link) {
 		sprintf(ret, "%s%s", ret, current);
 	} while(!link_iter_next(ii));
 
-	free(ii);
+	link_iter_free(ii);
 	return ret;
 } /* get_trace() */
 

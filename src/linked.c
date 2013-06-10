@@ -30,11 +30,14 @@
 static void *pop_container = NULL;
 
 link_t *link_init(void) {
+	/* allocate new link */
 	link_t *new = malloc(sizeof(link_t));
 
+	/* allocate first link and set length */
 	new->chain = malloc(sizeof(link_node));
 	new->length = 1;
 
+	/* initialise everything else to zero */
 	new->chain->content = NULL;
 	new->chain->contentlen = 0;
 
@@ -42,12 +45,12 @@ link_t *link_init(void) {
 	new->chain->next = NULL;
 
 	return new;
-}
+} /* link_init() */
 
 void link_free(link_t *link) {
-	if(!link)
-		return;
+	if(!link) return;
 
+	/* initialise parent and current links */
 	link_node *parent = NULL, *current = link->chain;
 
 	/* go to last link */
@@ -56,199 +59,210 @@ void link_free(link_t *link) {
 
 	/* go backwards through links and free them */
 	while(current) {
+		/* save parent */
 		parent = current->prev;
 
-		current->contentlen = 0;
+		/* free the current link */
 		free(current->content);
 		free(current);
 
 		current = parent;
 
+		/* ensure no remaining links to freed link exist */
 		if(current)
 			current->next = NULL;
 	}
 
-	/* free topmost link */
-	//free(link->chain);
-
+	/* final setting to zero */
 	link->chain = NULL;
 	link->length = 0;
 
 	free(link);
 
+	/* freeing the pop_container (to keep valgrind happy) */
 	free(pop_container);
 	pop_container = NULL;
+} /* link_free() */
+
+link_node *link_node_get(link_t *link, int index) {
+	/* initialise current and next links */
+	link_node *current = link->chain;
+
+	/* find link to append new link to */
+	while(index && current) {
+		/* get next link */
+		current = current->next;
+		index--;
+	}
+
+	/* index not found or link length is inaccurate */
+	if(index || !current)
+		return NULL;
+
+	return current;
 }
 
 int link_insert(link_t *link, int pos, void *content, int contentlen) {
 	if(pos >= link->length || pos < 0 || !content || contentlen < 1)
 		return 1;
 
-	int position = pos;
-	link_node *current = link->chain, *next = link->chain->next;
+	/* find current link */
+	link_node *current = link_node_get(link, pos), *next = NULL;
 
-	while(position && current) {
-		current = current->next;
-		position--;
-	}
-
-	if(position || !current)
-		return 1;
-
+	/* allocate new link information */
 	next = current->next;
 	current->next = malloc(sizeof(link_node));
 
+	/* allocate and copy content */
 	current->next->content = malloc(contentlen);
 	memcpy(current->next->content, content, contentlen);
-
 	current->next->contentlen = contentlen;
 
+	/* link up orphan and parent links */
 	current->next->prev = current;
 	current->next->next = next;
 
+	/* update length */
 	link->length++;
 	return 0;
-}
+} /* link_insert() */
 
 int link_remove(link_t *link, int pos) {
 	if(pos >= link->length || pos < 0)
 		return 1;
 
-	int position = pos;
-	link_node *current = link->chain, *prev = NULL, *next = link->chain->next;
+	/* find current link */
+	link_node *current = link_node_get(link, pos), *next = NULL, *prev = NULL;
 
-	while(position && current) {
-		current = current->next;
-		position--;
-	}
-
-	if(position || !current)
-		return 1;
-
+	/* set previous and next links */
 	prev = current->prev;
 	next = current->next;
 
+	/* free the selected link */
 	free(current->content);
 	free(current);
 
+	/* link up orphan links, if they exist */
 	if(next)
 		next->prev = prev;
-
 	if(prev)
 		prev->next = next;
 
+	/* update length */
 	link->length--;
 	return 0;
-}
+} /* link_remove() */
 
 void *link_get(link_t *link, int pos) {
 	if(pos >= link->length || pos < 0)
 		return NULL;
 
-	int position = pos;
-	link_node *current = link->chain;
+	/* find current link */
+	link_node *current = link_node_get(link, pos);
 
-	while(position && current) {
-		current = current->next;
-		position--;
-	}
-
-	if(position || !current)
-		return NULL;
-
+	/* return the found content */
 	return current->content;
-}
+} /* link_get() */
 
 void *link_pop(link_t *link, int pos) {
 	if(pos >= link->length || pos < 0)
 		return NULL;
 
-	int position = pos;
-	link_node *current = link->chain;
+	/* find current link */
+	link_node *current = link_node_get(link, pos);
 
-	while(position && current) {
-		current = current->next;
-		position--;
-	}
-
-	if(position || !current)
-		return NULL;
-
+	/* copy the link's content to a temporary variable */
 	pop_container = realloc(pop_container, current->contentlen);
 	memcpy(pop_container, current->content, current->contentlen);
 
+	/* delete the link and return its content */
 	link_remove(link, pos);
 	return pop_container;
-}
+} /* link_pop() */
 
 int link_truncate(link_t *link, int pos) {
-	if(pos >= link->length || pos < 0)
+	if(pos + 1 > link->length || pos < 0)
 		return 1;
 
-	int position = pos;
+	/* delete everything after the position */
+	int position = pos + 1;
 	while(!link_remove(link, position));
 
+	/* not all of the links where deleted */
 	if(link->length >= position)
 		return 1;
 
 	return 0;
-}
+} /* link_truncate() */
 
 int link_shorten(link_t *link, int num) {
 	if(num >= link->length || num < 0)
 		return 1;
 
+	/* initialise the current and parent links */
 	int left = num;
 	link_node *current = link->chain, *parent = link->chain->prev;
 
+	/* find the last link */
 	while(current && current->next)
 		current = current->next;
 
+	/* go backwards and delete the given number of links */
 	while(left && current) {
+		/* save parent */
 		parent = current->prev;
 
+		/* free current link */
 		free(current->content);
 		free(current);
 
+		/* update iterator and length */
 		left--;
 		link->length--;
 
+		/* choose parent link and cut off freed link */
 		current = parent;
 		current->next = NULL;
 	}
 
+	/* not all links deleted */
 	if(left)
 		return 1;
 	return 0;
-}
+} /* link_shorten() */
 
 link_iter *link_iter_init(link_t *link) {
-	if(!link)
+	if(!link || !link->chain)
 		return NULL;
 
+	/* allocate iterator */
 	link_iter *iter = malloc(sizeof(link_iter));
 
-	iter->content = NULL;
-
+	/* set the iterator to first item */
+	iter->content = link->chain->content;
 	iter->internal.link = link;
-	iter->internal.node = NULL;
+	iter->internal.node = link->chain;
 
-	link_iter_next(iter);
 	return iter;
-}
+} /* link_iter_init() */
 
 int link_iter_next(link_iter *iter) {
 	if(!iter)
 		return 1;
 
-	if(!iter->internal.node)
-		iter->internal.node = iter->internal.link->chain;
-	else
+	if(iter->internal.node && iter->internal.node->next)
+		/* select next link */
 		iter->internal.node = iter->internal.node->next;
-
-	if(!iter->internal.node)
+	else
+		/* no links left */
 		return 1;
 
+	/* updated link */
 	iter->content = iter->internal.node->content;
 	return 0;
-}
+} /* link_iter_next() */
+
+void link_iter_free(link_iter *iter) {
+	/* wrapper to free iterator */
+	free(iter);
+} /* link_iter_free() */
