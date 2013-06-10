@@ -122,7 +122,7 @@ synge_t sy_assert(synge_t x) {
 	return iszero(x) ? 0.0 : 1.0;
 } /* sy_assert */
 
-function func_list[] = {
+static function func_list[] = {
 	{"abs",		fabs,		"abs(x)",	"Absolute value of x"},
 	{"sqrt",	sqrt,		"sqrt(x)",	"Square root of x"},
 	{"cbrt",	cbrt,		"cbrt(x)",	"Cubic root of x"},
@@ -164,7 +164,7 @@ typedef struct __function_alias__ {
 	char *function;
 } function_alias;
 
-function_alias alias_list[] = {
+static function_alias alias_list[] = {
 	{"asinh",	"sinhi"},
 	{"acosh",	"coshi"},
 	{"atanh",	"tanhi"},
@@ -179,10 +179,10 @@ typedef struct __special_number__ {
 	synge_t value;
 } special_number;
 
-ohm_t *variable_list = NULL;
-ohm_t *function_list = NULL;
+static ohm_t *variable_list = NULL;
+static ohm_t *function_list = NULL;
 
-special_number constant_list[] = {
+static special_number constant_list[] = {
 	{"pi",			3.14159265358979323},
 	{"e",			2.71828182845904523},
 	{"life",			       42.0}, /* Sorry, I couldn't resist */
@@ -195,7 +195,7 @@ special_number constant_list[] = {
 };
 
 /* used for when a (char *) is needed, but needn't be freed */
-char *op_list[] = {
+static char *op_list[] = {
 	"+",
 	"-",
 	"*",
@@ -219,11 +219,12 @@ char *op_list[] = {
 	NULL
 };
 
-synge_settings active_settings = {
-	degrees,
-	position,
-	strict,
-	dynamic
+/* default settings */
+static synge_settings active_settings = {
+	degrees, /* mode */
+	position, /* error level */
+	strict, /* stricness */
+	dynamic /* precision */
 };
 
 static char *error_msg_container = NULL;
