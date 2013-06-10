@@ -5,6 +5,7 @@ Things to fix/implement:
 
   SYNGE:
    + Multiple evalutations per line (a=1;a+2;a=a+1;a)
+   + Conditional expressions (exp ? if : else)
    + Functions to:
 	- Get factors of a number
    * Refactor helper functions
