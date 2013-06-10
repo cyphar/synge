@@ -37,6 +37,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include <stack.h>
 #include <synge.h>
@@ -67,6 +68,10 @@
 
 #ifndef __SYNGE_CLI_VERSION__
 #define __SYNGE_CLI_VERSION__ ""
+#endif
+
+#ifndef __SYNGE_SAFE__
+#define __SYNGE_SAFE__ 1
 #endif
 
 #ifndef __SYNGE_GIT_VERSION__
@@ -250,36 +255,33 @@ void cli_set_settings(char *s) {
 } /* cli_set_settings() */
 
 void cli_exec(char *str) {
-	char *command = malloc(strlen(str + 1) + strlen(ERR_TO_OUT) + 1);
-	strcpy(command, str + 1);
-	strcat(command, ERR_TO_OUT);
+	/* get rid of leading spaces */
+	do {
+		str++;
+	} while(isspace(*str));
 
-	FILE *outf = popen(command, "r");
-	if(!outf) {
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, strerror(errno), ANSI_CLEAR);
+#if __SYNGE_SAFE__ > 0
+	int ch;
+	do {
+		/* print warning */
+		printf("%sAre you sure you wish to run the command %s'%s'%s as %syou%s (y/n)?%s ", ANSI_INFO, ANSI_ERROR, str, ANSI_INFO, ANSI_ERROR, ANSI_INFO, ANSI_CLEAR);
+		fflush(stdout);
+
+		/* get response */
+		ch = getchar();
+	} while(tolower(ch) != 'y' && tolower(ch) != 'n'); /* wait for valid input */
+	while(getchar() != '\n'); /* flush input buffer */
+
+	/* user said no - gtfo */
+	if(tolower(ch) == 'n')
 		return;
-	}
+#endif
+	/* run the command */
+	int ret = system(str) / 256;
 
-	char *output = malloc(1), *buf = malloc(BLOCKSIZE + 1);
-	*output = '\0';
-
-	while(fgets(buf, BLOCKSIZE, outf) != NULL) {
-		output = realloc(output, strlen(output) + strlen(buf) + 1);
-		strcat(output, buf);
-	}
-
-	if(output && output[strlen(output) - 1] == '\n')
-		output[strlen(output) - 1] = '\0';
-
-	int ret = fclose(outf);
-	printf("%s%s%s\n", !ret ? ANSI_INFO : ANSI_ERROR, output, ANSI_CLEAR);
-
-	fflush(stdout);
-	fflush(stderr);
-
-	free(buf);
-	free(output);
-	free(command);
+	/* an error occured */
+	if(ret)
+		printf("%sError code: %d%s\n", ANSI_ERROR, ret, ANSI_CLEAR);
 } /* cli_exec() */
 
 cli_command cli_command_list[] = {
