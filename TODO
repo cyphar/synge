@@ -2,6 +2,7 @@ Things to fix/implement:
 
   ALL:
    + Documentation
+   * Replace as many hardcoded comparisons with structs
 
   SYNGE:
    + Add bignum support
@@ -10,6 +11,7 @@ Things to fix/implement:
    + Functions to:
 	- Get factors of a number
    * Refactor helper functions
+   * Check operators using strings, not characters
 
   CLI:
    + Getopt command line options for cli
