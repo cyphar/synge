@@ -28,6 +28,10 @@
 ohm_t *ohm_init(int size, int (*hash_func)(void *, int, int)) {
 	if(size < 1) return NULL;
 
+	/* set default hash function, if none given */
+	if(!hash_func)
+		hash_func = ohm_hash;
+
 	/* allocate hashmap */
 	ohm_t *new_ohm = malloc(sizeof(ohm_t));
 
@@ -42,10 +46,7 @@ ohm_t *ohm_init(int size, int (*hash_func)(void *, int, int)) {
 		new_ohm->table[i] = NULL;
 
 	/* set hashing function */
-	if(hash_func)
-		new_ohm->hash = hash_func;
-	else
-		new_ohm->hash = ohm_hash;
+	new_ohm->hash = hash_func;
 
 	return new_ohm;
 } /* ohm_init() */
@@ -92,10 +93,11 @@ void *ohm_search(ohm_t *hashmap, void *key, int keylen) {
 	/* check all depth-wise matches */
 	while(current_node) {
 		/* only check node if keylen is correct */
-		if(current_node->keylen == keylen)
+		if(current_node->keylen == keylen) {
 			/* compare keys */
 			if(!memcmp(current_node->key, key, keylen))
 				return current_node->value;
+		}
 		/* get next node */
 		current_node = current_node->next;
 	}
@@ -116,15 +118,16 @@ void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuele
 
 	/* try and replace any existing key */
 	while(current_node) {
-		if(current_node->keylen == keylen)
+		if(current_node->keylen == keylen) {
 			if(!memcmp(current_node->key, key, keylen)) {
 				/* key found */
 				if(current_node->valuelen != valuelen) {
 					/* node value needs to change size */
 					current_node->value = realloc(current_node->value, valuelen);
+					current_node->valuelen = valuelen;
+
 					if(!current_node->value)
 						return NULL;
-					current_node->valuelen = valuelen;
 				}
 				/* copy over the new value and update item count */
 				memcpy(current_node->value, value, valuelen);
@@ -132,6 +135,9 @@ void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuele
 
 				return current_node->value;
 			}
+		}
+
+		/* next node */
 		parent_node = current_node;
 		current_node = current_node->next;
 	}
@@ -173,7 +179,7 @@ int ohm_remove(ohm_t *hashmap, void *key, int keylen) {
 
 	/* try and delete any existing key */
 	while(current_node) {
-		if(current_node->keylen == keylen)
+		if(current_node->keylen == keylen) {
 			if(!memcmp(current_node->key, key, keylen)) {
 				/* key found, free values */
 				free(current_node->value);
@@ -192,6 +198,9 @@ int ohm_remove(ohm_t *hashmap, void *key, int keylen) {
 				/* item found and deleted, return success*/
 				return 0;
 			}
+		}
+
+		/* next node*/
 		parent_node = current_node;
 		current_node = current_node->next;
 	}
