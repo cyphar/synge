@@ -85,6 +85,9 @@ void link_free(link_t *link) {
 } /* link_free() */
 
 link_node *link_node_get(link_t *link, int index) {
+	if(!link || index >= link->length || index < 0)
+		return NULL;
+
 	/* initialise current and next links */
 	link_node *current = link->chain;
 
@@ -128,7 +131,7 @@ int link_insert(link_t *link, int pos, void *content, int contentlen) {
 } /* link_insert() */
 
 int link_remove(link_t *link, int pos) {
-	if(pos >= link->length || pos < 0)
+	if(!link || pos >= link->length || pos < 0)
 		return 1;
 
 	/* find current link */
@@ -154,7 +157,7 @@ int link_remove(link_t *link, int pos) {
 } /* link_remove() */
 
 void *link_get(link_t *link, int pos) {
-	if(pos >= link->length || pos < 0)
+	if(!link || pos >= link->length || pos < 0)
 		return NULL;
 
 	/* find current link */
@@ -165,7 +168,7 @@ void *link_get(link_t *link, int pos) {
 } /* link_get() */
 
 void *link_pop(link_t *link, int pos) {
-	if(pos >= link->length || pos < 0)
+	if(!link || pos >= link->length || pos < 0)
 		return NULL;
 
 	/* find current link */
@@ -181,7 +184,7 @@ void *link_pop(link_t *link, int pos) {
 } /* link_pop() */
 
 int link_truncate(link_t *link, int pos) {
-	if(pos + 1 > link->length || pos < 0)
+	if(!link || pos >= link->length || pos < 0)
 		return 1;
 
 	/* delete everything after the position */
@@ -196,7 +199,7 @@ int link_truncate(link_t *link, int pos) {
 } /* link_truncate() */
 
 int link_shorten(link_t *link, int num) {
-	if(num >= link->length || num < 0)
+	if(!link || num >= link->length || num < 0)
 		return 1;
 
 	/* initialise the current and parent links */
@@ -232,7 +235,7 @@ int link_shorten(link_t *link, int num) {
 } /* link_shorten() */
 
 link_iter *link_iter_init(link_t *link) {
-	if(!link || !link->chain)
+	if(!link)
 		return NULL;
 
 	/* allocate iterator */
