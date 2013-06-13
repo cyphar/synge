@@ -99,11 +99,11 @@ link_node *link_node_get(link_t *link, int index) {
 	}
 
 	/* index not found or link length is inaccurate */
-	if(index || !current)
+	if(index)
 		return NULL;
 
 	return current;
-}
+} /* link_node_get() */
 
 int link_insert(link_t *link, int pos, void *content, int contentlen) {
 	if(pos >= link->length || pos < 0 || !content || contentlen < 1)
