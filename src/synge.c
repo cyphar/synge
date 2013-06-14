@@ -582,14 +582,14 @@ int next_offset(char *str, int offset) {
 	return -1;
 } /* next_offset() */
 
-error_code tokenise_string(char *string, int offset, stack **ret) {
+error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
 	error_code tmpecode = to_error_code(SUCCESS, -1);
 
 	debug("%s\n%s\n", string, s);
 
-	init_stack(*ret);
+	init_stack(*infix_stack);
 	int i, pos, tmp = 0, len = strlen(s);
 	for(i = 0; i < len; i++) {
 		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
@@ -598,11 +598,11 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 		/* full number check */
 		else if(isnum(s+i) && /* does it fit the description of a number? */
 			/* if it is the first token in the string, it's a number */
-		       (!top_stack(*ret) ||
+		       (!top_stack(*infix_stack) ||
 			/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
-		       ((top_stack(*ret)->tp != number || !isaddop(*(s+i))) &&
+		       ((top_stack(*infix_stack)->tp != number || !isaddop(*(s+i))) &&
 			/* same as above, but for parenthesis */
-		        (top_stack(*ret)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
+		        (top_stack(*infix_stack)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
 
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
@@ -638,25 +638,25 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					}
 				}
 
-				if(top_stack(*ret)) {
+				if(top_stack(*infix_stack)) {
 					s_content *tmppop, *tmpp;
 					/* make variables act more like numbers (and more like variables) */
-					switch(top_stack(*ret)->tp) {
+					switch(top_stack(*infix_stack)->tp) {
 						case addop:
 							/* if there is a +/- in front of a variable, it should set the sign of that variable (i.e. 1--x is 1+x) */
-							tmppop = pop_stack(*ret); /* the sign (to be saved for later) */
-							tmpp = top_stack(*ret);
+							tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
+							tmpp = top_stack(*infix_stack);
 							if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
 								if(((char *) tmppop->val)[0] == '-') /* negate the variable? */
 									*num = -(*num);
 							}
 							else
 								/* whoops! didn't match criteria. push sign back. */
-								push_ststack(*tmppop, *ret);
+								push_ststack(*tmppop, *infix_stack);
 							break;
 						case number:
 							/* two numbers together have an impiled * (i.e 2x is 2*x) */
-							push_valstack("*", multop, pos, *ret);
+							push_valstack("*", multop, pos, *infix_stack);
 							break;
 						default:
 							break;
@@ -671,7 +671,7 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 				*num = strtold(s+i, &endptr);
 				i += (endptr - (s + i)) - 1; /* update iterator to correct offset */
 			}
-			push_valstack(num, number, pos, *ret); /* push given value */
+			push_valstack(num, number, pos, *infix_stack); /* push given value */
 			free(word);
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
@@ -706,8 +706,8 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					type = lparen;
 					pos -= 1; /* 'hack' to ensure the error position is correct */
 					/* every open paren with no operators before it has an implied * */
-					if(top_stack(*ret) && (top_stack(*ret)->tp == number || top_stack(*ret)->tp == rparen))
-						push_valstack("*", multop, pos + 1, *ret);
+					if(top_stack(*infix_stack) && (top_stack(*infix_stack)->tp == number || top_stack(*infix_stack)->tp == rparen))
+						push_valstack("*", multop, pos + 1, *infix_stack);
 					break;
 				case ')':
 					type = rparen;
@@ -729,17 +729,17 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 					free(s);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
-			push_valstack(get_from_ch_list(s+i, op_list, true), type, pos, *ret); /* push operator onto stack */
+			push_valstack(get_from_ch_list(s+i, op_list, true), type, pos, *infix_stack); /* push operator onto stack */
 
 			if(postpush)
-				push_valstack("*", multop, pos, *ret);
+				push_valstack("*", multop, pos, *infix_stack);
 
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
 
 			function *funcname = get_func(word); /* get the function pointer, name, etc. */
-			push_valstack(funcname, func, pos - 1, *ret);
+			push_valstack(funcname, func, pos - 1, *infix_stack);
 			i += strlen(funcname->name) - 1; /* update iterator to correct offset */
 
 			free(word);
@@ -750,15 +750,15 @@ error_code tokenise_string(char *string, int offset, stack **ret) {
 			return to_error_code(UNKNOWN_TOKEN, pos);
 		}
 		/* debugging */
-		print_stack(*ret);
+		print_stack(*infix_stack);
 	}
 
 	free(s);
-	if(!stack_size(*ret))
+	if(!stack_size(*infix_stack))
 		return to_error_code(EMPTY_STACK, -1); /* stack was empty */
 
 	/* debugging */
-	print_stack(*ret);
+	print_stack(*infix_stack);
 
 	return to_error_code(SUCCESS, -1);
 } /* tokenise_string() */
@@ -912,7 +912,7 @@ synge_t rad_to_settings(synge_t in) {
 } /* rad_to_settings() */
 
 /* evaluate a rpn stack */
-error_code eval_rpnstack(stack **rpn, synge_t *ret) {
+error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	stack *tmpstack = malloc(sizeof(stack));
 	init_stack(tmpstack);
 
@@ -1049,10 +1049,10 @@ error_code eval_rpnstack(stack **rpn, synge_t *ret) {
 		return safe_free_stack(TOO_MANY_VALUES, -1, &tmpstack, rpn);
 
 	/* otherwise, the last item is the result */
-	*ret = *(synge_t *) top_stack(tmpstack)->val;
+	*output = *(synge_t *) top_stack(tmpstack)->val;
 
 	/* check for rounding errors */
-	if(has_rounding_error(*ret))
+	if(has_rounding_error(*output))
 		return safe_free_stack(NUM_OVERFLOW, -1, &tmpstack, rpn);
 
 	return safe_free_stack(SUCCESS, -1, &tmpstack, rpn);
