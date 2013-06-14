@@ -140,7 +140,7 @@ CASES = [
 	(["ln(100)/ln(10)"],			["2"],				0,	"Function Division	"),
 	(["ceil(11.01)/floor(12.01)"],		["1"],				0,	"Function Division	"),
 
-	(["3+4*2/(1-5)^2^3"],			["3.0001220703"],		0,	"Operator Precedence	"),
+	(["3+4*2/(1-5)^2^3"],			["3.0001220703125"],		0,	"Operator Precedence	"),
 
 	(["rand(100)"],				["32"],				0,	'"Random" Number		'),
 	(["rand(26)"],				["19"],				0,	'"Random" Number		'),
@@ -151,8 +151,8 @@ CASES = [
 	(["atan(1)+acos(0.5)+asin(0)"],		["105"],			deg,	"Degrees Trigonometry	"),
 	(["atan(sin(30)/cos(30))"],		["30"],				deg,	"Degrees Trigonometry	"),
 
-	(["tan(45)+cos(60)+sin(30)"],		["-0.320669414"],		rad,	"Radian Trigonometry	"),
-	(["atan(1)+acos(0.5)+asin(0)"],		["1.8325957146"],		rad,	"Radian Trigonometry	"),
+	(["tan(45)+cos(60)+sin(30)"],		["-0.32066941396416"],		rad,	"Radian Trigonometry	"),
+	(["atan(1)+acos(0.5)+asin(0)"],		["1.83259571459405"],		rad,	"Radian Trigonometry	"),
 	(["atan(sin(1.1)/cos(1.1))"],		["1.1"],			rad,	"Radian Trigonometry	"),
 
 	(["tanh(ln(2))"],			["0.6"],			0,	"Hyperbolic Trigonometry	"),
@@ -185,7 +185,7 @@ CASES = [
 	([" 5  -3"],				["2"],				0,	"Spaces			"),
 	(["( -3  )   ^ 2"],			["9"],				0,	"Spaces			"),
 	(["16  ^( 1 /  4 )"],			["2"],				0,	"Spaces			"),
-	(["3 +4  *2 / ( 1- 5)^ 2 ^ 3"],		["3.0001220703"],		0,	"Spaces			"),
+	(["3 +4  *2 / ( 1- 5)^ 2 ^ 3"],		["3.0001220703125"],		0,	"Spaces			"),
 
 	(["a=2", "a", "a=3a+4", "a"],		["2", "2", "10", "10"],		0,	"Basic Variables		"),
 	(["test=2", "test", "a=test^2-7", "a+2", "2test+1"],

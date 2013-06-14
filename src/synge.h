@@ -24,9 +24,9 @@
 #define __SYNGE_H__
 
 #define SYNGE_MAIN "<main>"
-#define SYNGE_FORMAT "f"
+#define SYNGE_FORMAT "Lf"
 
-typedef double synge_t;
+typedef long double synge_t;
 
 typedef struct {
 	enum {
