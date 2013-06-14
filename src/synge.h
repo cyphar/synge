@@ -104,4 +104,5 @@ int ignore_code(int); /* returns true if the return code and result should be ig
 void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
 void synge_end(void); /* run at program termination -- memory WILL leak if not run at end */
 
+void synge_reset_traceback(void); /* reset the traceback list */
 #endif /* __SYNGE_H__ */
