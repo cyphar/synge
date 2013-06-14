@@ -41,8 +41,8 @@
  * 1 Addition, Subtraction (left associative)
  */
 
-#define SYNGE_EPSILON		10e-11
-#define SYNGE_MAX_PRECISION	10
+#define SYNGE_EPSILON		10e-15
+#define SYNGE_MAX_PRECISION	14
 #define SYNGE_MAX_DEPTH		10
 
 #define SYNGE_PREV_ANSWER	"ans"
@@ -61,9 +61,9 @@
 #define strupper(x) do { char *p = x; for(; *p; ++p) *p = toupper(*p); } while(0)
 
 /* to make changes in engine types smoother */
-#define sy_fabs(...) fabs(__VA_ARGS__)
-#define sy_modf(...) modf(__VA_ARGS__)
-#define sy_fmod(...) fmod(__VA_ARGS__)
+#define sy_fabs(...) fabsl(__VA_ARGS__)
+#define sy_modf(...) modfl(__VA_ARGS__)
+#define sy_fmod(...) fmodl(__VA_ARGS__)
 
 /* my own assert() implementation */
 #define assert(x) do { if(!x) { printf("synge: assertion '%s' failed -- aborting!\n", #x); exit(254); }} while(0)
@@ -82,7 +82,7 @@
 #define iszero(x) (sy_fabs(x) <= SYNGE_EPSILON)
 
 /* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
-#define has_rounding_error(number) (number + 1 == number || number - 1 == number)
+#define has_rounding_error(number) ((number + 1) == number || (number - 1) == number)
 
 /* hack to get amount of memory needed to store a sprintf() */
 #define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1)
@@ -123,17 +123,17 @@ synge_t sy_assert(synge_t x) {
 } /* sy_assert */
 
 static function func_list[] = {
-	{"abs",		fabs,		"abs(x)",	"Absolute value of x"},
-	{"sqrt",	sqrt,		"sqrt(x)",	"Square root of x"},
-	{"cbrt",	cbrt,		"cbrt(x)",	"Cubic root of x"},
+	{"abs",		fabsl,		"abs(x)",	"Absolute value of x"},
+	{"sqrt",	sqrtl,		"sqrt(x)",	"Square root of x"},
+	{"cbrt",	cbrtl,		"cbrt(x)",	"Cubic root of x"},
 
-	{"floor",	floor,		"floor(x)",	"Largest integer not greater than x"},
-	{"round",	round,		"round(x)",	"Closest integer to x"},
-	{"ceil",	ceil,		"ceil(x)",	"Smallest integer not smaller than x"},
+	{"floor",	floorl,		"floor(x)",	"Largest integer not greater than x"},
+	{"round",	roundl,		"round(x)",	"Closest integer to x"},
+	{"ceil",	ceill,		"ceil(x)",	"Smallest integer not smaller than x"},
 
-	{"log10",	log10,		"log10(x)",	"Base 10 logarithm of x"},
-	{"log",		log2,		"log(x)",	"Base 2 logarithm of x"},
-	{"ln",		log,		"ln(x)",	"Base e logarithm of x"},
+	{"log10",	log10l,		"log10(x)",	"Base 10 logarithm of x"},
+	{"log",		log2l,		"log(x)",	"Base 2 logarithm of x"},
+	{"ln",		logl,		"ln(x)",	"Base e logarithm of x"},
 
 	{"rand",	sy_rand,	"rand(x)",	"Generate a psedu-random integer between 0 and floor(x)"},
 	{"fact",	sy_factorial,	"fact(x)",	"Factorial of floor(x)"},
@@ -143,19 +143,19 @@ static function func_list[] = {
 	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"Convert x degrees to radians"},
 	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"Convert x radians to degrees"},
 
-	{"sinhi",	asinh,		"asinh(x)",	"Inverse hyperbolic sine of x"},
-	{"coshi",	acosh,		"acosh(x)",	"Inverse hyperbolic cosine of x"},
-	{"tanhi",	atanh,		"atanh(x)",	"Inverse hyperbolic tangent of x"},
-	{"sinh",	sinh,		"sinh(x)",	"Hyperbolic sine of x"},
-	{"cosh",	cosh,		"cosh(x)",	"Hyperbolic cosine of x"},
-	{"tanh",	tanh,		"tanh(x)",	"Hyperbolic tangent of x"},
+	{"sinhi",	asinhl,		"asinh(x)",	"Inverse hyperbolic sine of x"},
+	{"coshi",	acoshl,		"acosh(x)",	"Inverse hyperbolic cosine of x"},
+	{"tanhi",	atanhl,		"atanh(x)",	"Inverse hyperbolic tangent of x"},
+	{"sinh",	sinhl,		"sinh(x)",	"Hyperbolic sine of x"},
+	{"cosh",	coshl,		"cosh(x)",	"Hyperbolic cosine of x"},
+	{"tanh",	tanhl,		"tanh(x)",	"Hyperbolic tangent of x"},
 
-	{"sini",	asin,		"asin(x)",	"Inverse sine of x"},
-	{"cosi",	acos,		"acos(x)",	"Inverse cosine of x"},
-	{"tani",	atan,		"atan(x)",	"Inverse tangent of x"},
-	{"sin",		sin,		"sin(x)",	"Sine of x"},
-	{"cos",		cos,		"cos(x)",	"Cosine of x"},
-	{"tan",		tan,		"tan(x)",	"Tangent of x"},
+	{"sini",	asinl,		"asin(x)",	"Inverse sine of x"},
+	{"cosi",	acosl,		"acos(x)",	"Inverse cosine of x"},
+	{"tani",	atanl,		"atan(x)",	"Inverse tangent of x"},
+	{"sin",		sinl,		"sin(x)",	"Sine of x"},
+	{"cos",		cosl,		"cos(x)",	"Cosine of x"},
+	{"tan",		tanl,		"tan(x)",	"Tangent of x"},
 	{NULL,		NULL,		NULL,		NULL}
 };
 
