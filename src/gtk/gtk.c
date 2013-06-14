@@ -59,6 +59,8 @@ static GObject *input, *output, *statusbar, *func_window, *func_tree;
 GtkBuilder *builder;
 GtkWidget *window;
 
+int isout = false;
+
 __EXPORT_SYMBOL gboolean kill_window(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	gtk_main_quit();
 	return FALSE;
@@ -97,9 +99,16 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 		gtk_label_set_text(GTK_LABEL(output), "");
 		gtk_label_set_text(GTK_LABEL(statusbar), "");
 	}
+
+	isout = true;
 } /* gui_compute_string() */
 
 __EXPORT_SYMBOL void gui_append_key(GtkWidget *widget, gpointer data) {
+	if(isout) {
+		gtk_entry_set_text(GTK_ENTRY(input), "");
+		isout = false;
+	}
+
 	char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + strlen(gtk_button_get_label(GTK_BUTTON(widget))) + 1) * sizeof(char));
 	sprintf(newstr, "%s%s", gtk_entry_get_text(GTK_ENTRY(input)), gtk_button_get_label(GTK_BUTTON(widget)));
 
@@ -115,12 +124,16 @@ __EXPORT_SYMBOL void gui_backspace_string(GtkWidget *widget, gpointer data) {
 	newstr[strlen(newstr)-1] = '\0';
 	gtk_entry_set_text(GTK_ENTRY(input), newstr);
 	free(newstr);
+
+	isout = false;
 } /* gui_backspace_string() */
 
 __EXPORT_SYMBOL void gui_clear_string(GtkWidget *widget, gpointer data) {
 	gtk_entry_set_text(GTK_ENTRY(input), "");
 	gtk_label_set_text(GTK_LABEL(output), "");
 	gtk_label_set_text(GTK_LABEL(statusbar), "");
+
+	isout = false;
 } /* gui_clear_string() */
 
 __EXPORT_SYMBOL void gui_about_popup(GtkWidget *widget, gpointer data) {
