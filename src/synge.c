@@ -1438,6 +1438,24 @@ void synge_end(void) {
 	synge_started = false;
 } /* synge_end() */
 
+void synge_reset_traceback(void) {
+	assert(synge_started);
+
+	if(traceback_list)
+		link_free(traceback_list);
+
+	traceback_list = link_init();
+
+	int len = lenprintf(SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
+	char *tmp = malloc(len);
+	sprintf(tmp, SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
+	tmp[len - 1] = '\0';
+
+	link_append(traceback_list, tmp, len);
+
+	free(tmp);
+}
+
 int is_success_code(int code) {
 	if(code == SUCCESS ||
 	   code == DELETED_VARIABLE ||

@@ -394,6 +394,7 @@ int main(int argc, char **argv) {
 
 		if(cur_str && strlen(cur_str) && count) {
 			if(cli_is_command(cur_str)) {
+				synge_reset_traceback();
 				cli_command tmp = cli_get_command(cur_str);
 				if(!tmp.exec) break; /* command is to exit */
 				tmp.exec(cur_str);
