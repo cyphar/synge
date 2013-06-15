@@ -184,6 +184,7 @@ static ohm_t *function_list = NULL;
 
 static special_number constant_list[] = {
 	{"pi",			3.14159265358979323},
+	{"phi",			1.61803398874989484},
 	{"e",			2.71828182845904523},
 	{"life",			       42.0}, /* Sorry, I couldn't resist */
 
