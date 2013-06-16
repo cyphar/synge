@@ -1065,12 +1065,14 @@ char *get_trace(link_t *link) {
 
 	int len = 0;
 	do {
+		/* get current function traceback information */
 		current = (char *) ii->content;
 		if(!current)
 			continue;
 
 		len += strlen(current);
 
+		/* append current function traceback */
 		ret = realloc(ret, len + 1);
 		sprintf(ret, "%s%s", ret, current);
 	} while(!link_iter_next(ii));
@@ -1442,11 +1444,13 @@ void synge_end(void) {
 void synge_reset_traceback(void) {
 	assert(synge_started);
 
+	/* free previous traceback and allocate new one */
 	if(traceback_list)
 		link_free(traceback_list);
 
 	traceback_list = link_init();
 
+	/* reset traceback to base notation */
 	int len = lenprintf(SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
 	char *tmp = malloc(len);
 	sprintf(tmp, SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
@@ -1455,7 +1459,7 @@ void synge_reset_traceback(void) {
 	link_append(traceback_list, tmp, len);
 
 	free(tmp);
-}
+} /* synge_reset_traceback() */
 
 int is_success_code(int code) {
 	if(code == SUCCESS ||
