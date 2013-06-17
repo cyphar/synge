@@ -41,7 +41,7 @@ ifeq ($(OS), Windows_NT)
 else
 	OS_SHR_CFLAGS	= -Werror
 	OS_CLI_CFLAGS	= `pkg-config --cflags libedit`
-	OS_GTK_CFLAGS	= -export-dynamic
+	OS_GTK_CFLAGS	=
 	OS_EVAL_CFLAGS	=
 
 	OS_SHR_LFLAGS	=
