@@ -56,6 +56,10 @@ typedef struct {
 	int position;
 } error_code;
 
+enum {
+	dynamic = -1
+};
+
 typedef struct __synge_settings__ {
 	enum {
 		degrees,
@@ -73,9 +77,7 @@ typedef struct __synge_settings__ {
 		strict
 	} strict;
 
-	enum {
-		dynamic = -1
-	} precision;
+	int precision;
 } synge_settings;
 
 typedef struct __function__ {
