@@ -46,8 +46,8 @@
 #define SYNGE_MAX_DEPTH		10
 
 #define SYNGE_PREV_ANSWER	"ans"
-#define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ_"
-#define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789_"
+#define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
+#define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
 
 #define SYNGE_TRACEBACK_FORMAT	"Synge Traceback (most recent call last):\n" \
 				"%s" \
@@ -87,7 +87,7 @@
 /* hack to get amount of memory needed to store a sprintf() */
 #define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1)
 
-static bool synge_started = false; /* i REALLY reccomend you leave this false, as this is used to ensure that synge_start has been run */
+static bool synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
 
 synge_t deg2rad(synge_t deg) {
 	return deg * (PI / 180.0);
@@ -114,7 +114,7 @@ synge_t sy_factorial(synge_t x) {
 
 synge_t sy_series(synge_t x) {
 	x = floor(x);
-	/* an epic formula i learnt in year 5 */
+	/* an epic formula I learnt in year 5 */
 	return (x * (x+1)) / 2;
 } /* sy_series() */
 
@@ -224,7 +224,7 @@ static char *op_list[] = {
 static synge_settings active_settings = {
 	degrees, /* mode */
 	position, /* error level */
-	strict, /* stricness */
+	strict, /* strictness */
 	dynamic /* precision */
 };
 
@@ -269,7 +269,7 @@ char *replace(char *str, char *old, char *new) {
 
 	for(i = 0; s[i] != '\0'; i++) {
 		if(strstr(&s[i], old) == &s[i]) {
-			count++; /* found occurence of old string */
+			count++; /* found occurrence of old string */
 			i += oldlen - 1; /* jump forward in string */
 		}
 	}
@@ -279,8 +279,8 @@ char *replace(char *str, char *old, char *new) {
 
 	i = 0;
 	while(*s != '\0') {
-		if(strstr(s, old) == s) { /* is *s position at occurence of old? */
-			strcpy(&ret[i], new); /* copy over new to replace this occurence */
+		if(strstr(s, old) == s) { /* is *s position at occurrence of old? */
+			strcpy(&ret[i], new); /* copy over new to replace this occurrence */
 			i += newlen; /* update iterator ... */
 			s += oldlen; /* ... to new offsets  */
 		} else ret[i++] = *s++; /* otherwise, copy over current character */
