@@ -3,11 +3,11 @@ Things to fix/implement:
   ALL:
    + Documentation
    * Replace as many hardcoded comparisons with structs
-  ** General code clean-up (especially tokenisation & evaluation code)
+   * General code clean-up (especially tokenisation & evaluation code)
 
   SYNGE:
    + Add bignum support
-   + Multiple evalutations per line (a=1;a+2;a=a+1;a)
+   + Multiple evaluations per line (a=1;a+2;a=a+1;a)
    + Conditional expressions (exp ? if : else)
    + Functions to:
 	- Get factors of a number
