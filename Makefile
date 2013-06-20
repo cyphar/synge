@@ -63,7 +63,7 @@ PYTHON		= python
 
 CC		?= cc
 EXEC_BASE	= synge
-SAFE		= 1
+SAFE		= 0
 
 NAME_CLI	= $(EXEC_BASE)-cli
 NAME_GTK	= $(EXEC_BASE)-gtk
@@ -79,7 +79,7 @@ GTK_DIR		= $(SRC_DIR)/gtk
 EVAL_DIR	= $(SRC_DIR)/eval
 TEST_DIR	= tests
 
-WARNINGS	= -Wall -Wextra -pedantic -Wno-overlength-strings -Wno-sign-compare -Wno-unused-parameter
+WARNINGS	= -Wall -Wextra -pedantic -Wno-overlength-strings -Wno-unused-parameter
 SHR_CFLAGS	= -std=c99 -fsigned-char -I$(SRC_DIR)/ -D__SYNGE_SAFE__="$(SAFE)" $(OS_SHR_CFLAGS)
 CLI_CFLAGS	= $(OS_CLI_CFLAGS)
 GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` $(OS_GTK_CFLAGS)
