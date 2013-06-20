@@ -83,6 +83,8 @@
 			"This free software is licensed under the terms of the MIT License and is provided with ABSOLUTELY NO WARRANTY\n" \
 			"For more information, type 'version', 'license' and 'warranty'\n"
 
+#define FLUSH_INPUT() do { while(getchar() != '\n'); } while(0) /* flush input buffer */
+
 typedef struct __cli_command__ {
 	char *name;
 	void (*exec)();
@@ -269,8 +271,13 @@ void cli_exec(char *str) {
 
 		/* get response */
 		ch = getchar();
+
+		/* just pressed enter -- no need to do anything else */
+		if(ch == '\n')
+			continue;
+
+		FLUSH_INPUT();
 	} while(tolower(ch) != 'y' && tolower(ch) != 'n'); /* wait for valid input */
-	while(getchar() != '\n'); /* flush input buffer */
 
 	/* user said no - gtfo */
 	if(tolower(ch) == 'n')
