@@ -24,35 +24,35 @@
 #######################
 
 ifeq ($(OS), Windows_NT)
-	OS_SHR_CFLAGS	=
-	OS_CLI_CFLAGS	=
-	OS_GTK_CFLAGS	=
-	OS_EVAL_CFLAGS	=
+	SHR_CFLAGS	=
+	CLI_CFLAGS	=
+	GTK_CFLAGS	=
+	EVAL_CFLAGS	=
 
-	OS_SHR_LFLAGS	=
-	OS_CLI_LFLAGS	=
-	OS_GTK_LFLAGS	= -mwindows
-	OS_EVAL_LFLAGS	=
+	SHR_LFLAGS	=
+	CLI_LFLAGS	=
+	GTK_LFLAGS	= -mwindows
+	EVAL_LFLAGS	=
 
-	OS_PREFIX	=
-	OS_SUFFIX	=.exe
+	PREFIX		=
+	SUFFIX		=.exe
 
-	OS_GIT_VERSION	=
+	GIT_VERSION	=
 else
-	OS_SHR_CFLAGS	= -Werror
-	OS_CLI_CFLAGS	= `pkg-config --cflags libedit`
-	OS_GTK_CFLAGS	=
-	OS_EVAL_CFLAGS	=
+	SHR_CFLAGS	= -Werror
+	CLI_CFLAGS	= `pkg-config --cflags libedit`
+	GTK_CFLAGS	=
+	EVAL_CFLAGS	=
 
-	OS_SHR_LFLAGS	=
-	OS_CLI_LFLAGS	= `pkg-config --libs libedit`
-	OS_GTK_LFLAGS	=
-	OS_EVAL_LFLAGS	=
+	SHR_LFLAGS	=
+	CLI_LFLAGS	= `pkg-config --libs libedit`
+	GTK_LFLAGS	=
+	EVAL_LFLAGS	=
 
-	OS_PREFIX	=./
-	OS_SUFFIX	=
+	PREFIX		=./
+	SUFFIX		=
 
-	OS_GIT_VERSION	= $(shell git rev-parse --verify HEAD)
+	GIT_VERSION	= $(shell git rev-parse --verify HEAD)
 endif
 
 PYTHON		= python
@@ -69,9 +69,9 @@ NAME_CLI	= $(EXEC_BASE)-cli
 NAME_GTK	= $(EXEC_BASE)-gtk
 NAME_EVAL	= $(EXEC_BASE)-eval
 
-EXEC_CLI	= $(NAME_CLI)$(OS_SUFFIX)
-EXEC_GTK	= $(NAME_GTK)$(OS_SUFFIX)
-EXEC_EVAL	= $(NAME_EVAL)$(OS_SUFFIX)
+EXEC_CLI	= $(NAME_CLI)$(SUFFIX)
+EXEC_GTK	= $(NAME_GTK)$(SUFFIX)
+EXEC_EVAL	= $(NAME_EVAL)$(SUFFIX)
 
 SRC_DIR		= src
 CLI_DIR		= $(SRC_DIR)/cli
@@ -80,15 +80,15 @@ EVAL_DIR	= $(SRC_DIR)/eval
 TEST_DIR	= tests
 
 WARNINGS	= -Wall -Wextra -pedantic -Wno-overlength-strings -Wno-unused-parameter
-SHR_CFLAGS	= -std=c99 -fsigned-char -I$(SRC_DIR)/ -D__SYNGE_SAFE__="$(SAFE)" $(OS_SHR_CFLAGS)
-CLI_CFLAGS	= $(OS_CLI_CFLAGS)
-GTK_CFLAGS	= `pkg-config --cflags gtk+-2.0` $(OS_GTK_CFLAGS)
-EVAL_CFLAGS	= $(OS_EVAL_CFLAGS)
+SHR_CFLAGS	+= -std=c99 -I$(SRC_DIR)/
+CLI_CFLAGS	+=
+GTK_CFLAGS	+= `pkg-config --cflags gtk+-2.0`
+EVAL_CFLAGS	+=
 
-SHR_LFLAGS	= -lm $(OS_SHR_LFLAGS)
-CLI_LFLAGS	= $(OS_CLI_LFLAGS)
-GTK_LFLAGS	= `pkg-config --libs gtk+-2.0 gmodule-2.0` $(OS_GTK_LFLAGS)
-EVAL_LFLAGS	= $(OS_EVAL_LFLAGS)
+SHR_LFLAGS	+= -lm
+CLI_LFLAGS	+=
+GTK_LFLAGS	+= `pkg-config --libs gtk+-2.0 gmodule-2.0`
+EVAL_LFLAGS	+=
 
 SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c $(SRC_DIR)/linked.c
 CLI_SRC		= $(CLI_DIR)/cli.c
@@ -125,8 +125,9 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 	strip $(EXEC_CLI)
 
@@ -136,8 +137,9 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 	strip $(EXEC_GTK)
 
@@ -146,8 +148,9 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 	strip $(EXEC_EVAL)
 
@@ -161,7 +164,7 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
-		$(PYTHON) $(TEST_DIR)/test.py "$(OS_PREFIX)$(EXEC_EVAL)$(OS_SUFFIX) -R -S"; \
+		$(PYTHON) $(TEST_DIR)/test.py "$(PREFIX)$(EXEC_EVAL)$(SUFFIX) -R -S"; \
 	fi
 
 #################
@@ -180,8 +183,9 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 
 # Compile "debug" engine and gui wrapper
@@ -191,8 +195,9 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 
 # Compile "debug" engine and simple eval wrapper
@@ -201,8 +206,9 @@ debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
-		-D__SYNGE_GIT_VERSION__='"$(OS_GIT_VERSION)"' \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 
 ###################
