@@ -2,3 +2,5 @@
 synge-cli
 synge-gtk
 synge-eval
+
+*.o
