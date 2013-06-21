@@ -56,10 +56,11 @@ enum {
 };
 
 static GObject *input, *output, *statusbar, *func_window, *func_tree;
-GtkBuilder *builder;
-GtkWidget *window;
+static GtkBuilder *builder;
+static GtkWidget *window;
 
-int isout = false;
+static int isout = false;
+static int iserr = false;
 
 __EXPORT_SYMBOL gboolean kill_window(GtkWidget *widget, GdkEvent *event, gpointer data) {
 	gtk_main_quit();
@@ -72,6 +73,9 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 
 	char *text = (char *) gtk_entry_get_text(GTK_ENTRY(input));
 
+	isout = true;
+	iserr = false;
+
 	if((ecode = compute_infix_string(text, &result)).code != SUCCESS && !ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), FALSE);
 
@@ -81,6 +85,7 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 
 		g_free(markup);
 
+		iserr = !is_success_code(ecode.code);
 	}
 	else if(!ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), TRUE);
@@ -100,13 +105,12 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 		gtk_label_set_text(GTK_LABEL(statusbar), "");
 	}
 
-	isout = true;
 } /* gui_compute_string() */
 
 __EXPORT_SYMBOL void gui_append_key(GtkWidget *widget, gpointer data) {
-	if(isout) {
+	if(isout && !iserr) {
 		gtk_entry_set_text(GTK_ENTRY(input), "");
-		isout = false;
+		isout = iserr = false;
 	}
 
 	char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + strlen(gtk_button_get_label(GTK_BUTTON(widget))) + 1) * sizeof(char));
