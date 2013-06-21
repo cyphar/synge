@@ -24,9 +24,7 @@
 #######################
 
 ifeq ($(OS), Windows_NT)
-
-	SHR_SRC		= icon.o
-
+	LINK_WITH	= icon.o
 	GTK_LFLAGS	= -mwindows
 
 	PREFIX		=
@@ -122,7 +120,7 @@ all:
 # Compile "production" engine and command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -136,7 +134,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -149,7 +147,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 # Compile "production" engine and simple eval wrapper
 $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -179,7 +177,7 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 #################
 
 # Compile "debug" engine and wrappers
-debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS) $(OS)-pre
+debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 	make debug-cli
 	make debug-gtk
 	make debug-eval
@@ -187,7 +185,7 @@ debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS) $(OS
 # Compile "debug" engine and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -201,7 +199,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -214,7 +212,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 # Compile "debug" engine and simple eval wrapper
 debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
