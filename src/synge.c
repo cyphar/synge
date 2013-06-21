@@ -305,7 +305,7 @@ char *get_word(char *s, char *list, char **endptr) {
 
 	/* copy over the word */
 	char *ret = malloc(i + 1);
-	memcpy(ret, s, i + 1);
+	memcpy(ret, s, i);
 	ret[i] = '\0';
 
 	strlower(ret); /* make the word lowercase -- since everything is case insensitive */
@@ -365,10 +365,7 @@ synge_t *num_dup(synge_t num) {
 
 char *str_dup(char *s) {
 	char *ret = malloc(strlen(s) + 1);
-
 	memcpy(ret, s, strlen(s) + 1);
-	ret[strlen(s)] = '\0'; /* ensure null termination */
-
 	return ret;
 } /* str_dup() */
 
@@ -380,9 +377,7 @@ int get_precision(synge_t num) {
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
 	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
-
 	sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* sprintf it */
-	tmp[tmpsize - 1] = '\0'; /* force null termination */
 
 	char *p = tmp + tmpsize - 2;
 	int precision = SYNGE_MAX_PRECISION;
@@ -1060,7 +1055,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 } /* eval_rpnstack() */
 
 char *get_trace(link_t *link) {
-	char *ret = str_dup("\0"), *current = NULL;
+	char *ret = str_dup(""), *current = NULL;
 	link_iter *ii = link_iter_init(link);
 
 	int len = 0;
@@ -1454,7 +1449,6 @@ void synge_reset_traceback(void) {
 	int len = lenprintf(SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
 	char *tmp = malloc(len);
 	sprintf(tmp, SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
-	tmp[len - 1] = '\0';
 
 	link_append(traceback_list, tmp, len);
 
