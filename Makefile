@@ -24,36 +24,32 @@
 #######################
 
 ifeq ($(OS), Windows_NT)
-	SHR_CFLAGS	=
-	CLI_CFLAGS	=
-	GTK_CFLAGS	=
-	EVAL_CFLAGS	=
 
-	SHR_LFLAGS	=
-	CLI_LFLAGS	=
+	SHR_SRC		= icon.o
+
 	GTK_LFLAGS	= -mwindows
-	EVAL_LFLAGS	=
 
 	PREFIX		=
 	SUFFIX		=.exe
 
 	GIT_VERSION	=
+	SY_OS		= windows
 else
 	SHR_CFLAGS	= -Werror
-	CLI_CFLAGS	= `pkg-config --cflags libedit`
-	GTK_CFLAGS	=
-	EVAL_CFLAGS	=
 
-	SHR_LFLAGS	=
+	CLI_CFLAGS	= `pkg-config --cflags libedit`
+
 	CLI_LFLAGS	= `pkg-config --libs libedit`
-	GTK_LFLAGS	=
-	EVAL_LFLAGS	=
 
 	PREFIX		=./
 	SUFFIX		=
 
 	GIT_VERSION	= $(shell git rev-parse --verify HEAD)
+	SY_OS		= unix
 endif
+
+OS_PRE		= $(SY_OS)-pre
+OS_POST		= $(SY_OS)-post
 
 PYTHON		= python
 
@@ -73,7 +69,10 @@ EXEC_CLI	= $(NAME_CLI)$(SUFFIX)
 EXEC_GTK	= $(NAME_GTK)$(SUFFIX)
 EXEC_EVAL	= $(NAME_EVAL)$(SUFFIX)
 
+RES_O		= icon.o
+
 SRC_DIR		= src
+RES_DIR		= res
 CLI_DIR		= $(SRC_DIR)/cli
 GTK_DIR		= $(SRC_DIR)/gtk
 EVAL_DIR	= $(SRC_DIR)/eval
@@ -90,15 +89,15 @@ CLI_LFLAGS	+=
 GTK_LFLAGS	+= `pkg-config --libs gtk+-2.0 gmodule-2.0`
 EVAL_LFLAGS	+=
 
-SHR_SRC		= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c $(SRC_DIR)/linked.c
-CLI_SRC		= $(CLI_DIR)/cli.c
-GTK_SRC		= $(GTK_DIR)/gtk.c
-EVAL_SRC	= $(EVAL_DIR)/eval.c
+SHR_SRC		+= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c $(SRC_DIR)/linked.c
+CLI_SRC		+= $(CLI_DIR)/cli.c
+GTK_SRC		+= $(GTK_DIR)/gtk.c
+EVAL_SRC	+= $(EVAL_DIR)/eval.c
 
-SHR_DEPS	= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/ohmic.h
-CLI_DEPS	=
-GTK_DEPS	= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
-EVAL_DEPS	=
+SHR_DEPS	+= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/ohmic.h
+CLI_DEPS	+=
+GTK_DEPS	+= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
+EVAL_DEPS	+=
 
 VERSION		= 1.3.3
 CLI_VERSION	= 1.1.0
@@ -122,6 +121,7 @@ all:
 
 # Compile "production" engine and command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -130,9 +130,11 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 	strip $(EXEC_CLI)
+	make -B $(OS_POST)
 
 # Compile "production" engine and gui wrapper
 $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
+	make -B $(OS_PRE)
 	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
@@ -142,9 +144,11 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 	strip $(EXEC_GTK)
+	make -B $(OS_POST)
 
 # Compile "production" engine and simple eval wrapper
 $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
+	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -153,6 +157,7 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
 	strip $(EXEC_EVAL)
+	make -B $(OS_POST)
 
 ################
 # TEST SECTION #
@@ -160,25 +165,28 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 
 # Compile "production" engine and test suite wrapper + execute test suite
 test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
+	make -B $(OS_PRE)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
 		$(PYTHON) $(TEST_DIR)/test.py "$(PREFIX)$(EXEC_EVAL)$(SUFFIX) -R -S"; \
 	fi
+	make -B $(OS_POST)
 
 #################
 # DEBUG SECTION #
 #################
 
 # Compile "debug" engine and wrappers
-debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
+debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS) $(OS)-pre
 	make debug-cli
 	make debug-gtk
 	make debug-eval
 
 # Compile "debug" engine and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
@@ -187,9 +195,11 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
+	make -B $(OS_POST)
 
 # Compile "debug" engine and gui wrapper
 debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
+	make -B $(OS_PRE)
 	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
@@ -199,9 +209,11 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
+	make -B $(OS_POST)
 
 # Compile "debug" engine and simple eval wrapper
 debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
+	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-g -O0 -D__DEBUG__ \
@@ -210,6 +222,7 @@ debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		$(WARNINGS)
+	make -B $(OS_POST)
 
 ###################
 # INSTALL SECTION #
@@ -271,3 +284,24 @@ xmlui:
 		echo "--- BAKING UI ---"; \
 		$(PYTHON) $(GTK_DIR)/bakeui.py $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/xmlui.h; \
 	fi
+
+###########################
+# OS PRE/POST COMPILATION #
+###########################
+
+# Windows pre-compilation (make resource files)
+windows-pre: $(RES_DIR)/$(EXEC_BASE).ico
+	windres $(RES_DIR)/$(EXEC_BASE).rc -o $(RES_O)
+
+# Windows post-compilation
+windows-post:
+	@true
+
+# *Unix pre-compilation
+unix-pre:
+	@true
+
+# *Unix post-compilation
+unix-post:
+	@true
+
