@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+#include "version.h"
+
 #ifndef __SYNGE_DEF_H__
 #define __SYNGE_DEF_H__
 
@@ -49,9 +51,5 @@
 			"LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n" \
 			"OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n" \
 			"SOFTWARE.\n"
-
-#ifndef __SYNGE_VERSION__
-#define __SYNGE_VERSION__ ""
-#endif
 
 #endif /* __SYNGE_DEF_H__ */

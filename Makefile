@@ -110,15 +110,10 @@ CLI_SRC		+= $(CLI_DIR)/cli.c
 GTK_SRC		+= $(GTK_DIR)/gtk.c
 EVAL_SRC	+= $(EVAL_DIR)/eval.c
 
-SHR_DEPS	+= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/ohmic.h
+SHR_DEPS	+= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/ohmic.h $(SRC_DIR)/definitions.h $(SRC_DIR)/version.h
 CLI_DEPS	+=
 GTK_DEPS	+= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
 EVAL_DEPS	+=
-
-VERSION		= 1.3.3
-CLI_VERSION	= 1.1.0
-GTK_VERSION	= 1.0.2 [CONCEPT]
-EVAL_VERSION	= 1.0.2
 
 TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_DIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
 
@@ -140,9 +135,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
-		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
-		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
@@ -155,9 +148,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B xmlui
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
-		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
-		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
@@ -169,9 +160,7 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
-		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
-		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
@@ -207,9 +196,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
-		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
-		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
@@ -222,9 +209,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__DEBUG__ \
-		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
-		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
@@ -236,9 +221,7 @@ debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-g -O0 -D__DEBUG__ \
-		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
-		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
