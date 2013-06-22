@@ -38,10 +38,8 @@ FILETYPE	VFT_APP
       VALUE "CompanyName",	"Cyphar"
       VALUE "FileDescription",	"Synge Calculator (Command Line)"
       VALUE "FileVersion",	__SYNGE_VERSION__
-      VALUE "InternalName",	"Synge-CLI"
       VALUE "LegalCopyright",	"(C) 2013 Cyphar (MIT Licensed)"
-      VALUE "OriginalFilename",	"Synge-CLI"
-      VALUE "ProductName",	"Synge-CLI"
+      VALUE "ProductName",	"Synge-Cli"
       VALUE "ProductVersion",	__SYNGE_CLI_VERSION__
     }
   }

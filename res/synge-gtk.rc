@@ -38,9 +38,7 @@ FILETYPE	VFT_APP
       VALUE "CompanyName",	"Cyphar"
       VALUE "FileDescription",	"Synge Calculator (Graphical)"
       VALUE "FileVersion",	__SYNGE_VERSION__
-      VALUE "InternalName",	"Synge-GTK"
       VALUE "LegalCopyright",	"(C) 2013 Cyphar (MIT Licensed)"
-      VALUE "OriginalFilename",	"Synge-GTK"
       VALUE "ProductName",	"Synge-GTK"
       VALUE "ProductVersion",	__SYNGE_GTK_VERSION__
     }
