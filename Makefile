@@ -24,7 +24,6 @@
 #######################
 
 ifeq ($(OS), Windows_NT)
-	LINK_WITH	= icon.o
 	GTK_LFLAGS	= -mwindows
 
 	PREFIX		=
@@ -67,10 +66,23 @@ EXEC_CLI	= $(NAME_CLI)$(SUFFIX)
 EXEC_GTK	= $(NAME_GTK)$(SUFFIX)
 EXEC_EVAL	= $(NAME_EVAL)$(SUFFIX)
 
-RES_O		= icon.o
+RES_DIR		= res
+
+RC_CLI		= $(RES_DIR)/$(NAME_CLI).rc
+RC_GTK		= $(RES_DIR)/$(NAME_GTK).rc
+RC_EVAL		= $(RES_DIR)/$(NAME_EVAL).rc
+
+ICON_CLI	= $(RES_DIR)/$(NAME_CLI).o
+ICON_GTK	= $(RES_DIR)/$(NAME_GTK).o
+ICON_EVAL	= $(RES_DIR)/$(NAME_EVAL).o
+
+ifeq ($(OS), Windows_NT)
+	LINK_CLI	+= $(ICON_CLI)
+	LINK_GTK	+= $(ICON_GTK)
+	LINK_EVAL	+= $(ICON_EVAL)
+endif
 
 SRC_DIR		= src
-RES_DIR		= res
 CLI_DIR		= $(SRC_DIR)/cli
 GTK_DIR		= $(SRC_DIR)/gtk
 EVAL_DIR	= $(SRC_DIR)/eval
@@ -102,7 +114,7 @@ CLI_VERSION	= 1.1.0
 GTK_VERSION	= 1.0.2 [CONCEPT]
 EVAL_VERSION	= 1.0.2
 
-TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_DIR)/xmlui.h *.o
+TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_DIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
 
 PREFIX		?= /usr
 INSTALL_DIR	= $(PREFIX)/bin
@@ -120,7 +132,7 @@ all:
 # Compile "production" engine and command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -134,7 +146,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -147,7 +159,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 # Compile "production" engine and simple eval wrapper
 $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -185,7 +197,7 @@ debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 # Compile "debug" engine and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -199,7 +211,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -212,7 +224,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 # Compile "debug" engine and simple eval wrapper
 debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_WITH) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-g -O0 -D__DEBUG__ \
 		-D__SYNGE_VERSION__='"$(VERSION)"' \
@@ -288,8 +300,10 @@ xmlui:
 ###########################
 
 # Windows pre-compilation (make resource files)
-windows-pre: $(RES_DIR)/$(EXEC_BASE).ico
-	windres $(RES_DIR)/$(EXEC_BASE).rc -o $(RES_O)
+windows-pre: $(RC_CLI) $(RC_GTK) $(RC_EVAL)
+	windres $(RC_CLI) -o $(ICON_CLI)
+	windres $(RC_GTK) -o $(ICON_GTK)
+	windres $(RC_EVAL) -o $(ICON_EVAL)
 
 # Windows post-compilation
 windows-post:
