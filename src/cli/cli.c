@@ -284,7 +284,11 @@ void cli_exec(char *str) {
 		return;
 #endif
 	/* run the command */
-	int ret = system(str) / 256;
+	int ret = system(str);
+
+#ifndef __WIN32
+	ret /= 256; /* system in *nix seems to multiply the real return value by 256 */
+#endif
 
 	/* an error occured */
 	if(ret)
