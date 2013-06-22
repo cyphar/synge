@@ -49,6 +49,7 @@
 #include <unistd.h>
 
 #include <synge.h>
+#include <definitions.h>
 
 #ifndef __SYNGE_EVAL_VERSION__
 #define __SYNGE_EVAL_VERSION__ ""
