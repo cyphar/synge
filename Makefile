@@ -24,6 +24,7 @@
 #######################
 
 ifeq ($(OS), Windows_NT)
+	COLOUR		= 0
 	GTK_LFLAGS	= -mwindows
 
 	PREFIX		=
@@ -32,6 +33,7 @@ ifeq ($(OS), Windows_NT)
 	GIT_VERSION	=
 	SY_OS		= windows
 else
+	COLOUR		= 1
 	SHR_CFLAGS	= -Werror
 
 	CLI_CFLAGS	= `pkg-config --cflags libedit`
@@ -49,13 +51,18 @@ OS_POST		= $(SY_OS)-post
 
 PYTHON		= python
 
+##################
+# OPTIONAL FLAGS #
+##################
+
+SAFE		= 0
+
 #####################
 # CONSTANTS SECTION #
 #####################
 
 CC		?= cc
 EXEC_BASE	= synge
-SAFE		= 0
 
 NAME_CLI	= $(EXEC_BASE)-cli
 NAME_GTK	= $(EXEC_BASE)-gtk
@@ -137,6 +144,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
 	strip $(EXEC_CLI)
 	make -B $(OS_POST)
@@ -151,6 +159,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
 	strip $(EXEC_GTK)
 	make -B $(OS_POST)
@@ -164,6 +173,7 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
 	strip $(EXEC_EVAL)
 	make -B $(OS_POST)
@@ -174,14 +184,12 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 
 # Compile "production" engine and test suite wrapper + execute test suite
 test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
-	make -B $(OS_PRE)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
 		$(PYTHON) $(TEST_DIR)/test.py "$(PREFIX)$(EXEC_EVAL)$(SUFFIX) -R -S"; \
 	fi
-	make -B $(OS_POST)
 
 #################
 # DEBUG SECTION #
@@ -203,6 +211,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_CLI_VERSION__='"$(CLI_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
 	make -B $(OS_POST)
 
@@ -217,6 +226,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_GTK_VERSION__='"$(GTK_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
 	make -B $(OS_POST)
 
@@ -230,6 +240,7 @@ debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_EVAL_VERSION__='"$(EVAL_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		$(WARNINGS)
 	make -B $(OS_POST)
 

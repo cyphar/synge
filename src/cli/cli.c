@@ -31,7 +31,7 @@
 #include <math.h>
 
 #ifndef __WIN32
-#include <histedit.h> /* readline drop-in replacement */
+#	include <histedit.h> /* readline drop-in replacement */
 #endif
 
 #include <time.h>
@@ -39,43 +39,45 @@
 #include <errno.h>
 #include <ctype.h>
 
-#include <stack.h>
 #include <synge.h>
 #include <definitions.h>
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
-#ifndef __WIN32
-#define ANSI_ERROR	"\x1b[1;31m"
-#define ANSI_GOOD	"\x1b[1;32m"
-#define ANSI_INFO	"\x1b[1;37m"
-#define ANSI_OUTPUT	"\x1b[1;37m"
-#define ANSI_CLEAR	"\x1b[0;m"
-#else
-#define ANSI_ERROR	""
-#define ANSI_GOOD	""
-#define ANSI_INFO	""
-#define ANSI_OUTPUT	""
-#define ANSI_CLEAR	""
+#ifndef __SYNGE_COLOUR__
+#	ifndef __WIN32
+#		define __SYNGE_COLOUR__ true
+#	else
+#		define __SYNGE_COLOUR__ false
+#	endif
 #endif
 
-#define ERR_TO_OUT	" 2>&1"
+#if __SYNGE_COLOUR__
+#	define ANSI_ERROR	"\x1b[1;31m"
+#	define ANSI_GOOD	"\x1b[1;32m"
+#	define ANSI_INFO	"\x1b[1;37m"
+#	define ANSI_OUTPUT	"\x1b[1;37m"
+#	define ANSI_CLEAR	"\x1b[0;m"
+#else
+#	define ANSI_ERROR	""
+#	define ANSI_GOOD	""
+#	define ANSI_INFO	""
+#	define ANSI_OUTPUT	""
+#	define ANSI_CLEAR	""
+#endif
+
 #define OUTPUT_PADDING	""
 
-#ifndef BLOCKSIZE
-#define BLOCKSIZE 1024
-#endif
-
 #ifndef __SYNGE_CLI_VERSION__
-#define __SYNGE_CLI_VERSION__ ""
+#	define __SYNGE_CLI_VERSION__ ""
 #endif
 
 #ifndef __SYNGE_SAFE__
-#define __SYNGE_SAFE__ 1
+#	define __SYNGE_SAFE__ 1
 #endif
 
 #ifndef __SYNGE_GIT_VERSION__
-#define __SYNGE_GIT_VERSION__ ""
+#	define __SYNGE_GIT_VERSION__ ""
 #endif
 
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
