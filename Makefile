@@ -294,9 +294,9 @@ xmlui:
 
 # Windows pre-compilation (make resource files)
 windows-pre: $(RC_CLI) $(RC_GTK) $(RC_EVAL)
-	windres $(RC_CLI) -o $(ICON_CLI)
-	windres $(RC_GTK) -o $(ICON_GTK)
-	windres $(RC_EVAL) -o $(ICON_EVAL)
+	windres $(RC_CLI)  -I$(SRC_DIR)/ -o $(ICON_CLI)
+	windres $(RC_GTK)  -I$(SRC_DIR)/ -o $(ICON_GTK)
+	windres $(RC_EVAL) -I$(SRC_DIR)/ -o $(ICON_EVAL)
 
 # Windows post-compilation
 windows-post:
