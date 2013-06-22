@@ -24,19 +24,19 @@
 #define __SYNGE_VERSION_H__
 
 /* engine version */
-#define __SYNGE_VERSION__ 		"1.3.3" /* ANSI string */
-#define B__SYNGE_VERSION__ 		 1,3,3  /* binary (for resources) */
+#define __SYNGE_VERSION__ 		"1.3.3"  /* ANSI string */
+#define B__SYNGE_VERSION__ 		 1,3,3,0 /* binary (for resources) */
 
 /* cli version */
-#define __SYNGE_CLI_VERSION__ 		"1.1.0" /* ANSI string */
-#define B__SYNGE_CLI_VERSION__ 		 1,1,0  /* binary (for resources) */
+#define __SYNGE_CLI_VERSION__ 		"1.1.0"  /* ANSI string */
+#define B__SYNGE_CLI_VERSION__ 		 1,1,0,0 /* binary (for resources) */
 
 /* gtk version */
 #define __SYNGE_GTK_VERSION__ 		"1.0.2 [CONCEPT]" /* ANSI string */
-#define B__SYNGE_GTK_VERSION__ 		 1,0,2		  /* binary (for resources) */
+#define B__SYNGE_GTK_VERSION__ 		 1,0,2,0	  /* binary (for resources) */
 
 /* eval version */
-#define __SYNGE_EVAL_VERSION__ 		"1.0.2" /* ANSI string */
-#define B__SYNGE_EVAL_VERSION__ 	 1,0,2  /* binary (for resources) */
+#define __SYNGE_EVAL_VERSION__ 		"1.0.2"	 /* ANSI string */
+#define B__SYNGE_EVAL_VERSION__ 	 1,0,2,0 /* binary (for resources) */
 
 #endif /* __SYNGE_VERSION_H__ */
