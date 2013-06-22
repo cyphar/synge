@@ -41,8 +41,8 @@
  * 1 Addition, Subtraction (left associative)
  */
 
-#define SYNGE_EPSILON		10e-15
-#define SYNGE_MAX_PRECISION	14
+#define SYNGE_EPSILON		10e-14
+#define SYNGE_MAX_PRECISION	13
 #define SYNGE_MAX_DEPTH		10
 
 #define SYNGE_PREV_ANSWER	"ans"
