@@ -98,6 +98,11 @@ CASES = [
 	(["7.2(-5)"],				["-36"],			0,	"Implied Multiplication	"),
 	(["-2.9(-2.4)"],			["6.96"],			0,	"Implied Multiplication	"),
 
+	(["2tan(45)"],				["2"],				deg,	"Implied Multiplication	"),
+	(["-3cos(0)"],				["-3"],				deg,	"Implied Multiplication	"),
+	(["0.3sin(90)"],			["0.3"],			deg,	"Implied Multiplication	"),
+	(["-2.1acos(0.5)"],			["-126"],			deg,	"Implied Multiplication	"),
+
 	(["10^2"],				["100"],			0,	"Indicies		"),
 	(["(-3)^2"],				["9"],				0,	"Indicies		"),
 	(["16^(1/4)"],				["2"],				0,	"Fractional Indicies	"),
@@ -151,8 +156,8 @@ CASES = [
 	(["atan(1)+acos(0.5)+asin(0)"],		["105"],			deg,	"Degrees Trigonometry	"),
 	(["atan(sin(30)/cos(30))"],		["30"],				deg,	"Degrees Trigonometry	"),
 
-	(["tan(45)+cos(60)+sin(30)"],		["-0.32066941396416"],		rad,	"Radian Trigonometry	"),
-	(["atan(1)+acos(0.5)+asin(0)"],		["1.83259571459405"],		rad,	"Radian Trigonometry	"),
+	(["tan(45)+cos(60)+sin(30)"],		["-0.3206694139642"],		rad,	"Radian Trigonometry	"),
+	(["atan(1)+acos(0.5)+asin(0)"],		["1.832595714594"],		rad,	"Radian Trigonometry	"),
 	(["atan(sin(1.1)/cos(1.1))"],		["1.1"],			rad,	"Radian Trigonometry	"),
 
 	(["tanh(ln(2))"],			["0.6"],			0,	"Hyperbolic Trigonometry	"),
