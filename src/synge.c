@@ -87,7 +87,11 @@
 /* hack to get amount of memory needed to store a sprintf() */
 #define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1)
 
-static bool synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
+/* macros for casting void stack pointers */
+#define SYNGE_T(x) (*(synge_t *) x)
+#define FUNCTION(x) ((function *) x)
+
+static int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
 
 synge_t deg2rad(synge_t deg) {
 	return deg * (PI / 180.0);
@@ -241,9 +245,9 @@ void print_stack(stack *s) {
 		if(!tmp.val) continue;
 
 		if(tmp.tp == number)
-			printf("%" SYNGE_FORMAT " ", *(synge_t *) tmp.val);
+			printf("%" SYNGE_FORMAT " ", SYNGE_T(tmp.val));
 		else if(tmp.tp == func)
-			printf("%s ", ((function *)tmp.val)->name);
+			printf("%s ", FUNCTION(tmp.val)->name);
 		else
 			printf("%s ", (char *) tmp.val);
 	}
@@ -616,7 +620,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 
 				if(tmp) {
 					/* variable */
-					*num = *(synge_t *) ohm_search(variable_list, word, strlen(word) + 1);
+					*num = SYNGE_T(ohm_search(variable_list, word, strlen(word) + 1));
 				} else {
 					/* function */
 
@@ -803,7 +807,7 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 		switch(stackp.tp) {
 			case number:
 				/* nothing to do, just push it onto the temporary stack */
-				push_valstack(num_dup(*(synge_t *) stackp.val), number, pos, *rpn_stack);
+				push_valstack(num_dup(SYNGE_T(stackp.val)), number, pos, *rpn_stack);
 				break;
 			case lparen:
 			case func:
@@ -924,7 +928,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 		switch(stackp.tp) {
 			case number:
 				/* just push it onto the final stack */
-				push_valstack(num_dup(*(synge_t *) stackp.val), number, pos, tmpstack);
+				push_valstack(num_dup(SYNGE_T(stackp.val)), number, pos, tmpstack);
 				break;
 			case func:
 				/* check if there is enough numbers for function arguments */
@@ -932,19 +936,19 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 					return safe_free_stack(FUNCTION_WRONG_ARGC, pos < 1 ? pos + 1 : pos, &tmpstack, rpn);
 
 				/* get the first (and, for now, only) argument */
-				arg[0] = *(synge_t *) top_stack(tmpstack)->val;
+				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				/* does the input need to be converted? */
-				if(get_from_ch_list(((function *)stackp.val)->name, angle_infunc_list, false)) /* convert settings angles to radians */
+				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_infunc_list, false)) /* convert settings angles to radians */
 					arg[0] = settings_to_rad(arg[0]);
 
 				/* allocate result and evaluate it */
 				result = malloc(sizeof(synge_t));
-				*result = ((function *)stackp.val)->get(arg[0]);
+				*result = FUNCTION(stackp.val)->get(arg[0]);
 
 				/* does the output need to be converted? */
-				if(get_from_ch_list(((function *)stackp.val)->name, angle_outfunc_list, false)) /* convert radians to settings angles */
+				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_outfunc_list, false)) /* convert radians to settings angles */
 					*result = rad_to_settings(*result);
 
 				/* push result of evaluation onto the stack */
@@ -960,11 +964,11 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 					return safe_free_stack(OPERATOR_WRONG_ARGC, pos, &tmpstack, rpn);
 
 				/* get second argument */
-				arg[1] = *(synge_t *) top_stack(tmpstack)->val;
+				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				/* get first argument */
-				arg[0] = *(synge_t *) top_stack(tmpstack)->val;
+				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				result = malloc(sizeof(synge_t));
@@ -1035,7 +1039,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 		}
 
 		/* check if a rounding error occured in above operation */
-		synge_t tmp = *(synge_t *) top_stack(tmpstack)->val;
+		synge_t tmp = SYNGE_T(top_stack(tmpstack)->val);
 		if(has_rounding_error(tmp))
 			return safe_free_stack(NUM_OVERFLOW, pos, &tmpstack, rpn);
 	}
@@ -1045,7 +1049,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 		return safe_free_stack(TOO_MANY_VALUES, -1, &tmpstack, rpn);
 
 	/* otherwise, the last item is the result */
-	*output = *(synge_t *) top_stack(tmpstack)->val;
+	*output = SYNGE_T(top_stack(tmpstack)->val);
 
 	/* check for rounding errors */
 	if(has_rounding_error(*output))

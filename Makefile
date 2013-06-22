@@ -35,7 +35,6 @@ else
 	SHR_CFLAGS	= -Werror
 
 	CLI_CFLAGS	= `pkg-config --cflags libedit`
-
 	CLI_LFLAGS	= `pkg-config --libs libedit`
 
 	PREFIX		=./
