@@ -5,4 +5,4 @@ List of known bugs and limitations:
 List of "bugs" which are not to be fixed:
 
   - Putting two variables together doesn't multiply them (x=2; y=3; xy isn't 6)
-  -
+  - Random numbers are different between operating systems (this is due to differences in the standard libraries)
