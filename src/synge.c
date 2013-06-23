@@ -590,9 +590,10 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 	debug("%s\n%s\n", string, s);
 
 	init_stack(*infix_stack);
-	int i, pos, tmp = 0, len = strlen(s);
+	int i, pos, tmp = 0, len = strlen(s), nextpos = 0;
 	for(i = 0; i < len; i++) {
 		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
+		nextpos = next_offset(s, i + 1);
 		if(s[i] == ' ') continue; /* ignore spaces */
 
 		/* full number check */
@@ -712,7 +713,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				case ')':
 					type = rparen;
 					pos -= 1; /* 'hack' to ensure the error position is correct */
-					if(isnum(s+next_offset(s, i+1)) && !get_from_ch_list(s+next_offset(s, i+1), op_list, true))
+					if(nextpos > 0 && isnum(s + nextpos) && !get_from_ch_list(s + nextpos, op_list, true))
 						postpush = true;
 					break;
 				case '>':
