@@ -9,6 +9,7 @@ Things to fix/implement:
    + Add bignum support
    + Multiple evaluations per line (a=1;a+2;a=a+1;a)
    + Conditional expressions (exp ? if : else)
+   + Make '=' an operator (to allow the use of variable setting inside an expression)
    + Functions to:
 	- Get factors of a number
    * Refactor helper functions
