@@ -21,15 +21,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from os import popen, name
 from sys import argv
-from commands import getstatusoutput
 
 deg = "degrees"
 rad = "radians"
 
-ansi_error = "\x1b[1;31m"
-ansi_good  = "\x1b[1;32m"
-ansi_reset = "\x1b[0m"
+if name is not "nt":
+	ansi_error = "\x1b[1;31m"
+	ansi_good  = "\x1b[1;32m"
+	ansi_reset = "\x1b[0m"
+else:
+	ansi_error = ansi_good = ansi_reset = ""
 
 errors = {
 		"zerodiv"	: "Cannot divide by zero",
@@ -238,8 +241,16 @@ CASES = [
 
 def test_calc(program, test, expected, mode, description):
 	command = '%s -m "%s" %s' % (program, mode, '"' + '" "'.join(test) + '"')
-	output = getstatusoutput(command)[1]
-	if output == '\n'.join(expected):
+
+	pipe = popen(command, 'r')
+	output = pipe.readlines()
+
+	output = ''.join(output).split('\n')
+
+	if not output[-1]:
+		output = output[:-1]
+
+	if output == expected:
 		print "%s ... %sOK%s" % (description, ansi_good, ansi_reset)
 		return True
 	else:
@@ -252,7 +263,12 @@ def test_calc(program, test, expected, mode, description):
 		else:
 			print '\tExpression: "%s%s%s"' % (ansi_good, test[0], ansi_reset)
 
-		print '\tOutput: "%s%s%s"' % (ansi_error, output, ansi_reset)
+		if len(output) > 1:
+			print "\tOutput:"
+			for each in output:
+				print '\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset)
+		else:
+			print '\tOutput: "%s%s%s"' % (ansi_error, output[0], ansi_reset)
 
 		if len(expected) > 1:
 			print "\tExpected:"
@@ -264,6 +280,8 @@ def test_calc(program, test, expected, mode, description):
 		return False
 
 def run_tests(program):
+	print program
+
 	failures = 0
 	counter = 0
 	for case in CASES:
