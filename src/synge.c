@@ -591,10 +591,15 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 
 	init_stack(*infix_stack);
 	int i, pos, tmp = 0, len = strlen(s), nextpos = 0;
+
+/* TODO: Refactor this loop (consider making it a switch) - cyphar */
+
 	for(i = 0; i < len; i++) {
 		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
 		nextpos = next_offset(s, i + 1);
 		if(s[i] == ' ') continue; /* ignore spaces */
+
+/* TODO: This if... fix it. - cyphar*/
 
 		/* full number check */
 		else if(isnum(s+i) && /* does it fit the description of a number? */
@@ -685,6 +690,9 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				return to_error_code(UNDEFINED, pos);
 			}
 		}
+
+/* TODO: Make this operator switch check more than one character - cyphar */
+
 		else if(get_from_ch_list(s+i, op_list, true)) {
 			int postpush = false;
 			s_type type;
@@ -705,14 +713,14 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 					break;
 				case '(':
 					type = lparen;
-					pos -= 1; /* 'hack' to ensure the error position is correct */
+					pos--; /* 'hack' to ensure the error position is correct */
 					/* every open paren with no operators before it has an implied * */
 					if(top_stack(*infix_stack) && (top_stack(*infix_stack)->tp == number || top_stack(*infix_stack)->tp == rparen))
 						push_valstack("*", multop, pos + 1, *infix_stack);
 					break;
 				case ')':
 					type = rparen;
-					pos -= 1; /* 'hack' to ensure the error position is correct */
+					pos--; /* 'hack' to ensure the error position is correct */
 					if(nextpos > 0 && isnum(s + nextpos) && !get_from_ch_list(s + nextpos, op_list, true))
 						postpush = true;
 					break;
@@ -1296,6 +1304,9 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	char *final_pass_str = str_dup(original_str);
 	char *string = NULL, *var = NULL;
 
+/* TODO: Refactor from here... - cyphar */
+/* TODO: Make (=) an operator. - cyphar */
+
 	/* find any variable assignments (=) in string */
 	if(strchr(final_pass_str, '=')) {
 		var = final_pass_str;
@@ -1311,6 +1322,8 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 		free(word);
 	}
 	else string = final_pass_str;
+
+/* XXX: ... to here. - cyphar */
 
 	if(ecode.code == SUCCESS) {
 		/* generate infix stack */
@@ -1330,6 +1343,9 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	/* is it a nan? */
 	if(*result != *result)
 		ecode = to_error_code(UNDEFINED, -1);
+
+/* TODO: Refactor from here... - cyphar */
+/* TODO: Make (=) an operator and set it inside the eval section. - cyphar */
 
 	enum {
 		VAR	= 1,
@@ -1416,6 +1432,8 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 			} while((var = strchr(var, '=')) != NULL);
 		}
 	}
+
+/* XXX: ... to here. - cyphar */
 
 	/* FINALLY, set the answer variable */
 	if(is_success_code(ecode.code)) {
