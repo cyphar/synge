@@ -177,7 +177,7 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
-		$(PYTHON) $(TEST_DIR)/test.py "$(PREFIX)$(EXEC_EVAL)$(SUFFIX) -R -S"; \
+		$(PYTHON) $(TEST_DIR)/test.py "$(PREFIX)$(EXEC_EVAL) -R -S"; \
 	fi
 
 #################
