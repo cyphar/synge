@@ -825,9 +825,12 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 					}
 					push_ststack(*tmpstackp, *rpn_stack); /* push it onto the stack */
 				}
-				if(!found)
-					/* if no lparen was found, this is an unmatched right bracket*/
-					return safe_free_stack(UNMATCHED_RIGHT_PARENTHESIS, pos + 1, infix_stack, &op_stack, rpn_stack);
+
+				/* if no lparen was found, this is an unmatched right bracket*/
+				if(!found) {
+					free_stackm(infix_stack, &op_stack, rpn_stack);
+					return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
+				}
 				break;
 			case bitop:
 			case compop:
@@ -846,7 +849,9 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 				break;
 			default:
 				/* catchall -- unknown token */
-				return safe_free_stack(UNKNOWN_TOKEN, pos, infix_stack, &op_stack, rpn_stack);
+				free_stackm(infix_stack, &op_stack, rpn_stack);
+				return to_error_code(UNKNOWN_TOKEN, pos);
+				break;
 		}
 	}
 
@@ -857,8 +862,10 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 		if(stackp.tp == lparen ||
 		   stackp.tp == rparen) {
 			/* if there is a left or right bracket, there is an unmatched left bracket */
-			if(active_settings.strict >= strict)
-				return safe_free_stack(UNMATCHED_LEFT_PARENTHESIS, pos, infix_stack, &op_stack, rpn_stack);
+			if(active_settings.strict >= strict) {
+				free_stackm(infix_stack, &op_stack, rpn_stack);
+				return to_error_code(UNMATCHED_LEFT_PARENTHESIS, pos);
+			}
 			else continue;
 		}
 		push_ststack(stackp, *rpn_stack);
@@ -866,7 +873,8 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 
 	/* debugging */
 	print_stack(*rpn_stack);
-	return safe_free_stack(SUCCESS, -1, infix_stack, &op_stack);
+	free_stackm(infix_stack, &op_stack);
+	return to_error_code(SUCCESS, -1);
 } /* infix_to_rpnstack() */
 
 /* functions' whose input needs to be in radians */
@@ -932,8 +940,10 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				break;
 			case func:
 				/* check if there is enough numbers for function arguments */
-				if(stack_size(tmpstack) < 1)
-					return safe_free_stack(FUNCTION_WRONG_ARGC, pos < 1 ? pos + 1 : pos, &tmpstack, rpn);
+				if(stack_size(tmpstack) < 1) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(FUNCTION_WRONG_ARGC, pos);
+				}
 
 				/* get the first (and, for now, only) argument */
 				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
@@ -960,8 +970,10 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 			case multop:
 			case expop:
 				/* check if there is enough numbers for operator "arguments" */
-				if(stack_size(tmpstack) < 2)
-					return safe_free_stack(OPERATOR_WRONG_ARGC, pos, &tmpstack, rpn);
+				if(stack_size(tmpstack) < 2) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(OPERATOR_WRONG_ARGC, pos);
+				}
 
 				/* get second argument */
 				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
@@ -990,7 +1002,8 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
 							free(result);
-							return safe_free_stack(DIVIDE_BY_ZERO, pos, &tmpstack, rpn);
+							free_stackm(&tmpstack, rpn);
+							return to_error_code(DIVIDE_BY_ZERO, pos);
 						}
 						*result = arg[0] / arg[1];
 						if(tmp)
@@ -1000,7 +1013,8 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						if(iszero(arg[1])) {
 							/* the 11.5th commandment -- thoust shalt not modulo by zero */
 							free(result);
-							return safe_free_stack(MODULO_BY_ZERO, pos, &tmpstack, rpn);
+							free_stackm(&tmpstack, rpn);
+							return to_error_code(MODULO_BY_ZERO, pos);
 						}
 						*result = sy_fmod(arg[0], arg[1]);
 						break;
@@ -1027,7 +1041,9 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						break;
 					default:
 						/* catch-all -- unknown token */
-						return safe_free_stack(UNKNOWN_TOKEN, pos, &tmpstack, rpn);
+						free_stackm(&tmpstack, rpn);
+						return to_error_code(UNKNOWN_TOKEN, pos);
+						break;
 				}
 
 				/* push result onto stack */
@@ -1035,27 +1051,36 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				break;
 			default:
 				/* catch-all -- unknown token */
-				return safe_free_stack(UNKNOWN_TOKEN, pos, &tmpstack, rpn);
+				free_stackm(&tmpstack, rpn);
+				return to_error_code(UNKNOWN_TOKEN, pos);
+				break;
 		}
 
 		/* check if a rounding error occured in above operation */
 		synge_t tmp = SYNGE_T(top_stack(tmpstack)->val);
-		if(has_rounding_error(tmp))
-			return safe_free_stack(NUM_OVERFLOW, pos, &tmpstack, rpn);
+		if(has_rounding_error(tmp)) {
+			free_stackm(&tmpstack, rpn);
+			return to_error_code(NUM_OVERFLOW, pos);
+		}
 	}
 
 	/* if there is not one item on the stack, there are too many values on the stack */
-	if(stack_size(tmpstack) != 1)
-		return safe_free_stack(TOO_MANY_VALUES, -1, &tmpstack, rpn);
+	if(stack_size(tmpstack) != 1) {
+		free_stackm(&tmpstack, rpn);
+		to_error_code(TOO_MANY_VALUES, -1);
+	}
 
 	/* otherwise, the last item is the result */
 	*output = SYNGE_T(top_stack(tmpstack)->val);
 
 	/* check for rounding errors */
-	if(has_rounding_error(*output))
-		return safe_free_stack(NUM_OVERFLOW, -1, &tmpstack, rpn);
+	if(has_rounding_error(*output)) {
+		free_stackm(&tmpstack, rpn);
+		return to_error_code(NUM_OVERFLOW, -1);
+	}
 
-	return safe_free_stack(SUCCESS, -1, &tmpstack, rpn);
+	free_stackm(&tmpstack, rpn);
+	return to_error_code(SUCCESS, -1);
 } /* eval_rpnstack() */
 
 char *get_trace(link_t *link) {
@@ -1399,7 +1424,8 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	}
 
 	free(final_pass_str);
-	return safe_free_stack(ecode.code, ecode.position, &infix_stack, &rpn_stack);
+	free_stackm(&infix_stack, &rpn_stack);
+	return ecode;
 } /* internal_calculate_infix_string() */
 
 synge_settings get_synge_settings(void) {

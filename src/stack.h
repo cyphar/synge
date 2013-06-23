@@ -24,7 +24,6 @@
 #define __SYNGE_STACK_H__
 
 #include <stdbool.h>
-#include "synge.h"
 
 /* stack types */
 
@@ -70,9 +69,9 @@ s_content *top_stack(stack *); /* returns the top value on the stack */
 void free_scontent(s_content *); /* frees and clears the stack content struct */
 void free_stack(stack *); /* frees and clears the stack */
 
-/* wrapper function for free_stack - frees malloc'd memory and free_stacks it */
-error_code usafe_free_stack(int ecode, int pos, stack **s, ...);
-#define safe_free_stack(...) usafe_free_stack(__VA_ARGS__, NULL)
+/* frees several stack structures in one function call*/
+void ufree_stackm(stack **s, ...);
+#define free_stackm(...) ufree_stackm(__VA_ARGS__, NULL)
 
 #define stack_size(x) ((x)->top + 1)
 

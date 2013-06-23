@@ -85,7 +85,7 @@ void free_stack(stack *s) {
 	s->top = -1;
 } /* free_stack() */
 
-error_code usafe_free_stack(int ecode, int pos, stack **s, ...) {
+void ufree_stackm(stack **s, ...) {
 	va_list ap;
 
 	va_start(ap, s);
@@ -95,10 +95,4 @@ error_code usafe_free_stack(int ecode, int pos, stack **s, ...) {
 		*s = NULL;
 	} while((s = va_arg(ap, stack **)) != NULL);
 	va_end(ap);
-
-	error_code ret = {
-		ecode,
-		pos
-	};
-	return ret;
 } /* safe_free_stack() */
