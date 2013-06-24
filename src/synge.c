@@ -228,7 +228,7 @@ static operator op_list[] = {
 	{"-",	op_minus},
 	{"*",	op_mult},
 	{"/",	op_div},
-	{"\\",	op_intdiv}, /* integer division */
+	{"//",	op_intdiv}, /* integer division */
 	{"%",	op_mod},
 	{"^",	op_pow},
 	{"(",	op_lparen},
@@ -242,7 +242,7 @@ static operator op_list[] = {
 	/* bitwise operators */
 	{"&",	op_band},
 	{"|",	op_bor},
-	{"@",	op_bxor},
+	{"^",	op_bxor},
 	{NULL,	op_none}
 };
 
