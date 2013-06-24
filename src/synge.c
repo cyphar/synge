@@ -722,40 +722,40 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 		}
 		else if(strlen(word) > 0) {
 			/* is it a variable or user function? */
-				if(top_stack(*infix_stack)) {
-					s_content *tmppop, *tmpp;
-					/* make variables act more like numbers (and more like variables) */
-					switch(top_stack(*infix_stack)->tp) {
-						case addop:
-							/* if there is a +/- in front of a variable, it should set the sign of that variable (i.e. 1--x is 1+x) */
-							tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
-							tmpp = top_stack(*infix_stack);
-							if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
-								if(((char *) tmppop->val)[0] == '-') {
-									/* negate the variable? */
-									push_valstack("+", addop, false, pos, *infix_stack);
-									push_valstack(num_dup(0), number, true, pos, *infix_stack);
-									push_valstack("-", addop, false, pos, *infix_stack);
-								} else {
-									/* otherwise, add the variable */
-									push_valstack("+", addop, false, pos, *infix_stack);
-								}
+			if(top_stack(*infix_stack)) {
+				s_content *tmppop, *tmpp;
+				/* make variables act more like numbers (and more like variables) */
+				switch(top_stack(*infix_stack)->tp) {
+					case addop:
+						/* if there is a +/- in front of a variable, it should set the sign of that variable (i.e. 1--x is 1+x) */
+						tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
+						tmpp = top_stack(*infix_stack);
+						if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
+							if(((char *) tmppop->val)[0] == '-') {
+								/* negate the variable? */
+								push_valstack("+", addop, false, pos, *infix_stack);
+								push_valstack(num_dup(0), number, true, pos, *infix_stack);
+								push_valstack("-", addop, false, pos, *infix_stack);
+							} else {
+								/* otherwise, add the variable */
+								push_valstack("+", addop, false, pos, *infix_stack);
 							}
-							else
-								/* whoops! didn't match criteria. push sign back. */
-								push_ststack(*tmppop, *infix_stack);
-							break;
-						case number:
-							/* two numbers together have an impiled * (i.e 2x is 2*x) */
-							push_valstack("*", multop, false, pos, *infix_stack);
-							break;
-						default:
-							break;
-					}
+						}
+						else
+							/* whoops! didn't match criteria. push sign back. */
+							push_ststack(*tmppop, *infix_stack);
+						break;
+					case number:
+						/* two numbers together have an impiled * (i.e 2x is 2*x) */
+						push_valstack("*", multop, false, pos, *infix_stack);
+						break;
+					default:
+						break;
 				}
+			}
 
-				push_valstack(str_dup(word), userword, true, pos, *infix_stack);
-				i += strlen(word) - 1; /* update iterator to correct offset */
+			push_valstack(str_dup(word), userword, true, pos, *infix_stack);
+			i += strlen(word) - 1; /* update iterator to correct offset */
 		}
 		else {
 			/* catchall -- unknown token */
@@ -805,7 +805,7 @@ bool op_precedes(s_type op1, s_type op2) {
 } /* op_precedes() */
 
 /* my implementation of Dijkstra's really cool shunting-yard algorithm */
-error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
+error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 	s_content stackp, *tmpstackp;
 	stack *op_stack = malloc(sizeof(stack));
 
@@ -1392,7 +1392,7 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 		/* generate infix stack */
 		if((ecode = tokenise_string(string, var ? strlen(var) + 1 : 0, &infix_stack)).code == SUCCESS)
 			/* convert to postfix (or RPN) stack */
-			if((ecode = infix_stack_to_rpnstack(&infix_stack, &rpn_stack)).code == SUCCESS)
+			if((ecode = shunting_yard_parse(&infix_stack, &rpn_stack)).code == SUCCESS)
 				/* evaluate postfix (or RPN) stack */
 				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
 					/* fix up negative zeros */
