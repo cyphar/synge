@@ -24,7 +24,6 @@
 #include <stdarg.h>
 
 #include "stack.h"
-#include "synge.h"
 
 void init_stack(stack *s) {
 	s->content = NULL;
@@ -34,19 +33,21 @@ void init_stack(stack *s) {
 
 void push_ststack(s_content con, stack *s) {
 	if(s->top + 1 >= s->size) /* if stack is full */
-		s->content = (s_content *) realloc(s->content, ++s->size * sizeof(s_content));
+		s->content = realloc(s->content, ++s->size * sizeof(s_content));
 	s->top++;
 	s->content[s->top].val = con.val;
 	s->content[s->top].tp = con.tp;
+	s->content[s->top].free = con.free;
 	s->content[s->top].position = con.position;
 } /* push_ststack() */
 
-void push_valstack(void *val, s_type tp, int pos, stack *s) {
+void push_valstack(void *val, int tp, int free, int pos, stack *s) {
 	if(s->top + 1 >= s->size) /* if stack is full */
-		s->content = (s_content *) realloc(s->content, ++s->size * sizeof(s_content));
+		s->content = realloc(s->content, ++s->size * sizeof(s_content));
 	s->top++;
 	s->content[s->top].val = val;
 	s->content[s->top].tp = tp;
+	s->content[s->top].free = free;
 	s->content[s->top].position = pos;
 } /* push_valstack() */
 
@@ -66,10 +67,9 @@ s_content *top_stack(stack *s) {
 
 void free_scontent(s_content *s) {
 	if(!s) return;
-	if(s->tp == number) {
+	if(s->free) {
 		free(s->val);
 		s->val = NULL;
-		s->tp = none;
 	}
 	s->position = -1;
 } /* free_scontent() */
@@ -78,7 +78,8 @@ void free_stack(stack *s) {
 	if(!s || !s->content) return;
 	int i;
 	for(i = 0; i < s->size; i++)
-		if(s->content[i].tp == number) free_scontent(&s->content[i]);
+		if(s->content[i].free)
+			free_scontent(&s->content[i]);
 	free(s->content);
 	s->content = NULL;
 	s->size = 0;

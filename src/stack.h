@@ -27,26 +27,10 @@
 
 /* stack types */
 
-typedef enum __stack_type__ {
-	number,
-
-	bitop  = 1,
-	compop = 2,
-	addop  = 3,
-	multop = 4,
-	expop  = 5,
-
-	func,
-	arg,
-
-	lparen,
-	rparen,
-	none
-} s_type;
-
 typedef struct __stack_content__ {
 	void *val;
-	s_type tp;
+	int tp;
+	int free;
 	int position;
 } s_content;
 
@@ -60,7 +44,7 @@ typedef struct __stack__ {
 
 void init_stack(stack *); /* initialize the stack */
 
-void push_valstack(void *, s_type, int, stack *); /* push value and type to the top of the stack */
+void push_valstack(void *, int, int, int, stack *); /* push value and type to the top of the stack */
 void push_ststack(s_content, stack *); /* push struct to the top of the stack */
 
 s_content *pop_stack(stack *); /* pops the top value on the stack */

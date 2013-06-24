@@ -224,6 +224,24 @@ static char *op_list[] = {
 	NULL
 };
 
+/* internal stack types */
+typedef enum __stack_type__ {
+	number,
+
+	bitop  = 1,
+	compop = 2,
+	addop  = 3,
+	multop = 4,
+	expop  = 5,
+
+	func,
+	arg,
+
+	lparen,
+	rparen,
+	none
+} s_type;
+
 /* default settings */
 static synge_settings active_settings = {
 	degrees, /* mode */
@@ -515,6 +533,7 @@ error_code del_word(char *str, bool variable) {
 	return ret;
 } /* del_variable() */
 
+/* XXX: This hack is... ugly and difficult to explain. Consider re-doing or simplifying - cyphar */
 char *function_process_replace(char *string) {
 	char *firstpass = NULL;
 
@@ -526,8 +545,8 @@ char *function_process_replace(char *string) {
 		firstpass = tmppass;
 	}
 
-	/* a hack for function division i thought of in maths ...
-	 * ... basically, synge_t every open and close bracket ... */
+	/* a "hack" for function division i thought of in maths ...
+	 * ... basically, double every open and close bracket ... */
 	char *secondpass = replace(firstpass, "(", "((");
 	char *final = replace(secondpass, ")", "))");
 
@@ -663,7 +682,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 							break;
 						case number:
 							/* two numbers together have an impiled * (i.e 2x is 2*x) */
-							push_valstack("*", multop, pos, *infix_stack);
+							push_valstack("*", multop, false, pos, *infix_stack);
 							break;
 						default:
 							break;
@@ -678,7 +697,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				*num = strtold(s+i, &endptr);
 				i += (endptr - (s + i)) - 1; /* update iterator to correct offset */
 			}
-			push_valstack(num, number, pos, *infix_stack); /* push given value */
+			push_valstack(num, number, true, pos, *infix_stack); /* push given value */
 			free(word);
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
@@ -717,7 +736,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 					pos--; /* 'hack' to ensure the error position is correct */
 					/* every open paren with no operators before it has an implied * */
 					if(top_stack(*infix_stack) && (top_stack(*infix_stack)->tp == number || top_stack(*infix_stack)->tp == rparen))
-						push_valstack("*", multop, pos + 1, *infix_stack);
+						push_valstack("*", multop, false, pos + 1, *infix_stack);
 					break;
 				case ')':
 					type = rparen;
@@ -739,17 +758,17 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 					free(s);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
-			push_valstack(get_from_ch_list(s+i, op_list, true), type, pos, *infix_stack); /* push operator onto stack */
+			push_valstack(get_from_ch_list(s+i, op_list, true), type, false, pos, *infix_stack); /* push operator onto stack */
 
 			if(postpush)
-				push_valstack("*", multop, pos, *infix_stack);
+				push_valstack("*", multop, false, pos, *infix_stack);
 
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
 
 			function *funcname = get_func(word); /* get the function pointer, name, etc. */
-			push_valstack(funcname, func, pos - 1, *infix_stack);
+			push_valstack(funcname, func, false, pos - 1, *infix_stack);
 			i += strlen(funcname->name) - 1; /* update iterator to correct offset */
 
 			free(word);
@@ -817,7 +836,7 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 		switch(stackp.tp) {
 			case number:
 				/* nothing to do, just push it onto the temporary stack */
-				push_valstack(num_dup(SYNGE_T(stackp.val)), number, pos, *rpn_stack);
+				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, *rpn_stack);
 				break;
 			case lparen:
 			case func:
@@ -946,7 +965,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 		switch(stackp.tp) {
 			case number:
 				/* just push it onto the final stack */
-				push_valstack(num_dup(SYNGE_T(stackp.val)), number, pos, tmpstack);
+				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, tmpstack);
 				break;
 			case func:
 				/* check if there is enough numbers for function arguments */
@@ -972,7 +991,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 					*result = rad_to_settings(*result);
 
 				/* push result of evaluation onto the stack */
-				push_valstack(result, number, pos, tmpstack);
+				push_valstack(result, number, true, pos, tmpstack);
 				break;
 			case bitop:
 			case compop:
@@ -1057,7 +1076,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				}
 
 				/* push result onto stack */
-				push_valstack(result, number, pos, tmpstack);
+				push_valstack(result, number, true, pos, tmpstack);
 				break;
 			default:
 				/* catch-all -- unknown token */
