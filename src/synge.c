@@ -370,13 +370,18 @@ char *trim_spaces(char *str) {
 	return ret;
 } /* trim_spaces() */
 
+/* greedy finder */
 char *get_from_ch_list(char *ch, char **list, bool delimit) {
 	int i;
+	char *ret = "";
 	for(i = 0; list[i] != NULL; i++)
 		/* checks against part or entire string against the given list */
 		if((delimit && !strncmp(list[i], ch, strlen(list[i]))) ||
-		   (!delimit && !strcmp(list[i], ch))) return list[i];
-	return NULL;
+		   (!delimit && !strcmp(list[i], ch)))
+			if(strlen(ret) < strlen(list[i]))
+					ret = list[i];
+
+	return strlen(ret) ? ret : 0;
 } /* get_from_ch_list() */
 
 synge_t *num_dup(synge_t num) {
@@ -608,15 +613,12 @@ int next_offset(char *str, int offset) {
 error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
-	//error_code tmpecode = to_error_code(SUCCESS, -1);
 
 	debug("%s\n%s\n", string, s);
 
 	init_stack(*infix_stack);
 	int i, pos, len = strlen(s), nextpos = 0;
 	char *word = NULL, *endptr = NULL;
-
-/* TODO: Refactor this loop (consider making it a switch) - cyphar */
 
 	for(i = 0; i < len; i++) {
 		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
