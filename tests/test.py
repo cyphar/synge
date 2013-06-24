@@ -77,10 +77,10 @@ CASES = [
 	(["5/0.2"],				["25"],				0,	"Division		"),
 	(["-4.2/2.1"],				["-2"],				0,	"Division		"),
 
-	(["4\\2"],				["2"],				0,	"Integer Division	"),
-	(["-9\\3"],				["-3"],				0,	"Integer Division	"),
-	(["5.2412\\1.223"],			["4"],				0,	"Integer Division	"),
-	(["-4.2394\\2.3"],			["-1"],				0,	"Integer Division	"),
+	(["4//2"],				["2"],				0,	"Integer Division	"),
+	(["-9//3"],				["-3"],				0,	"Integer Division	"),
+	(["5.2412//1.223"],			["4"],				0,	"Integer Division	"),
+	(["-4.2394//2.3"],			["-1"],				0,	"Integer Division	"),
 
 	(["5%2"],				["1"],				0,	"Modulo			"),
 	(["13%-2"],				["1"],				0,	"Modulo			"),
@@ -216,10 +216,10 @@ CASES = [
 	(["1_5"],				error_get("token", 2),		0,	"Unknown Token Error	"),
 
 	(["1/0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
-	(["1\\0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
+	(["1//0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
 
 	(["1/cos(90)"],				error_get("zerodiv", 2),	deg,	"Zero Division Error	"),
-	(["1\\sin(0)"],				error_get("zerodiv", 2),	deg,	"Zero Division Error	"),
+	(["1//sin(0)"],				error_get("zerodiv", 2),	deg,	"Zero Division Error	"),
 
 	(["1%(2-(2^2/2))"],			error_get("zeromod", 2),	0,	"Modulo by Zero Error	"),
 	(["1%(cos(45) - sin(45))"],		error_get("zeromod", 2),	deg,	"Modulo by Zero Error	"),
