@@ -601,6 +601,10 @@ int next_offset(char *str, int offset) {
 	return -1;
 } /* next_offset() */
 
+#define false_number(str, stack)	(!(!top_stack(stack) || /* first token is a number */ \
+					(((!isnumword(top_stack(stack)->tp)) || !isaddop(*(str))) && /* a number beginning with +/- and preceeded by a number is not a number */ \
+					(top_stack(stack)->tp != rparen || !isaddop(*(str)))))) /* a number beginning with +/- and preceeded by a ')' is not a number */
+
 error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
@@ -624,17 +628,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 
 		word = get_word(s + i, SYNGE_VARIABLE_CHARS, &endptr);
 
-/* TODO: This if... fix it. - cyphar*/
-
-		/* full number check */
-		if(isnum(s+i) && /* does it fit the description of a number? */
-			/* if it is the first token in the string, it's a number */
-		       (!top_stack(*infix_stack) ||
-			/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
-		       ((!isnumword(top_stack(*infix_stack)->tp) || !isaddop(*(s+i))) &&
-			/* same as above, but for parenthesis */
-		        (top_stack(*infix_stack)->tp != rparen || !isaddop(*(s+i)))))) {
-
+		if(isnum(s+i) && !false_number(s+i, *infix_stack)) {
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
 
 			/* if it is a "special" number */
