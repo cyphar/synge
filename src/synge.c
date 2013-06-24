@@ -658,6 +658,8 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
 		nextpos = next_offset(s, i + 1);
 
+		int tmpoffset = 0;
+
 		/* ignore spaces */
 		if(s[i] == ' ')
 			continue;
@@ -671,12 +673,12 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 			if(get_special_num(word).name) {
 				special_number stnum = get_special_num(word);
 				*num = stnum.value;
-				i += strlen(stnum.name) - 1; /* update iterator to correct offset */
+				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
 			}
 			else {
 				char *endptr;
 				*num = strtold(s+i, &endptr);
-				i += (endptr - (s + i)) - 1; /* update iterator to correct offset */
+				tmpoffset = endptr - (s + i); /* update iterator to correct offset */
 			}
 			push_valstack(num, number, true, pos, *infix_stack); /* push given value */
 
@@ -747,16 +749,17 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 			if(postpush)
 				push_valstack("*", multop, false, pos, *infix_stack);
 
-			i += strlen(get_op(s+i, true).str) - 1;
+			/* update iterator */
+			tmpoffset = strlen(get_op(s+i, true).str);
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
 
 			function *funcname = get_func(funcword); /* get the function pointer, name, etc. */
 			push_valstack(funcname, func, false, pos - 1, *infix_stack);
-			i += strlen(funcname->name) - 1; /* update iterator to correct offset */
-
 			free(funcword);
+
+			tmpoffset = strlen(funcname->name); /* update iterator to correct offset */
 		}
 		else if(strlen(word) > 0) {
 			/* is it a variable or user function? */
@@ -793,7 +796,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 			}
 
 			push_valstack(str_dup(word), userword, true, pos, *infix_stack);
-			i += strlen(word) - 1; /* update iterator to correct offset */
+			tmpoffset = strlen(word); /* update iterator to correct offset */
 		}
 		else {
 			/* catchall -- unknown token */
@@ -804,6 +807,8 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 		/* debugging */
 		print_stack(*infix_stack);
 		free(word);
+
+		i += tmpoffset - 1;
 	}
 
 	free(s);
