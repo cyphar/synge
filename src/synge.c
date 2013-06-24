@@ -77,6 +77,7 @@
 #define isbitop(ch) (ch == '&' || ch == '|' || ch == '@')
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop)
+#define isnumword(type) (type == number || type == userword)
 
 /* checks if a synge_t is technically zero */
 #define iszero(x) (sy_fabs(x) <= SYNGE_EPSILON)
@@ -235,11 +236,10 @@ typedef enum __stack_type__ {
 	expop  = 5,
 
 	func,
-	arg,
+	userword, /* user function or variable */
 
 	lparen,
 	rparen,
-	none
 } s_type;
 
 /* default settings */
@@ -458,7 +458,7 @@ bool isnum(char *string) {
 	strtold(string, &endptr);
 
 	/* all cases where word is a number */
-	ret = (get_special_num(s).name || ohm_search(variable_list, s, strlen(s) + 1) || ohm_search(function_list, s, strlen(s) + 1) || string != endptr);
+	ret = (get_special_num(s).name || string != endptr);
 	free(s);
 	return ret;
 } /* isnum() */
@@ -604,33 +604,38 @@ int next_offset(char *str, int offset) {
 error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
-	error_code tmpecode = to_error_code(SUCCESS, -1);
+	//error_code tmpecode = to_error_code(SUCCESS, -1);
 
 	debug("%s\n%s\n", string, s);
 
 	init_stack(*infix_stack);
-	int i, pos, tmp = 0, len = strlen(s), nextpos = 0;
+	int i, pos, len = strlen(s), nextpos = 0;
+	char *word = NULL, *endptr = NULL;
 
 /* TODO: Refactor this loop (consider making it a switch) - cyphar */
 
 	for(i = 0; i < len; i++) {
 		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
 		nextpos = next_offset(s, i + 1);
-		if(s[i] == ' ') continue; /* ignore spaces */
+
+		/* ignore spaces */
+		if(s[i] == ' ')
+			continue;
+
+		word = get_word(s + i, SYNGE_VARIABLE_CHARS, &endptr);
 
 /* TODO: This if... fix it. - cyphar*/
 
 		/* full number check */
-		else if(isnum(s+i) && /* does it fit the description of a number? */
+		if(isnum(s+i) && /* does it fit the description of a number? */
 			/* if it is the first token in the string, it's a number */
 		       (!top_stack(*infix_stack) ||
 			/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
-		       ((top_stack(*infix_stack)->tp != number || !isaddop(*(s+i))) &&
+		       ((!isnumword(top_stack(*infix_stack)->tp) || !isaddop(*(s+i))) &&
 			/* same as above, but for parenthesis */
 		        (top_stack(*infix_stack)->tp != rparen || !isaddop(*(s+i)))))) {
 
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
-			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
 
 			/* if it is a "special" number */
 			if(get_special_num(word).name) {
@@ -638,75 +643,22 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				*num = stnum.value;
 				i += strlen(stnum.name) - 1; /* update iterator to correct offset */
 			}
-
-			/* is it a variable or user function? */
-			else if((ohm_search(variable_list, word, strlen(word) + 1) &&  (tmp = 1)) ||
-				(ohm_search(function_list, word, strlen(word) + 1) && !(tmp = 0))) {
-
-				if(tmp) {
-					/* variable */
-					*num = SYNGE_T(ohm_search(variable_list, word, strlen(word) + 1));
-				} else {
-					/* function */
-
-					/* recursively evaluate a user function's value */
-					char *expression = ohm_search(function_list, word, strlen(word) + 1);
-					tmpecode = internal_compute_infix_string(expression, num, word, pos);
-					if(!is_success_code(tmpecode.code)) {
-						/* error was encountered */
-						free(s);
-						free(num);
-						free(word);
-						if(active_settings.error == traceback)
-							return tmpecode;
-						else
-							return to_error_code(tmpecode.code, pos);
-					}
-				}
-
-				if(top_stack(*infix_stack)) {
-					s_content *tmppop, *tmpp;
-					/* make variables act more like numbers (and more like variables) */
-					switch(top_stack(*infix_stack)->tp) {
-						case addop:
-							/* if there is a +/- in front of a variable, it should set the sign of that variable (i.e. 1--x is 1+x) */
-							tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
-							tmpp = top_stack(*infix_stack);
-							if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
-								if(((char *) tmppop->val)[0] == '-') /* negate the variable? */
-									*num = -(*num);
-							}
-							else
-								/* whoops! didn't match criteria. push sign back. */
-								push_ststack(*tmppop, *infix_stack);
-							break;
-						case number:
-							/* two numbers together have an impiled * (i.e 2x is 2*x) */
-							push_valstack("*", multop, false, pos, *infix_stack);
-							break;
-						default:
-							break;
-					}
-				}
-
-				i += strlen(word) - 1; /* update iterator to correct offset */
-			}
-
 			else {
 				char *endptr;
 				*num = strtold(s+i, &endptr);
 				i += (endptr - (s + i)) - 1; /* update iterator to correct offset */
 			}
 			push_valstack(num, number, true, pos, *infix_stack); /* push given value */
-			free(word);
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
 			if(has_rounding_error(*num)) {
 				free(s);
+				free(word);
 				return to_error_code(NUM_OVERFLOW, pos);
 			}
 			else if(*num != *num) {
 				free(s);
+				free(word);
 				return to_error_code(UNDEFINED, pos);
 			}
 		}
@@ -756,6 +708,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 					break;
 				default:
 					free(s);
+					free(word);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
 			push_valstack(get_from_ch_list(s+i, op_list, true), type, false, pos, *infix_stack); /* push operator onto stack */
@@ -765,21 +718,60 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 
 		}
 		else if(get_func(s+i)) {
-			char *endptr = NULL, *word = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
+			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
 
-			function *funcname = get_func(word); /* get the function pointer, name, etc. */
+			function *funcname = get_func(funcword); /* get the function pointer, name, etc. */
 			push_valstack(funcname, func, false, pos - 1, *infix_stack);
 			i += strlen(funcname->name) - 1; /* update iterator to correct offset */
 
-			free(word);
+			free(funcword);
+		}
+		else if(strlen(word) > 0) {
+			/* is it a variable or user function? */
+				if(top_stack(*infix_stack)) {
+					s_content *tmppop, *tmpp;
+					/* make variables act more like numbers (and more like variables) */
+					switch(top_stack(*infix_stack)->tp) {
+						case addop:
+							/* if there is a +/- in front of a variable, it should set the sign of that variable (i.e. 1--x is 1+x) */
+							tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
+							tmpp = top_stack(*infix_stack);
+							if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
+								if(((char *) tmppop->val)[0] == '-') {
+									/* negate the variable? */
+									push_valstack("+", addop, false, pos, *infix_stack);
+									push_valstack(num_dup(0), number, true, pos, *infix_stack);
+									push_valstack("-", addop, false, pos, *infix_stack);
+								} else {
+									/* otherwise, add the variable */
+									push_valstack("+", addop, false, pos, *infix_stack);
+								}
+							}
+							else
+								/* whoops! didn't match criteria. push sign back. */
+								push_ststack(*tmppop, *infix_stack);
+							break;
+						case number:
+							/* two numbers together have an impiled * (i.e 2x is 2*x) */
+							push_valstack("*", multop, false, pos, *infix_stack);
+							break;
+						default:
+							break;
+					}
+				}
+
+				push_valstack(str_dup(word), userword, true, pos, *infix_stack);
+				i += strlen(word) - 1; /* update iterator to correct offset */
 		}
 		else {
 			/* catchall -- unknown token */
+			free(word);
 			free(s);
 			return to_error_code(UNKNOWN_TOKEN, pos);
 		}
 		/* debugging */
 		print_stack(*infix_stack);
+		free(word);
 	}
 
 	free(s);
@@ -837,6 +829,10 @@ error_code infix_stack_to_rpnstack(stack **infix_stack, stack **rpn_stack) {
 			case number:
 				/* nothing to do, just push it onto the temporary stack */
 				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, *rpn_stack);
+				break;
+			case userword:
+				/* do nothing, just push it onto the stack */
+				push_valstack(str_dup(stackp.val), userword, true, pos, *rpn_stack);
 				break;
 			case lparen:
 			case func:
@@ -954,18 +950,70 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	init_stack(tmpstack);
 
 	s_content stackp;
+
+	char *tmpstr = NULL; /* */
 	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
 	synge_t *result = NULL, arg[2];
+
 	for(i = 0; i < size; i++) {
 		/* debugging */
 		print_stack(tmpstack);
 
 		stackp = (*rpn)->content[i]; /* shorthand for current stack item */
 		pos = stackp.position; /* shorthand for current error position */
+
 		switch(stackp.tp) {
 			case number:
 				/* just push it onto the final stack */
 				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, tmpstack);
+				break;
+			case userword:
+				/* get word */
+				tmp = 0;
+				tmpstr = stackp.val;
+				result = malloc(sizeof(synge_t));
+
+				/* is it a legitamate variable or function? */
+				if((ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1) &&  (tmp = 1)) ||
+				   (ohm_search(function_list, tmpstr, strlen(tmpstr) + 1) && !(tmp = 0))) {
+
+					if(tmp) {
+						/* variable */
+						*result = SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1));
+					} else {
+						/* function */
+						/* recursively evaluate a user function's value */
+						char *expression = ohm_search(function_list, tmpstr, strlen(tmpstr) + 1);
+						error_code tmpecode = internal_compute_infix_string(expression, result, tmpstr, pos);
+
+						if(!is_success_code(tmpecode.code)) {
+							/* error was encountered */
+							free_stackm(&tmpstack, rpn);
+							if(active_settings.error == traceback)
+								/* return real error code for traceback */
+								return tmpecode;
+							else
+								/* return relative error code for all other error formats */
+								return to_error_code(tmpecode.code, pos);
+						}
+					}
+
+					/* is the result a nan? */
+					if(*result != *result) {
+						free(result);
+						free_stackm(&tmpstack, rpn);
+						return to_error_code(UNDEFINED, pos);
+					}
+				}
+				/* unknown variable or function */
+				else {
+					free(result);
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(UNKNOWN_TOKEN, pos);
+				}
+
+				/* push result of evaluation onto the stack */
+				push_valstack(result, number, true, pos, tmpstack);
 				break;
 			case func:
 				/* check if there is enough numbers for function arguments */
@@ -1070,6 +1118,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						break;
 					default:
 						/* catch-all -- unknown token */
+						free(result);
 						free_stackm(&tmpstack, rpn);
 						return to_error_code(UNKNOWN_TOKEN, pos);
 						break;
@@ -1096,7 +1145,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	/* if there is not one item on the stack, there are too many values on the stack */
 	if(stack_size(tmpstack) != 1) {
 		free_stackm(&tmpstack, rpn);
-		to_error_code(TOO_MANY_VALUES, -1);
+		return to_error_code(TOO_MANY_VALUES, -1);
 	}
 
 	/* otherwise, the last item is the result */
