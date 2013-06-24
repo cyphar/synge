@@ -608,7 +608,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 			/* ensure a + or - is not an operator (the + in 1+2 is an operator - the + in 1++2 is part of the number) */
 		       ((top_stack(*infix_stack)->tp != number || !isaddop(*(s+i))) &&
 			/* same as above, but for parenthesis */
-		        (top_stack(*infix_stack)->tp != rparen || !get_from_ch_list(s+i, op_list, true))))) {
+		        (top_stack(*infix_stack)->tp != rparen || !isaddop(*(s+i)))))) {
 
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
 			char *endptr = NULL, *word = get_word(s+i, SYNGE_VARIABLE_CHARS, &endptr);
@@ -631,7 +631,8 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 					/* function */
 
 					/* recursively evaluate a user function's value */
-					tmpecode = internal_compute_infix_string((char *) ohm_search(function_list, word, strlen(word) + 1), num, word, pos);
+					char *expression = ohm_search(function_list, word, strlen(word) + 1);
+					tmpecode = internal_compute_infix_string(expression, num, word, pos);
 					if(!is_success_code(tmpecode.code)) {
 						/* error was encountered */
 						free(s);

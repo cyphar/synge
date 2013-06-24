@@ -67,6 +67,7 @@ CASES = [
 	(["5-3"],				["2"],				0,	"Subtraction		"),
 	(["-5-3"],				["-8"],				0,	"Subtraction		"),
 	(["15-3.5-10"],				["1.5"],			0,	"Subtraction		"),
+	(["1-+1"],				["0"],				0,	"Convoluted Subtraction	"),
 
 	(["3*4"],				["12"],				0,	"Multiplication		"),
 	(["-2*6"],				["-12"],			0,	"Multiplication		"),
@@ -280,8 +281,6 @@ def test_calc(program, test, expected, mode, description):
 		return False
 
 def run_tests(program):
-	print program
-
 	failures = 0
 	counter = 0
 	for case in CASES:
