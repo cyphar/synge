@@ -200,29 +200,50 @@ static special_number constant_list[] = {
 	{NULL,					0.0},
 };
 
+typedef struct operator {
+	char *str;
+	enum {
+		op_plus,
+		op_minus,
+		op_mult,
+		op_div,
+		op_intdiv,
+		op_mod,
+		op_pow,
+		op_lparen,
+		op_rparen,
+		op_greater,
+		op_less,
+		op_not,
+		op_band,
+		op_bor,
+		op_bxor,
+		op_none
+	} tp;
+} operator;
+
 /* used for when a (char *) is needed, but needn't be freed */
-static char *op_list[] = {
-	"+",
-	"-",
-	"*",
-	"/",
-	"\\", /* integer division */
-	"%",
-	"^",
-	"(",
-	")",
+static operator op_list[] = {
+	{"+",	op_plus},
+	{"-",	op_minus},
+	{"*",	op_mult},
+	{"/",	op_div},
+	{"\\",	op_intdiv}, /* integer division */
+	{"%",	op_mod},
+	{"^",	op_pow},
+	{"(",	op_lparen},
+	{")",	op_rparen},
 
 	/* comparison operators */
-	">",
-	"<",
-	"!",
+	{">",	op_greater},
+	{"<",	op_less},
+	{"!",	op_not},
 
 	/* bitwise operators */
-	"&",
-	"|",
-	"@",
-
-	NULL
+	{"&",	op_band},
+	{"|",	op_bor},
+	{"@",	op_bxor},
+	{NULL,	op_none}
 };
 
 /* internal stack types */
@@ -383,6 +404,19 @@ char *get_from_ch_list(char *ch, char **list, bool delimit) {
 
 	return strlen(ret) ? ret : 0;
 } /* get_from_ch_list() */
+
+operator get_op(char *ch, bool delimit) {
+	int i;
+	operator ret = {NULL, op_none};
+	for(i = 0; op_list[i].str != NULL; i++)
+		/* checks against part or entire string against the given list */
+		if((delimit && !strncmp(op_list[i].str, ch, strlen(op_list[i].str))) ||
+		   (!delimit && !strcmp(op_list[i].str, ch)))
+			if(!ret.str || strlen(ret.str) < strlen(op_list[i].str))
+					ret = op_list[i];
+
+	return ret;
+}
 
 synge_t *num_dup(synge_t num) {
 	synge_t *ret = malloc(sizeof(synge_t));
@@ -583,7 +617,7 @@ char *function_process_replace(char *string) {
 	free(firstpass);
 	free(secondpass);
 	return final;
-}
+} /* function_process_replace() */
 
 int recalc_padding(char *str, int len) {
 	int ret = 0, tmp;
@@ -661,57 +695,59 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 
 /* TODO: Make this operator switch check more than one character - cyphar */
 
-		else if(get_from_ch_list(s+i, op_list, true)) {
+		else if(get_op(s+i, true).str) {
 			int postpush = false;
 			s_type type;
 			/* find and set type appropriate to operator */
-			switch(s[i]) {
-				case '+':
-				case '-':
+			switch(get_op(s+i, true).tp) {
+				case op_plus:
+				case op_minus:
 					type = addop;
 					break;
-				case '*':
-				case '/':
-				case '\\': /* integer division -- like in python */
-				case '%':
+				case op_mult:
+				case op_div:
+				case op_intdiv: /* integer division -- like in python */
+				case op_mod:
 					type = multop;
 					break;
-				case '^':
+				case op_pow:
 					type = expop;
 					break;
-				case '(':
+				case op_lparen:
 					type = lparen;
 					pos--; /* 'hack' to ensure the error position is correct */
 					/* every open paren with no operators before it has an implied * */
 					if(top_stack(*infix_stack) && (top_stack(*infix_stack)->tp == number || top_stack(*infix_stack)->tp == rparen))
 						push_valstack("*", multop, false, pos + 1, *infix_stack);
 					break;
-				case ')':
+				case op_rparen:
 					type = rparen;
 					pos--; /* 'hack' to ensure the error position is correct */
-					if(nextpos > 0 && isnum(s + nextpos) && !get_from_ch_list(s + nextpos, op_list, true))
+					if(nextpos > 0 && isnum(s + nextpos) && !get_op(s + nextpos, true).str)
 						postpush = true;
 					break;
-				case '>':
-				case '<':
-				case '!':
+				case op_greater:
+				case op_less:
+				case op_not:
 					type = compop;
 					break;
-				case '&':
-				case '|':
-				case '@':
+				case op_band:
+				case op_bor:
+				case op_bxor:
 					type = bitop;
 					break;
+				case op_none:
 				default:
 					free(s);
 					free(word);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
-			push_valstack(get_from_ch_list(s+i, op_list, true), type, false, pos, *infix_stack); /* push operator onto stack */
+			push_valstack(get_op(s+i, true).str, type, false, pos, *infix_stack); /* push operator onto stack */
 
 			if(postpush)
 				push_valstack("*", multop, false, pos, *infix_stack);
 
+			i += strlen(get_op(s+i, true).str) - 1;
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
@@ -1058,20 +1094,20 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				result = malloc(sizeof(synge_t));
 				/* find correct evaluation and do it */
-				switch(*(char *) stackp.val) {
-					case '+':
+				switch(get_op((char *) stackp.val, true).tp) {
+					case op_plus:
 						*result = arg[0] + arg[1];
 						break;
-					case '-':
+					case op_minus:
 						*result = arg[0] - arg[1];
 						break;
-					case '*':
+					case op_mult:
 						*result = arg[0] * arg[1];
 						break;
-					case '\\':
+					case op_intdiv:
 						/* division, but the result ignores the decimals */
 						tmp = 1;
-					case '/':
+					case op_div:
 						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
 							free(result);
@@ -1082,7 +1118,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						if(tmp)
 							sy_modf(*result, result);
 						break;
-					case '%':
+					case op_mod:
 						if(iszero(arg[1])) {
 							/* the 11.5th commandment -- thoust shalt not modulo by zero */
 							free(result);
@@ -1091,25 +1127,25 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						}
 						*result = sy_fmod(arg[0], arg[1]);
 						break;
-					case '^':
+					case op_pow:
 						*result = pow(arg[0], arg[1]);
 						break;
-					case '>':
+					case op_greater:
 						*result = arg[0] > arg[1];
 						break;
-					case '<':
+					case op_less:
 						*result = arg[0] < arg[1];
 						break;
-					case '!':
+					case op_not:
 						*result = arg[0] != arg[1];
 						break;
-					case '&':
+					case op_band:
 						*result = (int) arg[0] & (int) arg[1];
 						break;
-					case '|':
+					case op_bor:
 						*result = (int) arg[0] | (int) arg[1];
 						break;
-					case '@':
+					case op_bxor:
 						*result = (int) arg[0] ^ (int) arg[1];
 						break;
 					default:
