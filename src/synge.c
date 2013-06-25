@@ -384,24 +384,6 @@ int strnchr(char *str, char ch, int len) {
 	return ret;
 } /* strnchr() */
 
-/* get a substring, between start and first occurrence of delimiter */
-char *substrto(char *str, char delim) {
-	char *ret = NULL;
-	int len = 0;
-
-	while(*str && *str != delim) {
-		len++;
-		ret = realloc(ret, len);
-		ret[len - 1] = *str;
-		str++;
-	}
-
-	ret = realloc(ret, len + 1);
-	ret[len] = '\0';
-
-	return ret;
-} /* substrto*/
-
 char *trim_spaces(char *str) {
 	while(isspace(*str))
 		str++; /* move starting pointer to first non-space character */
@@ -787,7 +769,35 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 				push_valstack("*", multop, false, pos, *infix_stack);
 
 			if(get_op(s+i).tp == op_func_set) {
+
+				char *p = s + i + strlen(get_op(s+i).str), *expr = NULL;
+				int num_paren = 1, len = 0;
+
+				while(*p && (*p != ')' || (num_paren && *p == ')'))) {
+					switch(get_op(p).tp) {
+						case op_rparen:
+							num_paren--;
+							break;
+						case op_lparen:
+							num_paren++;
+							break;
+						default:
+							break;
+					}
+
+					expr = realloc(expr, ++len);
+					expr[len - 1] = *p;
+
+					p++;
+				}
+				expr = realloc(expr, len + 1);
+				expr[len] = '\0';
+
+				debug("expression: %s\n", expr);
+
+/*
 				char *expr = substrto(s + i + strlen(get_op(s+i).str), ')');
+*/
 				push_valstack(expr, expression, true, next_offset(s, i + strlen(get_op(s+i).str)), *infix_stack);
 				tmpoffset = strlen(expr);
 			}
@@ -841,8 +851,10 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 			int type = userword;
 
 			/* is this word going to be set? */
-			if(nextpos > 0 && issetop(s + nextpos))
+			if(/*nextpos > 0 && */issetop(s + nextpos))
 				type = setword;
+
+			debug("found word '%s'\n", word);
 
 			push_valstack(str_dup(word), type, true, pos, *infix_stack);
 			tmpoffset = strlen(word); /* update iterator to correct offset */
@@ -1106,6 +1118,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				break;
 			case expression:
 			case setword:
+				debug("setword '%s'\n", stackp.val);
 				/* just push it onto the final stack */
 				push_valstack(str_dup(stackp.val), stackp.tp, true, pos, tmpstack);
 				break;
