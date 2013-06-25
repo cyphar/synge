@@ -218,6 +218,8 @@ typedef struct operator {
 		op_band,
 		op_bor,
 		op_bxor,
+		op_if,
+		op_else,
 		op_none
 	} tp;
 } operator;
@@ -243,6 +245,12 @@ static operator op_list[] = {
 	{"&",	op_band},
 	{"|",	op_bor},
 	{"^",	op_bxor},
+
+	/* tertiary operators */
+	{"?",	op_if},
+	{":",	op_else},
+
+	/* null terminator */
 	{NULL,	op_none}
 };
 
@@ -250,11 +258,13 @@ static operator op_list[] = {
 typedef enum __stack_type__ {
 	number,
 
-	bitop  = 1,
-	compop = 2,
-	addop  = 3,
-	multop = 4,
-	expop  = 5,
+	ifop   = 1,
+	elseop = 2,
+	bitop  = 3,
+	compop = 4,
+	addop  = 5,
+	multop = 6,
+	expop  = 7,
 
 	func,
 	userword, /* user function or variable */
@@ -735,6 +745,12 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				case op_bxor:
 					type = bitop;
 					break;
+				case op_if:
+					type = ifop;
+					break;
+				case op_else:
+					type = elseop;
+					break;
 				case op_none:
 				default:
 					free(s);
@@ -827,6 +843,8 @@ bool op_precedes(s_type op1, s_type op2) {
 	int lassoc;
 	/* here be dragons! obscure integer hacks follow. */
 	switch(op2) {
+		case ifop:
+		case elseop:
 		case bitop:
 		case compop:
 		case addop:
@@ -891,6 +909,8 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 					return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
 				}
 				break;
+			case elseop:
+			case ifop:
 			case bitop:
 			case compop:
 			case addop:
@@ -987,7 +1007,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 	char *tmpstr = NULL; /* */
 	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
-	synge_t *result = NULL, arg[2];
+	synge_t *result = NULL, arg[3];
 
 	for(i = 0; i < size; i++) {
 		/* debugging */
@@ -1074,6 +1094,61 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* push result of evaluation onto the stack */
 				push_valstack(result, number, true, pos, tmpstack);
+				break;
+			case elseop:
+				i++; /* skip past the if conditional */
+
+				if(stack_size(tmpstack) < 3) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(OPERATOR_WRONG_ARGC, pos);
+				}
+
+				if((*rpn)->content[i].tp != ifop) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(MISSING_IF, pos);
+				}
+
+
+				/* get else value */
+				if(top_stack(tmpstack)->tp != number) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(UNKNOWN_ERROR, pos);
+				}
+
+				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				/* get if value */
+				if(top_stack(tmpstack)->tp != number) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(UNKNOWN_ERROR, pos);
+				}
+
+				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				/* get if condition */
+				if(top_stack(tmpstack)->tp != number) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(UNKNOWN_ERROR, pos);
+				}
+
+				arg[2] = SYNGE_T(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				result = malloc(sizeof(synge_t));
+
+				/* set correct value */
+				if(iszero(arg[2]))
+					*result = arg[0];
+				else
+					*result = arg[1];
+
+				push_valstack(result, number, true, pos, tmpstack);
+				break;
+			case ifop:
+				free_stackm(&tmpstack, rpn);
+				return to_error_code(MISSING_ELSE, pos);
 				break;
 			case bitop:
 			case compop:
@@ -1229,6 +1304,8 @@ char *get_error_tp(error_code error) {
 		case UNMATCHED_RIGHT_PARENTHESIS:
 		case FUNCTION_WRONG_ARGC:
 		case OPERATOR_WRONG_ARGC:
+		case MISSING_IF:
+		case MISSING_ELSE:
 		case EMPTY_STACK:
 		case TOO_MANY_VALUES:
 			return "SyntaxError";
@@ -1285,6 +1362,12 @@ char *get_error_msg(error_code error) {
 			break;
 		case OPERATOR_WRONG_ARGC:
 			msg = "Not enough values for operator";
+			break;
+		case MISSING_IF:
+			msg = "Missing if conditional for else";
+			break;
+		case MISSING_ELSE:
+			msg = "Missing else statement for if";
 			break;
 		case TOO_MANY_VALUES:
 			msg = "Too many values in expression";
