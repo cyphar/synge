@@ -1182,7 +1182,10 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
-					return tmpecode;
+
+					/* when setting functions, we ignore any errors (and any errors with setting ...
+					 ... a variable would have already been reported) */
+					return to_error_code(ERROR_FUNC_ASSIGNMENT, pos);
 				}
 				push_valstack(result, number, true, pos, tmpstack);
 				free(tmpstr);
