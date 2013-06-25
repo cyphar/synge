@@ -1577,6 +1577,9 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 		/* "dynamically" resize hashmap to keep efficiency up */
 		variable_list = ohm_resize(variable_list, variable_list->size * 2);
 
+	ohm_t *backup_var = ohm_dup(variable_list);
+	ohm_t *backup_func = ohm_dup(function_list);
+
 	/* intiialise result to 0.0 */
 	*result = 0.0;
 
@@ -1637,12 +1640,22 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	if(*result != *result)
 		ecode = to_error_code(UNDEFINED, -1);
 
+	/* if some error occured, revert variables and functions back to a previous state */
+	if(!is_success_code(ecode.code) && !ignore_code(ecode.code)) {
+		ohm_cpy(variable_list, backup_var);
+		ohm_cpy(function_list, backup_func);
+	}
+
 	/* FINALLY, set the answer variable */
 	if(is_success_code(ecode.code)) {
 		set_special_number(SYNGE_PREV_ANSWER, *result, constant_list);
 		/* and remove last item from traceback - no errors occured */
 		link_pend(traceback_list);
 	}
+
+	/* free memory */
+	ohm_free(backup_var);
+	ohm_free(backup_func);
 
 	free(final_pass_str);
 	free_stackm(&infix_stack, &rpn_stack);
