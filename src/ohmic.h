@@ -70,6 +70,12 @@ ohm_t *ohm_resize(ohm_t *, int);
 ohm_iter ohm_iter_init(ohm_t *);
 void ohm_iter_inc(ohm_iter *);
 
+/* functions to copy, duplicate and merge hashmaps */
+ohm_t *ohm_dup(ohm_t *);
+void ohm_cpy(ohm_t *, ohm_t *);
+
+void ohm_merge(ohm_t *, ohm_t *);
+
 /* default hashing function (modulo of djb2 hash -- not reccomended) */
 int ohm_hash(void *, int, int);
 

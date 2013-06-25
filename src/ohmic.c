@@ -293,6 +293,49 @@ void ohm_iter_inc(ohm_iter *i) {
 	i->valuelen = i->internal.node->valuelen;
 } /* ohm_iter_inc() */
 
+ohm_t *ohm_dup(ohm_t *old_hm) {
+	if(!old_hm)
+		return NULL;
+
+	/* initialise the iterables */
+	ohm_t *new_hm = ohm_init(old_hm->size, old_hm->hash);
+	ohm_iter i = ohm_iter_init(old_hm);
+
+	/* insert all of the keys into new hashmap */
+	for(; i.key != NULL; ohm_iter_inc(&i))
+		ohm_insert(new_hm, i.key, i.keylen, i.value, i.valuelen);
+
+	/* return fully copied hashmap */
+	return new_hm;
+} /* ohm_dup() */
+
+void ohm_merge(ohm_t *to_hm, ohm_t *from_hm) {
+	if(!to_hm || !from_hm)
+		return;
+
+	/* initialise iterable */
+	ohm_iter i = ohm_iter_init(from_hm);
+
+	/* insert all keys to new hashmap */
+	for(; i.key != NULL; ohm_iter_inc(&i))
+		ohm_insert(to_hm, i.key, i.keylen, i.value, i.valuelen);
+} /* ohm_merge() */
+
+void ohm_cpy(ohm_t *to_hm, ohm_t *from_hm) {
+	if(!to_hm || !from_hm)
+		return;
+
+	/* initialise iterable */
+	ohm_iter i = ohm_iter_init(to_hm);
+
+	/* insert all keys to new hashmap */
+	for(; i.key != NULL; ohm_iter_inc(&i))
+		ohm_remove(to_hm, i.key, i.keylen);
+
+	/* merge empty and template hashmaps */
+	ohm_merge(to_hm, from_hm);
+} /* ohm_cpy() */
+
 /* the djb2 hashing algorithm by Dan Bernstein */
 int ohm_hash(void *key, int keylen, int size) {
 	if(!key || keylen < 1 || size < 1) return -1;
