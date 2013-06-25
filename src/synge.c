@@ -1011,6 +1011,8 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 		stackp = (*rpn)->content[i]; /* shorthand for current stack item */
 		pos = stackp.position; /* shorthand for current error position */
 
+		tmp = 0;
+
 		switch(stackp.tp) {
 			case number:
 				/* just push it onto the final stack */
