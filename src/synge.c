@@ -69,12 +69,7 @@
 #define assert(x) do { if(!x) { printf("synge: assertion '%s' failed -- aborting!\n", #x); exit(254); }} while(0)
 
 /* -- useful macros -- */
-#define isaddop(ch) (ch == '+' || ch == '-')
-#define ismultop(ch) (ch == '*' || ch == '/' || ch == '\\' || ch == '%')
-#define isexpop(ch) (ch == '^')
-#define isparen(ch) (ch == '(' || ch == ')')
-#define iscomp(ch) (ch == '<' || ch == '>' || ch == '!')
-#define isbitop(ch) (ch == '&' || ch == '|' || ch == '@')
+#define isaddop(str) (get_op(str).tp == op_plus || get_op(str).tp == op_minus)
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop)
 #define isnumword(type) (type == number || type == userword)
@@ -408,7 +403,7 @@ char *get_from_ch_list(char *ch, char **list) {
 	for(i = 0; list[i] != NULL; i++)
 		/* checks against part or entire string against the given list */
 		if(!strcmp(list[i], ch) && strlen(ret) < strlen(list[i]))
-					ret = list[i];
+			ret = list[i];
 
 	return strlen(ret) ? ret : 0;
 } /* get_from_ch_list() */
@@ -420,7 +415,7 @@ operator get_op(char *ch) {
 		/* checks against part or entire string against the given list */
 		if(!strncmp(op_list[i].str, ch, strlen(op_list[i].str)))
 			if(!ret.str || strlen(ret.str) < strlen(op_list[i].str))
-					ret = op_list[i];
+				ret = op_list[i];
 
 	return ret;
 }
@@ -648,8 +643,8 @@ int next_offset(char *str, int offset) {
 } /* next_offset() */
 
 #define false_number(str, stack)	(!(!top_stack(stack) || /* first token is a number */ \
-					(((!isnumword(top_stack(stack)->tp)) || !isaddop(*(str))) && /* a number beginning with +/- and preceeded by a number is not a number */ \
-					(top_stack(stack)->tp != rparen || !isaddop(*(str)))))) /* a number beginning with +/- and preceeded by a ')' is not a number */
+					(((!isnumword(top_stack(stack)->tp)) || !isaddop(str)) && /* a number beginning with +/- and preceeded by a number is not a number */ \
+					(top_stack(stack)->tp != rparen || !isaddop(str))))) /* a number beginning with +/- and preceeded by a ')' is not a number */
 
 error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 	assert(synge_started);
