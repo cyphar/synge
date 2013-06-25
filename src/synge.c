@@ -392,26 +392,23 @@ char *trim_spaces(char *str) {
 } /* trim_spaces() */
 
 /* greedy finder */
-char *get_from_ch_list(char *ch, char **list, bool delimit) {
+char *get_from_ch_list(char *ch, char **list) {
 	int i;
 	char *ret = "";
 	for(i = 0; list[i] != NULL; i++)
 		/* checks against part or entire string against the given list */
-		if((delimit && !strncmp(list[i], ch, strlen(list[i]))) ||
-		   (!delimit && !strcmp(list[i], ch)))
-			if(strlen(ret) < strlen(list[i]))
+		if(!strcmp(list[i], ch) && strlen(ret) < strlen(list[i]))
 					ret = list[i];
 
 	return strlen(ret) ? ret : 0;
 } /* get_from_ch_list() */
 
-operator get_op(char *ch, bool delimit) {
+operator get_op(char *ch) {
 	int i;
 	operator ret = {NULL, op_none};
 	for(i = 0; op_list[i].str != NULL; i++)
 		/* checks against part or entire string against the given list */
-		if((delimit && !strncmp(op_list[i].str, ch, strlen(op_list[i].str))) ||
-		   (!delimit && !strcmp(op_list[i].str, ch)))
+		if(!strncmp(op_list[i].str, ch, strlen(op_list[i].str)))
 			if(!ret.str || strlen(ret.str) < strlen(op_list[i].str))
 					ret = op_list[i];
 
@@ -697,11 +694,11 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 
 /* TODO: Make this operator switch check more than one character - cyphar */
 
-		else if(get_op(s+i, true).str) {
+		else if(get_op(s+i).str) {
 			int postpush = false;
 			s_type type;
 			/* find and set type appropriate to operator */
-			switch(get_op(s+i, true).tp) {
+			switch(get_op(s+i).tp) {
 				case op_plus:
 				case op_minus:
 					type = addop;
@@ -725,7 +722,7 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				case op_rparen:
 					type = rparen;
 					pos--; /* 'hack' to ensure the error position is correct */
-					if(nextpos > 0 && isnum(s + nextpos) && !get_op(s + nextpos, true).str)
+					if(nextpos > 0 && isnum(s + nextpos) && !get_op(s + nextpos).str)
 						postpush = true;
 					break;
 				case op_greater:
@@ -744,13 +741,13 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 					free(word);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
-			push_valstack(get_op(s+i, true).str, type, false, pos, *infix_stack); /* push operator onto stack */
+			push_valstack(get_op(s+i).str, type, false, pos, *infix_stack); /* push operator onto stack */
 
 			if(postpush)
 				push_valstack("*", multop, false, pos, *infix_stack);
 
 			/* update iterator */
-			tmpoffset = strlen(get_op(s+i, true).str);
+			tmpoffset = strlen(get_op(s+i).str);
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
@@ -1064,7 +1061,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				free_scontent(pop_stack(tmpstack));
 
 				/* does the input need to be converted? */
-				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_infunc_list, false)) /* convert settings angles to radians */
+				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
 					arg[0] = settings_to_rad(arg[0]);
 
 				/* allocate result and evaluate it */
@@ -1072,7 +1069,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				*result = FUNCTION(stackp.val)->get(arg[0]);
 
 				/* does the output need to be converted? */
-				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_outfunc_list, false)) /* convert radians to settings angles */
+				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_outfunc_list)) /* convert radians to settings angles */
 					*result = rad_to_settings(*result);
 
 				/* push result of evaluation onto the stack */
@@ -1099,7 +1096,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				result = malloc(sizeof(synge_t));
 				/* find correct evaluation and do it */
-				switch(get_op((char *) stackp.val, true).tp) {
+				switch(get_op((char *) stackp.val).tp) {
 					case op_plus:
 						*result = arg[0] + arg[1];
 						break;
