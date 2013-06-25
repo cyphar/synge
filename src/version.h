@@ -24,8 +24,8 @@
 #define __SYNGE_VERSION_H__
 
 /* engine version */
-#define __SYNGE_VERSION__ 		"1.3.4"  /* ANSI string */
-#define B__SYNGE_VERSION__ 		 1,3,4,0 /* binary (for resources) */
+#define __SYNGE_VERSION__ 		"1.3.5"  /* ANSI string */
+#define B__SYNGE_VERSION__ 		 1,3,5,0 /* binary (for resources) */
 
 /* cli version */
 #define __SYNGE_CLI_VERSION__ 		"1.1.0"  /* ANSI string */
