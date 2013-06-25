@@ -1040,8 +1040,9 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						char *expression = ohm_search(function_list, tmpstr, strlen(tmpstr) + 1);
 						error_code tmpecode = internal_compute_infix_string(expression, result, tmpstr, pos);
 
+						/* error was encountered */
 						if(!is_success_code(tmpecode.code)) {
-							/* error was encountered */
+							free(result);
 							free_stackm(&tmpstack, rpn);
 							if(active_settings.error == traceback)
 								/* return real error code for traceback */
