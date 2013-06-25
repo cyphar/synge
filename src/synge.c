@@ -795,9 +795,6 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 				debug("expression: %s\n", expr);
 
-/*
-				char *expr = substrto(s + i + strlen(get_op(s+i).str), ')');
-*/
 				push_valstack(expr, expression, true, next_offset(s, i + strlen(get_op(s+i).str)), *infix_stack);
 				tmpoffset = strlen(expr);
 			}
@@ -851,7 +848,8 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 			int type = userword;
 
 			/* is this word going to be set? */
-			if(/*nextpos > 0 && */issetop(s + nextpos))
+			nextpos = next_offset(s, i + strlen(word));
+			if(nextpos > 0 && issetop(s + nextpos))
 				type = setword;
 
 			debug("found word '%s'\n", word);
