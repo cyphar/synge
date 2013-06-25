@@ -770,8 +770,19 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 			if(get_op(s+i).tp == op_func_set) {
 
-				char *p = s + i + strlen(get_op(s+i).str), *expr = NULL;
+				char *tmpp, *p = s + i + strlen(get_op(s+i).str), *expr = NULL;
 				int num_paren = 1, len = 0;
+
+				tmpp = p;
+
+				/* get actual expression, not rest of chain, since ...
+				   ... all the non-parenthesised assignments are part ...
+				   ... of the chain, not the expression */
+				while(*tmpp && *tmpp != '(') {
+					if(issetop(tmpp))
+						p = tmpp;
+					tmpp++;
+				}
 
 				while(*p && (*p != ')' || (num_paren && *p == ')'))) {
 					switch(get_op(p).tp) {
