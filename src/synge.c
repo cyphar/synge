@@ -43,7 +43,7 @@
 
 #define SYNGE_EPSILON		10e-14
 #define SYNGE_MAX_PRECISION	13
-#define SYNGE_MAX_DEPTH		10
+#define SYNGE_MAX_DEPTH		2048
 
 #define SYNGE_PREV_ANSWER	"ans"
 #define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
