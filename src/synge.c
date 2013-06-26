@@ -217,6 +217,8 @@ typedef struct operator {
 		op_band,
 		op_bor,
 		op_bxor,
+		op_bshiftl,
+		op_bshiftr,
 		op_if,
 		op_else,
 		op_var_set,
@@ -250,7 +252,10 @@ static operator op_list[] = {
 	/* bitwise operators */
 	{"&",	op_band},
 	{"|",	op_bor},
-	{"@",	op_bxor},
+	{"><",	op_bxor},
+
+	{"<<",	op_bshiftl},
+	{">>",	op_bshiftr},
 
 	/* tertiary operators */
 	{"?",	op_if},
@@ -790,6 +795,8 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 				case op_band:
 				case op_bor:
 				case op_bxor:
+				case op_bshiftl:
+				case op_bshiftr:
 					type = bitop;
 					break;
 				case op_if:
@@ -1434,6 +1441,12 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						break;
 					case op_bxor:
 						*result = (int) arg[0] ^ (int) arg[1];
+						break;
+					case op_bshiftl:
+						*result = (int) arg[0] << (int) arg[1];
+						break;
+					case op_bshiftr:
+						*result = (int) arg[0] >> (int) arg[1];
 						break;
 					default:
 						/* catch-all -- unknown token */
