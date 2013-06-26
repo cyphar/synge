@@ -208,9 +208,12 @@ typedef struct operator {
 		op_pow,
 		op_lparen,
 		op_rparen,
-		op_greater,
-		op_less,
-		op_not,
+		op_gt,
+		op_gteq,
+		op_lt,
+		op_lteq,
+		op_neq,
+		op_eq,
 		op_band,
 		op_bor,
 		op_bxor,
@@ -235,9 +238,14 @@ static operator op_list[] = {
 	{")",	op_rparen},
 
 	/* comparison operators */
-	{">",	op_greater},
-	{"<",	op_less},
-	{"!",	op_not},
+	{">",	op_gt},
+	{">=",	op_gteq},
+
+	{"<",	op_lt},
+	{"<=",	op_lteq},
+
+	{"!=",	op_neq},
+	{"==",	op_eq},
 
 	/* bitwise operators */
 	{"&",	op_band},
@@ -771,9 +779,12 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 					if(nextpos > 0 && isnum(s + nextpos) && !get_op(s + nextpos).str)
 						postpush = true;
 					break;
-				case op_greater:
-				case op_less:
-				case op_not:
+				case op_gt:
+				case op_gteq:
+				case op_lt:
+				case op_lteq:
+				case op_neq:
+				case op_eq:
 					type = compop;
 					break;
 				case op_band:
@@ -1397,14 +1408,23 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_pow:
 						*result = pow(arg[0], arg[1]);
 						break;
-					case op_greater:
+					case op_gt:
 						*result = arg[0] > arg[1];
 						break;
-					case op_less:
+					case op_gteq:
+						*result = arg[0] >= arg[1];
+						break;
+					case op_lt:
 						*result = arg[0] < arg[1];
 						break;
-					case op_not:
+					case op_lteq:
+						*result = arg[0] <= arg[1];
+						break;
+					case op_neq:
 						*result = arg[0] != arg[1];
+						break;
+					case op_eq:
+						*result = arg[0] == arg[1];
 						break;
 					case op_band:
 						*result = (int) arg[0] & (int) arg[1];
