@@ -242,7 +242,7 @@ static operator op_list[] = {
 	/* bitwise operators */
 	{"&",	op_band},
 	{"|",	op_bor},
-	{"^",	op_bxor},
+	{"@",	op_bxor},
 
 	/* tertiary operators */
 	{"?",	op_if},
@@ -261,13 +261,13 @@ typedef enum __stack_type__ {
 	number,
 
 	setop	= 1,
-	ifop	= 2,
-	elseop	= 3,
-	bitop	= 4,
-	compop	= 5,
-	addop	= 6,
-	multop	= 7,
-	expop	= 8,
+	compop	= 2,
+	bitop	= 3,
+	addop	= 4,
+	multop	= 5,
+	expop	= 6,
+	ifop	= 7,
+	elseop	= 8,
 
 	func,
 	userword, /* user function or variable */
@@ -303,7 +303,7 @@ void print_stack(stack *s) {
 		else if(tmp.tp == func)
 			printf("%s ", FUNCTION(tmp.val)->name);
 		else
-			printf("%s ", (char *) tmp.val);
+			printf("'%s' ", (char *) tmp.val);
 	}
 	printf("\n");
 #endif
@@ -652,6 +652,37 @@ int next_offset(char *str, int offset) {
 	return -1;
 } /* next_offset() */
 
+char *get_expression_level(char *p, char end) {
+	int num_paren = 0, len = 0;
+	char *ret = NULL;
+
+	while(*p && ((*p != ')') || (num_paren && (*p == ')')))) {
+		switch(get_op(p).tp) {
+			case op_rparen:
+				num_paren--;
+				break;
+			case op_lparen:
+				num_paren++;
+				break;
+			default:
+				break;
+		}
+
+		if(!num_paren && *p == end) {
+			break;
+		}
+
+		ret = realloc(ret, ++len);
+		ret[len - 1] = *p;
+
+		p++;
+	}
+	ret = realloc(ret, len + 1);
+	ret[len] = '\0';
+
+	return ret;
+} /* get_expression_level() */
+
 #define false_number(str, stack)	(!(!top_stack(stack) || /* first token is a number */ \
 					(((!isnumword(top_stack(stack)->tp)) || !isaddop(str)) && /* a number beginning with +/- and preceeded by a number is not a number */ \
 					(top_stack(stack)->tp != rparen || !isaddop(str))))) /* a number beginning with +/- and preceeded by a ')' is not a number */
@@ -707,8 +738,11 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 		}
 
 		else if(get_op(s+i).str) {
-			int postpush = false;
+			int postpush = false, tmp = 0, oplen = strlen(get_op(s+i).str);
 			s_type type;
+
+			char *expr = NULL;
+
 			/* find and set type appropriate to operator */
 			switch(get_op(s+i).tp) {
 				case op_plus:
@@ -749,9 +783,29 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_if:
 					type = ifop;
+
+					/* get expression and position of it */
+					tmp = next_offset(s, i + oplen);
+					expr = get_expression_level(s + i + oplen, ':');
+
+					debug("if expression '%s'\n", expr);
+
+					/* push expression */
+					push_valstack(expr, expression, true, tmp, *infix_stack);
+					tmpoffset = strlen(expr);
 					break;
 				case op_else:
 					type = elseop;
+
+					/* get expression and position of it */
+					tmp = next_offset(s, i + oplen);
+					expr = get_expression_level(s + i + oplen, '\0');
+
+					debug("else expression '%s'\n", expr);
+
+					/* push expression */
+					push_valstack(expr, expression, true, tmp, *infix_stack);
+					tmpoffset = strlen(expr);
 					break;
 				case op_var_set:
 				case op_func_set:
@@ -770,8 +824,7 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 			if(get_op(s+i).tp == op_func_set) {
 
-				char *tmpp, *p = s + i + strlen(get_op(s+i).str), *expr = NULL;
-				int num_paren = 1, len = 0;
+				char *tmpp, *p = s + i + oplen;
 
 				tmpp = p;
 
@@ -784,34 +837,16 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 					tmpp++;
 				}
 
-				while(*p && (*p != ')' || (num_paren && *p == ')'))) {
-					switch(get_op(p).tp) {
-						case op_rparen:
-							num_paren--;
-							break;
-						case op_lparen:
-							num_paren++;
-							break;
-						default:
-							break;
-					}
-
-					expr = realloc(expr, ++len);
-					expr[len - 1] = *p;
-
-					p++;
-				}
-				expr = realloc(expr, len + 1);
-				expr[len] = '\0';
+				char *func_expr = get_expression_level(p, '\0');
 
 				debug("expression: %s\n", expr);
 
-				push_valstack(expr, expression, true, next_offset(s, i + strlen(get_op(s+i).str)), *infix_stack);
-				tmpoffset = strlen(expr);
+				push_valstack(func_expr, expression, true, next_offset(s, i + oplen), *infix_stack);
+				tmpoffset = strlen(func_expr);
 			}
 
 			/* update iterator */
-			tmpoffset += strlen(get_op(s+i).str);
+			tmpoffset += oplen;
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
@@ -1097,6 +1132,22 @@ error_code eval_word(char *str, int pos, synge_t *result) {
 	return to_error_code(SUCCESS, -1);
 } /* eval_word() */
 
+error_code eval_expression(char *exp, char *caller, int pos, synge_t *result) {
+	error_code ret = internal_compute_infix_string(exp, result, caller, pos);
+
+	/* error was encountered */
+	if(!is_success_code(ret.code)) {
+		if(active_settings.error == traceback)
+			/* return real error code for traceback */
+			return ret;
+		else
+			/* return relative error code for all other error formats */
+			return to_error_code(ret.code, pos);
+	}
+
+	return to_error_code(SUCCESS, -1);
+}
+
 /* evaluate a rpn stack */
 error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	stack *tmpstack = malloc(sizeof(stack));
@@ -1105,6 +1156,8 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	s_content stackp;
 
 	char *tmpstr = NULL, *tmpexp = NULL;
+	char *tmpif = NULL, *tmpelse = NULL;
+
 	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
 	synge_t *result = NULL, arg[3];
 	error_code tmpecode;
@@ -1127,7 +1180,6 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				break;
 			case expression:
 			case setword:
-				debug("setword '%s'\n", stackp.val);
 				/* just push it onto the final stack */
 				push_valstack(str_dup(stackp.val), stackp.tp, true, pos, tmpstack);
 				break;
@@ -1247,28 +1299,44 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 
 				/* get else value */
-				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
+				tmpelse = str_dup(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				/* get if value */
-				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
+				tmpif = str_dup(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				/* get if condition */
-				arg[2] = SYNGE_T(top_stack(tmpstack)->val);
+				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				result = malloc(sizeof(synge_t));
+				error_code tmpecode;
+
+				debug("if: '%s' else: '%s'\n", tmpif, tmpelse);
+				debug("doing: %s\n", iszero(arg[0]) ? "else" : "if");
 
 				/* set correct value */
-				if(iszero(arg[2]))
-					*result = arg[0];
+				if(!iszero(arg[0]))
+					/* if expression */
+					tmpecode = eval_expression(tmpif, "<if>", pos, result);
 				else
-					*result = arg[1];
+					/* else expression */
+					tmpecode = eval_expression(tmpelse, "<else>", pos, result);
+
+				free(tmpif);
+				free(tmpelse);
+
+				if(!is_success_code(tmpecode.code)) {
+					free(result);
+					free_stackm(&tmpstack, rpn);
+					return tmpecode;
+				}
 
 				push_valstack(result, number, true, pos, tmpstack);
 				break;
 			case ifop:
+				/* ifop should never be found */
 				free_stackm(&tmpstack, rpn);
 				return to_error_code(MISSING_ELSE, pos);
 				break;
@@ -1610,6 +1678,7 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	free(to_add);
 
 	debug("depth %d with caller %s\n", depth, caller);
+	debug(" - expression '%s'\n", original_str);
 
 	/* initialise all local variables */
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
