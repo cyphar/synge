@@ -49,9 +49,9 @@ errors = {
 
 def error_get(key, position = 0):
 	if position:
-		return ['%s @ %d' % (errors[key], position)]
+		return '%s @ %d' % (errors[key], position)
 	else:
-		return [errors[key]]
+		return errors[key]
 
 # List of case tuples
 
@@ -203,47 +203,66 @@ CASES = [
 	(["3 +4  *2 / ( 1- 5)^ 2 ^ 3"],		["3.0001220703125"],		0,	"Spaces			"),
 
 	(["a=2", "a", "a=3a+4", "a"],		["2", "2", "10", "10"],		0,	"Basic Variables		"),
+
 	(["test=2", "test", "a=test^2-7", "a+2", "2test+1"],
-					["2", "2", "-3", "-1", "5"],		0,	"Basic Variables		"),
+	 ["2",      "2",    "-3",         "-1",  "5"],				0,	"Basic Variables		"),
+
+	(["a=b=3", "2b+a", "b=c=5-a", "a+b-c"],
+	 ["3",     "9",    "2",       "3"],					0,	"Variable Chaining	"),
+
+	(["c=(a=2(b=3))-1", "a", "2b", "0.2c", "c=(a=3)(b=4)+2", "a+2b"],
+	 ["5",              "6", "6",  "1",    "14",             "11"],		0,	"Variable Returns	"),
+
+	(["3(x=3)", "x", "3(x=2)+1/0",	          "x"],
+	 ["9",      "3", error_get("zerodiv", 9), "3"],				0,	"Variable Rollback	"),
 
 	(["a=-2", "y:=a+3", "y+3", "a=2", "2y-1"],
-						["-2", "1", "4", "2", "9"],	0,	"Basic User Functions	"),
+	 ["-2",   "1",      "4",   "2",   "9"],					0,	"Basic Functions		"),
+
+	(["x=2", "c:=(a:=2(b:=x+1))-1", "a+2b-0.2c", "x=1", "2a+3b-c"],
+	 ["2",   "5",                   "11",        "1",   "11"],		0,	"Function Returns	"),
+
+	(["a=1.5", "3(x:=2a)", "x", "3(x:=a)+1/0",	      "x", "a=1", "x"],
+	 ["1.5",   "9",        "3", error_get("zerodiv", 10), "3", "1",   "2"],	0,	"Function Rollback	"),
 
 	(["a=3", "y:=3+a", "a", "y", "y+a", "a+y"],
-						["3", "6", "3", "6", "9", "9"],	0,	"Functions and Variables	"),
+	 ["3",   "6",      "3", "6", "9",   "9"],				0,	"Functions and Variables	"),
+
+	(["a=3", "x=y:=3+a", "y+2x", "a=0", "2y+x"],
+	 ["3",   "6",        "18",   "0",   "12"],				0,	"Mixed Chaining		"),
 
 	# expected errors
-	([""],					error_get("empty"),		0,	"Empty Expression Error	"),
-	([" "],					error_get("empty"),		0,	"Empty Expression Error	"),
+	([""],					[error_get("empty")],		0,	"Empty Expression Error	"),
+	([" "],					[error_get("empty")],		0,	"Empty Expression Error	"),
 
-	(["does_not_exist"],			error_get("token", 1),		0,	"Unknown Token Error	"),
-	(["fake_function()"],			error_get("token", 1),		0,	"Unknown Token Error	"),
-	(["fake_function()+23"],		error_get("token", 1),		0,	"Unknown Token Error	"),
-	(["1_5"],				error_get("token", 2),		0,	"Unknown Token Error	"),
+	(["does_not_exist"],			[error_get("token", 1)],	0,	"Unknown Token Error	"),
+	(["fake_function()"],			[error_get("token", 1)],	0,	"Unknown Token Error	"),
+	(["fake_function()+23"],		[error_get("token", 1)],	0,	"Unknown Token Error	"),
+	(["1_5"],				[error_get("token", 2)],	0,	"Unknown Token Error	"),
 
-	(["1/0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
-	(["1//0"],				error_get("zerodiv", 2),	0,	"Zero Division Error	"),
+	(["1/0"],				[error_get("zerodiv", 2)],	0,	"Zero Division Error	"),
+	(["1//0"],				[error_get("zerodiv", 2)],	0,	"Zero Division Error	"),
 
-	(["1/cos(90)"],				error_get("zerodiv", 2),	deg,	"Zero Division Error	"),
-	(["1//sin(0)"],				error_get("zerodiv", 2),	deg,	"Zero Division Error	"),
+	(["1/cos(90)"],				[error_get("zerodiv", 2)],	deg,	"Zero Division Error	"),
+	(["1//sin(0)"],				[error_get("zerodiv", 2)],	deg,	"Zero Division Error	"),
 
-	(["1%(2-(2^2/2))"],			error_get("zeromod", 2),	0,	"Modulo by Zero Error	"),
-	(["1%(cos(45) - sin(45))"],		error_get("zeromod", 2),	deg,	"Modulo by Zero Error	"),
+	(["1%(2-(2^2/2))"],			[error_get("zeromod", 2)],	0,	"Modulo by Zero Error	"),
+	(["1%(cos(45) - sin(45))"],		[error_get("zeromod", 2)],	deg,	"Modulo by Zero Error	"),
 
-	(["1+(1"],				error_get("lparen", 3),		0,	"Parenthesis Error	"),
-	(["1+((1"],				error_get("lparen", 4),		0,	"Parenthesis Error	"),
+	(["1+(1"],				[error_get("lparen", 3)],	0,	"Parenthesis Error	"),
+	(["1+((1"],				[error_get("lparen", 4)],	0,	"Parenthesis Error	"),
 
-	(["1+4)"],				error_get("rparen", 4),		0,	"Parenthesis Error	"),
-	(["1+(4))"],				error_get("rparen", 6),		0,	"Parenthesis Error	"),
+	(["1+4)"],				[error_get("rparen", 4)],	0,	"Parenthesis Error	"),
+	(["1+(4))"],				[error_get("rparen", 6)],	0,	"Parenthesis Error	"),
 
-	(["1+-+4"],				error_get("opvals", 2),		0,	"Token Number Error	"),
-	(["2+1-"],				error_get("opvals", 4),		0,	"Token Number Error	"),
-	(["abs()"],				error_get("funcvals", 1),	0,	"Token Number Error	"),
-	(["100000000000000000000000000"],	error_get("overflow", 1),	0,	"Input Overflow Error	"),
-	(["231664726992975794912959502"],	error_get("overflow", 1),	0,	"Input Overflow Error	"),
-	(["1+1000000000000000000000000"],	error_get("overflow", 3),	0,	"Input Overflow Error	"),
-	(["17^68"],				error_get("overflow", 3),	0,	"Output Overflow Error	"),
-	(["100^23"],				error_get("overflow", 4),	0,	"Output Overflow Error	"),
+	(["1+-+4"],				[error_get("opvals", 2)],	0,	"Token Number Error	"),
+	(["2+1-"],				[error_get("opvals", 4)],	0,	"Token Number Error	"),
+	(["abs()"],				[error_get("funcvals", 1)],	0,	"Token Number Error	"),
+	(["100000000000000000000000000"],	[error_get("overflow", 1)],	0,	"Input Overflow Error	"),
+	(["231664726992975794912959502"],	[error_get("overflow", 1)],	0,	"Input Overflow Error	"),
+	(["1+1000000000000000000000000"],	[error_get("overflow", 3)],	0,	"Input Overflow Error	"),
+	(["17^68"],				[error_get("overflow", 3)],	0,	"Output Overflow Error	"),
+	(["100^23"],				[error_get("overflow", 4)],	0,	"Output Overflow Error	"),
 ]
 
 def test_calc(program, test, expected, mode, description):
