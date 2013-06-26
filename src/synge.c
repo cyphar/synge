@@ -1434,19 +1434,19 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						*result = arg[0] == arg[1];
 						break;
 					case op_band:
-						*result = (int) arg[0] & (int) arg[1];
+						*result = (long long) arg[0] & (long long) arg[1];
 						break;
 					case op_bor:
-						*result = (int) arg[0] | (int) arg[1];
+						*result = (long long) arg[0] | (long long) arg[1];
 						break;
 					case op_bxor:
-						*result = (int) arg[0] ^ (int) arg[1];
+						*result = (long long) arg[0] ^ (long long) arg[1];
 						break;
 					case op_bshiftl:
-						*result = (int) arg[0] << (int) arg[1];
+						*result = (long long) arg[0] << (long long) arg[1];
 						break;
 					case op_bshiftr:
-						*result = (int) arg[0] >> (int) arg[1];
+						*result = (long long) arg[0] >> (long long) arg[1];
 						break;
 					default:
 						/* catch-all -- unknown token */
