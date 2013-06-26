@@ -70,8 +70,9 @@
 
 /* -- useful macros -- */
 #define isaddop(str) (get_op(str).tp == op_plus || get_op(str).tp == op_minus)
+#define issetop(str) (get_op(str).tp == op_var_set || get_op(str).tp == op_func_set)
 
-#define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop)
+#define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
 #define isnumword(type) (type == number || type == userword)
 
 /* checks if a synge_t is technically zero */
@@ -215,6 +216,8 @@ typedef struct operator {
 		op_bxor,
 		op_if,
 		op_else,
+		op_var_set,
+		op_func_set,
 		op_none
 	} tp;
 } operator;
@@ -245,6 +248,10 @@ static operator op_list[] = {
 	{"?",	op_if},
 	{":",	op_else},
 
+	/* assignment operators */
+	{"=",	op_var_set},
+	{":=",	op_func_set},
+
 	/* null terminator */
 	{NULL,	op_none}
 };
@@ -253,16 +260,19 @@ static operator op_list[] = {
 typedef enum __stack_type__ {
 	number,
 
-	ifop   = 1,
-	elseop = 2,
-	bitop  = 3,
-	compop = 4,
-	addop  = 5,
-	multop = 6,
-	expop  = 7,
+	setop	= 1,
+	ifop	= 2,
+	elseop	= 3,
+	bitop	= 4,
+	compop	= 5,
+	addop	= 6,
+	multop	= 7,
+	expop	= 8,
 
 	func,
 	userword, /* user function or variable */
+	setword, /* user function or variable to be set */
+	expression, /* saved expression */
 
 	lparen,
 	rparen,
@@ -373,6 +383,24 @@ int strnchr(char *str, char ch, int len) {
 			ret++; /* found a match */
 	return ret;
 } /* strnchr() */
+
+/* get a substring, between start and first occurrence of delimiter */
+char *substrto(char *str, char delim) {
+	char *ret = NULL;
+	int len = 0;
+
+	while(*str && *str != delim) {
+		len++;
+		ret = realloc(ret, len);
+		ret[len - 1] = *str;
+		str++;
+	}
+
+	ret = realloc(ret, len + 1);
+	ret[len] = '\0';
+
+	return ret;
+} /* substrto*/
 
 char *trim_spaces(char *str) {
 	while(isspace(*str))
@@ -646,21 +674,20 @@ int next_offset(char *str, int offset) {
 					(((!isnumword(top_stack(stack)->tp)) || !isaddop(str)) && /* a number beginning with +/- and preceeded by a number is not a number */ \
 					(top_stack(stack)->tp != rparen || !isaddop(str))))) /* a number beginning with +/- and preceeded by a ')' is not a number */
 
-error_code tokenise_string(char *string, int offset, stack **infix_stack) {
+error_code tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
 
 	debug("%s\n%s\n", string, s);
 
 	init_stack(*infix_stack);
-	int i, pos, len = strlen(s), nextpos = 0;
+	int i, pos, len = strlen(s), nextpos = 0, tmpoffset = 0;
 	char *word = NULL, *endptr = NULL;
 
 	for(i = 0; i < len; i++) {
-		pos = i + offset - recalc_padding(s, (i ? i : 1) - 1) + 1;
+		pos = i - recalc_padding(s, (i ? i : 1) - 1) + 1;
 		nextpos = next_offset(s, i + 1);
-
-		int tmpoffset = 0;
+		tmpoffset = 0;
 
 		/* ignore spaces */
 		if(s[i] == ' ')
@@ -697,8 +724,6 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 			}
 		}
 
-/* TODO: Make this operator switch check more than one character - cyphar */
-
 		else if(get_op(s+i).str) {
 			int postpush = false;
 			s_type type;
@@ -719,14 +744,14 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 					break;
 				case op_lparen:
 					type = lparen;
-					pos--; /* 'hack' to ensure the error position is correct */
+					pos--;  /* "hack" to ensure error position is correct */
 					/* every open paren with no operators before it has an implied * */
 					if(top_stack(*infix_stack) && (top_stack(*infix_stack)->tp == number || top_stack(*infix_stack)->tp == rparen))
 						push_valstack("*", multop, false, pos + 1, *infix_stack);
 					break;
 				case op_rparen:
 					type = rparen;
-					pos--; /* 'hack' to ensure the error position is correct */
+					pos--;  /* "hack" to ensure error position is correct */
 					if(nextpos > 0 && isnum(s + nextpos) && !get_op(s + nextpos).str)
 						postpush = true;
 					break;
@@ -746,6 +771,10 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				case op_else:
 					type = elseop;
 					break;
+				case op_var_set:
+				case op_func_set:
+					type = setop;
+					break;
 				case op_none:
 				default:
 					free(s);
@@ -757,8 +786,14 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 			if(postpush)
 				push_valstack("*", multop, false, pos, *infix_stack);
 
+			if(get_op(s+i).tp == op_func_set) {
+				char *expr = substrto(s + i + strlen(get_op(s+i).str), ')');
+				push_valstack(expr, expression, true, next_offset(s, i + strlen(get_op(s+i).str)), *infix_stack);
+				tmpoffset = strlen(expr);
+			}
+
 			/* update iterator */
-			tmpoffset = strlen(get_op(s+i).str);
+			tmpoffset += strlen(get_op(s+i).str);
 		}
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
@@ -803,7 +838,13 @@ error_code tokenise_string(char *string, int offset, stack **infix_stack) {
 				}
 			}
 
-			push_valstack(str_dup(word), userword, true, pos, *infix_stack);
+			int type = userword;
+
+			/* is this word going to be set? */
+			if(nextpos > 0 && issetop(s + nextpos))
+				type = setword;
+
+			push_valstack(str_dup(word), type, true, pos, *infix_stack);
 			tmpoffset = strlen(word); /* update iterator to correct offset */
 		}
 		else {
@@ -838,6 +879,7 @@ bool op_precedes(s_type op1, s_type op2) {
 	int lassoc;
 	/* here be dragons! obscure integer hacks follow. */
 	switch(op2) {
+		case setop:
 		case ifop:
 		case elseop:
 		case bitop:
@@ -877,9 +919,11 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 				/* nothing to do, just push it onto the temporary stack */
 				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, *rpn_stack);
 				break;
+			case expression:
 			case userword:
+			case setword:
 				/* do nothing, just push it onto the stack */
-				push_valstack(str_dup(stackp.val), userword, true, pos, *rpn_stack);
+				push_valstack(str_dup(stackp.val), stackp.tp, true, pos, *rpn_stack);
 				break;
 			case lparen:
 			case func:
@@ -904,6 +948,7 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 					return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
 				}
 				break;
+			case setop:
 			case elseop:
 			case ifop:
 			case bitop:
@@ -993,6 +1038,44 @@ synge_t rad_to_settings(synge_t in) {
 	return 0.0;
 } /* rad_to_settings() */
 
+error_code eval_word(char *str, int pos, synge_t *result) {
+	int tmp = 0;
+
+	/* is it a legitamate variable or function? */
+	if((ohm_search(variable_list, str, strlen(str) + 1) &&  (tmp = 1)) ||
+	   (ohm_search(function_list, str, strlen(str) + 1) && !(tmp = 0))) {
+
+		if(tmp) {
+			/* variable */
+			*result = SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1));
+		} else {
+			/* function */
+			/* recursively evaluate a user function's value */
+			char *expression = ohm_search(function_list, str, strlen(str) + 1);
+			error_code tmpecode = internal_compute_infix_string(expression, result, str, pos);
+
+			/* error was encountered */
+			if(!is_success_code(tmpecode.code)) {
+				if(active_settings.error == traceback)
+					/* return real error code for traceback */
+					return tmpecode;
+				else
+					/* return relative error code for all other error formats */
+					return to_error_code(tmpecode.code, pos);
+			}
+		}
+
+		/* is the result a nan? */
+		if(*result != *result)
+			return to_error_code(UNDEFINED, pos);
+	} else {
+		/* unknown variable or function */
+		return to_error_code(UNKNOWN_TOKEN, pos);
+	}
+
+	return to_error_code(SUCCESS, -1);
+} /* eval_word() */
+
 /* evaluate a rpn stack */
 error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	stack *tmpstack = malloc(sizeof(stack));
@@ -1000,23 +1083,87 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 	s_content stackp;
 
-	char *tmpstr = NULL; /* */
+	char *tmpstr = NULL, *tmpexp = NULL;
 	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
 	synge_t *result = NULL, arg[3];
+	error_code tmpecode;
 
 	for(i = 0; i < size; i++) {
 		/* debugging */
 		print_stack(tmpstack);
+		print_stack(*rpn);
 
 		stackp = (*rpn)->content[i]; /* shorthand for current stack item */
 		pos = stackp.position; /* shorthand for current error position */
 
 		tmp = 0;
+		tmpstr = tmpexp = NULL;
 
 		switch(stackp.tp) {
 			case number:
 				/* just push it onto the final stack */
 				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, tmpstack);
+				break;
+			case expression:
+			case setword:
+				/* just push it onto the final stack */
+				push_valstack(str_dup(stackp.val), stackp.tp, true, pos, tmpstack);
+				break;
+			case setop:
+				if(stack_size(tmpstack) < 2) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(OPERATOR_WRONG_ARGC, pos);
+				}
+
+				/* get new value for word */
+				if(top_stack(tmpstack)->tp == number)
+					arg[0] = SYNGE_T(top_stack(tmpstack)->val);
+				else
+					tmpexp = str_dup(top_stack(tmpstack)->val);
+
+				free_scontent(pop_stack(tmpstack));
+
+				/* get word */
+				if(top_stack(tmpstack)->tp != setword) {
+					free(tmpexp);
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_ASSIGNMENT, pos);
+				}
+
+				tmpstr = str_dup(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				/* set variable or function */
+				switch(get_op(stackp.val).tp) {
+					case op_var_set:
+						debug("setting variable '%s' -> %" SYNGE_FORMAT "\n", tmpstr, arg[0]);
+						set_variable(tmpstr, arg[0]);
+						break;
+					case op_func_set:
+						debug("setting function '%s' -> '%s'\n", tmpstr, tmpexp);
+						set_function(tmpstr, tmpexp);
+						break;
+					default:
+						free(tmpstr);
+						free(tmpexp);
+						free_stackm(&tmpstack, rpn);
+						return to_error_code(INVALID_ASSIGNMENT, pos);
+						break;
+				}
+
+				free(tmpexp);
+
+				/* evaulate and push the value of set word */
+				result = malloc(sizeof(synge_t));
+				tmpecode = eval_word(tmpstr, pos, result);
+				if(!is_success_code(tmpecode.code)) {
+					free(result);
+					free(tmpstr);
+					free_stackm(&tmpstack, rpn);
+					return tmpecode;
+				}
+				push_valstack(result, number, true, pos, tmpstack);
+				free(tmpstr);
 				break;
 			case userword:
 				/* get word */
@@ -1024,44 +1171,11 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				tmpstr = stackp.val;
 				result = malloc(sizeof(synge_t));
 
-				/* is it a legitamate variable or function? */
-				if((ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1) &&  (tmp = 1)) ||
-				   (ohm_search(function_list, tmpstr, strlen(tmpstr) + 1) && !(tmp = 0))) {
-
-					if(tmp) {
-						/* variable */
-						*result = SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1));
-					} else {
-						/* function */
-						/* recursively evaluate a user function's value */
-						char *expression = ohm_search(function_list, tmpstr, strlen(tmpstr) + 1);
-						error_code tmpecode = internal_compute_infix_string(expression, result, tmpstr, pos);
-
-						/* error was encountered */
-						if(!is_success_code(tmpecode.code)) {
-							free(result);
-							free_stackm(&tmpstack, rpn);
-							if(active_settings.error == traceback)
-								/* return real error code for traceback */
-								return tmpecode;
-							else
-								/* return relative error code for all other error formats */
-								return to_error_code(tmpecode.code, pos);
-						}
-					}
-
-					/* is the result a nan? */
-					if(*result != *result) {
-						free(result);
-						free_stackm(&tmpstack, rpn);
-						return to_error_code(UNDEFINED, pos);
-					}
-				}
-				/* unknown variable or function */
-				else {
+				tmpecode = eval_word(tmpstr, pos, result);
+				if(!is_success_code(tmpecode.code)) {
 					free(result);
 					free_stackm(&tmpstack, rpn);
-					return to_error_code(UNKNOWN_TOKEN, pos);
+					return tmpecode;
 				}
 
 				/* push result of evaluation onto the stack */
@@ -1108,29 +1222,14 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 
 				/* get else value */
-				if(top_stack(tmpstack)->tp != number) {
-					free_stackm(&tmpstack, rpn);
-					return to_error_code(UNKNOWN_ERROR, pos);
-				}
-
 				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				/* get if value */
-				if(top_stack(tmpstack)->tp != number) {
-					free_stackm(&tmpstack, rpn);
-					return to_error_code(UNKNOWN_ERROR, pos);
-				}
-
 				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
 				/* get if condition */
-				if(top_stack(tmpstack)->tp != number) {
-					free_stackm(&tmpstack, rpn);
-					return to_error_code(UNKNOWN_ERROR, pos);
-				}
-
 				arg[2] = SYNGE_T(top_stack(tmpstack)->val);
 				free_scontent(pop_stack(tmpstack));
 
@@ -1241,11 +1340,13 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				break;
 		}
 
-		/* check if a rounding error occured in above operation */
-		synge_t tmp = SYNGE_T(top_stack(tmpstack)->val);
-		if(has_rounding_error(tmp)) {
-			free_stackm(&tmpstack, rpn);
-			return to_error_code(NUM_OVERFLOW, pos);
+		if(top_stack(tmpstack) && top_stack(tmpstack)->tp == number) {
+			/* check if a rounding error occured in above operation */
+			synge_t tmp = SYNGE_T(top_stack(tmpstack)->val);
+			if(has_rounding_error(tmp)) {
+				free_stackm(&tmpstack, rpn);
+				return to_error_code(NUM_OVERFLOW, pos);
+			}
 		}
 	}
 
@@ -1306,6 +1407,7 @@ char *get_error_tp(error_code error) {
 		case MISSING_ELSE:
 		case EMPTY_STACK:
 		case TOO_MANY_VALUES:
+		case INVALID_ASSIGNMENT:
 			return "SyntaxError";
 			break;
 		case UNKNOWN_TOKEN:
@@ -1348,6 +1450,9 @@ char *get_error_msg(error_code error) {
 			break;
 		case UNKNOWN_TOKEN:
 			msg = "Unknown token or function in expression";
+			break;
+		case INVALID_ASSIGNMENT:
+			msg = "Invalid left operand of assignment";
 			break;
 		case UNKNOWN_VARIABLE:
 			msg = "Unknown variable to delete";
@@ -1447,7 +1552,7 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 		/* "dynamically" resize hashmap to keep efficiency up */
 		variable_list = ohm_resize(variable_list, variable_list->size * 2);
 
-	/* initialise result with a value of 0.0 */
+	/* intiialise result to 0.0 */
 	*result = 0.0;
 
 	/*
@@ -1486,32 +1591,11 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 
 	/* process string */
 	char *final_pass_str = str_dup(original_str);
-	char *string = NULL, *var = NULL;
-
-/* TODO: Refactor from here... - cyphar */
-/* TODO: Make (=) an operator. - cyphar */
-
-	/* find any variable assignments (=) in string */
-	if(strchr(final_pass_str, '=')) {
-		var = final_pass_str;
-		string = strrchr(final_pass_str, '=');
-		*string++ = '\0';
-
-		char *endptr = NULL, *word = get_word(var, SYNGE_VARIABLE_CHARS " :=", &endptr); /* get variable name */
-
-		if(strlen(word) != strlen(var))
-			/* invalid characters */
-			ecode = to_error_code(INVALID_VARIABLE_CHAR, endptr - var + 1);
-
-		free(word);
-	}
-	else string = final_pass_str;
-
-/* XXX: ... to here. - cyphar */
+	char *string = final_pass_str;
 
 	if(ecode.code == SUCCESS) {
 		/* generate infix stack */
-		if((ecode = tokenise_string(string, var ? strlen(var) + 1 : 0, &infix_stack)).code == SUCCESS)
+		if((ecode = tokenise_string(string, &infix_stack)).code == SUCCESS)
 			/* convert to postfix (or RPN) stack */
 			if((ecode = shunting_yard_parse(&infix_stack, &rpn_stack)).code == SUCCESS)
 				/* evaluate postfix (or RPN) stack */
@@ -1527,97 +1611,6 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	/* is it a nan? */
 	if(*result != *result)
 		ecode = to_error_code(UNDEFINED, -1);
-
-/* TODO: Refactor from here... - cyphar */
-/* TODO: Make (=) an operator and set it inside the eval section. - cyphar */
-
-	enum {
-		VAR	= 1,
-		FUNC	= 2,
-
-		SET	= 1,
-		DEL	= -1
-	};
-
-	int stackop = 0, operation = 0;
-
-	/* check and set operation based on "success" code */
-	if(var && ((ecode.code != EMPTY_STACK && (stackop = SET)) ||
-		  (ecode.code == EMPTY_STACK && (stackop = DEL)))) {
-		char *tmp = --var;
-
-		/* dry run -- don't change any variables if there is an error later in the assignment */
-		do {
-			tmp++;
-
-			char *spacetmp = trim_spaces(tmp);
-			char *tmpp = NULL, *tmpword = get_word(spacetmp, SYNGE_VARIABLE_CHARS, &tmpp);
-			error_code tmpecode = to_error_code(SUCCESS, -1);
-
-			if(*tmpp == ':') {
-				tmp++;
-				operation = stackop * FUNC;
-			} else operation = stackop * VAR;
-
-			debug("operation: %s %s %s\n", tmpword, operation > 0 ? "set" : "del", abs(operation) == VAR ? "var" : "function");
-
-			/* check if it is correct to edit a variable */
-			if(strlen(tmp) < 1 || strlen(tmpword) < 1)
-				tmpecode = to_error_code(EMPTY_VARIABLE_NAME, -1);
-			else if(get_special_num(tmpword).name)
-				tmpecode = to_error_code(RESERVED_VARIABLE, -1);
-
-			if(tmpecode.code != SUCCESS) {
-				ecode = tmpecode;
-				operation = 0;
-				free(tmpword);
-				break;
-			}
-			free(tmpword);
-			free(spacetmp);
-		} while((tmp = strchr(tmp, '=')) != NULL);
-
-		/* everything was good in the dry run -- let's do it for real */
-		if(operation) {
-			do {
-				var++;
-
-				char *spacevar = trim_spaces(var);
-				char *tmpp = NULL, *tmpword = get_word(spacevar, SYNGE_VARIABLE_CHARS, &tmpp);
-				operation = stackop * ((*tmpp == ':') ? FUNC : VAR);
-
-				debug("var %s -> %s -> %s\n", var, spacevar, tmpword);
-
-				switch(operation) {
-					case 1:
-						if(ecode.code != SUCCESS) break; /* we care if variables are assigned to errors */
-						/* set/update variable */
-						ecode = set_variable(tmpword, *result);
-						break;
-					case 2:
-						/* set/update function/function */
-						if(ecode.code != SUCCESS)
-							ecode.code = ERROR_FUNC_ASSIGNMENT;
-						set_function(tmpword, string); /* but functions should work despite any errors */
-						break;
-					/* my name's benny and i like to party when i go to class late they call me tardy */
-					case -1:
-					case -2:
-						/* delete variable */
-						ecode = del_word(tmpword, (operation % FUNC) ? true : false);
-						break;
-					default:
-						ecode = to_error_code(UNKNOWN_ERROR, -1);
-						break;
-				}
-
-				free(tmpword);
-				free(spacevar);
-			} while((var = strchr(var, '=')) != NULL);
-		}
-	}
-
-/* XXX: ... to here. - cyphar */
 
 	/* FINALLY, set the answer variable */
 	if(is_success_code(ecode.code)) {
