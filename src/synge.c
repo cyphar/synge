@@ -693,7 +693,12 @@ char *get_expression_level(char *p, char end) {
 	ret = realloc(ret, len + 1);
 	ret[len] = '\0';
 
-	return ret;
+	char *stripped = trim_spaces(ret);
+
+	debug("explevel '%s' -> '%s'\n", p, stripped);
+
+	free(ret);
+	return stripped;
 } /* get_expression_level() */
 
 #define false_number(str, stack)	(!(!top_stack(stack) || /* first token is a number */ \
@@ -881,21 +886,22 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 			if(get_op(s+i).tp == op_func_set) {
 
 				char *tmpp, *p = s + i + oplen;
-
 				tmpp = p;
 
 				/* get actual expression, not rest of chain, since ...
 				   ... all the non-parenthesised assignments are part ...
 				   ... of the chain, not the expression */
 				while(*tmpp && *tmpp != '(') {
-					if(issetop(tmpp))
-						p = tmpp;
+					if(issetop(tmpp)) {
+						tmpp += strlen(get_op(tmpp).str) - 1;
+						p = tmpp + 1;
+					}
 					tmpp++;
 				}
 
 				char *func_expr = get_expression_level(p, '\0');
 
-				debug("expression: %s\n", expr);
+				debug("expression: '%s'\n", expr);
 
 				push_valstack(func_expr, expression, true, next_offset(s, i + oplen), *infix_stack);
 				tmpoffset = strlen(func_expr);
