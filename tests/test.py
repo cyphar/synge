@@ -154,7 +154,7 @@ CASES = [
 	(["(1+3)?2-5:23"],			["-3"],				0,	"Conditional Statement	"),
 	(["(-3<0)?43.3*(3-2):3.5"],		["43.3"],			0,	"Conditional Statement	"),
 	(["0?1.5-3/2:16-3.5"],			["12.5"],			0,	"Conditional Statement	"),
-	(["(5!0)?5.2:5.5"],			["5.2"],			0,	"Conditional Statement	"),
+	(["(5!=0)?5.2:5.5"],			["5.2"],			0,	"Conditional Statement	"),
 	(["0.001?19.2:4.2"],			["19.2"],			0,	"Conditional Statement	"),
 
 	(["rand(100)"],				["32"],				0,	'"Random" Number		'),
