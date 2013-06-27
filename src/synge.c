@@ -884,22 +884,7 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 				push_valstack("*", multop, false, pos, *infix_stack);
 
 			if(get_op(s+i).tp == op_func_set) {
-
-				char *tmpp, *p = s + i + oplen;
-				tmpp = p;
-
-				/* get actual expression, not rest of chain, since ...
-				   ... all the non-parenthesised assignments are part ...
-				   ... of the chain, not the expression */
-				while(*tmpp && *tmpp != '(') {
-					if(issetop(tmpp)) {
-						tmpp += strlen(get_op(tmpp).str) - 1;
-						p = tmpp + 1;
-					}
-					tmpp++;
-				}
-
-				char *func_expr = get_expression_level(p, '\0');
+				char *func_expr = get_expression_level(s + i + oplen, '\0');
 
 				debug("expression: '%s'\n", expr);
 
