@@ -1366,10 +1366,10 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				/* set correct value */
 				if(!iszero(arg[0]))
 					/* if expression */
-					tmpecode = eval_expression(tmpif, "<if>", pos, result);
+					tmpecode = eval_expression(tmpif, "<if>", (*rpn)->content[i].position, result);
 				else
 					/* else expression */
-					tmpecode = eval_expression(tmpelse, "<else>", pos, result);
+					tmpecode = eval_expression(tmpelse, "<else>", (*rpn)->content[i-1].position, result);
 
 				free(tmpif);
 				free(tmpelse);
