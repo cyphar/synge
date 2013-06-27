@@ -27,8 +27,8 @@ ifeq ($(OS), Windows_NT)
 	COLOUR		= 0
 	GTK_LFLAGS	= -mwindows
 
-	PREFIX		=
-	SUFFIX		=.exe
+	EXEC_PREFIX	=
+	EXEC_SUFFIX	=.exe
 
 	GIT_VERSION	=
 	SY_OS		= windows
@@ -39,8 +39,8 @@ else
 	CLI_CFLAGS	= `pkg-config --cflags libedit`
 	CLI_LFLAGS	= `pkg-config --libs libedit`
 
-	PREFIX		=./
-	SUFFIX		=
+	EXEC_PREFIX	=./
+	EXEC_SUFFIX	=
 
 	GIT_VERSION	= $(shell git rev-parse --verify HEAD)
 	SY_OS		= unix
@@ -68,9 +68,9 @@ NAME_CLI	= $(EXEC_BASE)-cli
 NAME_GTK	= $(EXEC_BASE)-gtk
 NAME_EVAL	= $(EXEC_BASE)-eval
 
-EXEC_CLI	= $(NAME_CLI)$(SUFFIX)
-EXEC_GTK	= $(NAME_GTK)$(SUFFIX)
-EXEC_EVAL	= $(NAME_EVAL)$(SUFFIX)
+EXEC_CLI	= $(NAME_CLI)$(EXEC_SUFFIX)
+EXEC_GTK	= $(NAME_GTK)$(EXEC_SUFFIX)
+EXEC_EVAL	= $(NAME_EVAL)$(EXEC_SUFFIX)
 
 RES_DIR		= res
 
@@ -177,7 +177,7 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 		echo "$(PYTHON) not found - required for test suite"; \
 		false; \
 	else \
-		$(PYTHON) $(TEST_DIR)/test.py "$(PREFIX)$(EXEC_EVAL) -R -S"; \
+		$(PYTHON) $(TEST_DIR)/test.py "$(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
 	fi
 
 #################
