@@ -241,6 +241,12 @@ CASES = [
 	(["a=3", "x=y:=3+a", "y+2x", "a=0", "2y+x"],
 	 ["3",   "6",        "18",   "0",   "12"],				0,	"Mixed Chaining		"),
 
+	(["a=3", "::a", "a"],
+	 ["3",   "3",   error_get("token", 1)],					0,	"Variable Deletion	"),
+
+	(["a=2", "y:=1/a", "a=5", "::y", "y"],
+	 ["2",   "0.5",    "5",   "0.2", error_get("token", 1)],		0,	"Function Deletion	"),
+
 	# expected errors
 	([""],					[error_get("empty")],		0,	"Empty Expression Error	"),
 	([" "],					[error_get("empty")],		0,	"Empty Expression Error	"),
