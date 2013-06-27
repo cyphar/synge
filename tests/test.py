@@ -340,16 +340,17 @@ def run_tests(program):
 	print "Cases run: %d" % (counter)
 	if failures > 0:
 		print "%sFailed cases: %d%s" % (ansi_error, failures, ansi_reset)
+		return 1
 	else:
 		print "%sAll tests passed%s" % (ansi_good, ansi_reset)
+		return 0
 
 def main():
 	print "--- Beginning Synge Test Suite ---"
 	if len(argv) < 2:
 		print "Error: no test executable given"
 		return 1
-	run_tests(argv[1])
-	return 0
+	return run_tests(argv[1])
 
 if __name__ == "__main__":
 	exit(main())
