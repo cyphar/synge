@@ -1,0 +1,9 @@
+language: c
+compiler:
+        - gcc
+        - clang
+install: "sudo apt-get install libedit-dev libgtk2.0-dev"
+script: "make all && sudo make install"
+after_script:
+        - "make test"
+        - "synge-eval --version"
