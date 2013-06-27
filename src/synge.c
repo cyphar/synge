@@ -71,6 +71,7 @@
 /* -- useful macros -- */
 #define isaddop(str) (get_op(str).tp == op_plus || get_op(str).tp == op_minus)
 #define issetop(str) (get_op(str).tp == op_var_set || get_op(str).tp == op_func_set)
+#define isdelop(str) (get_op(str).tp == op_del)
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
 #define isnumword(type) (type == number || type == userword)
@@ -223,6 +224,7 @@ typedef struct operator {
 		op_else,
 		op_var_set,
 		op_func_set,
+		op_del,
 		op_none
 	} tp;
 } operator;
@@ -264,6 +266,7 @@ static operator op_list[] = {
 	/* assignment operators */
 	{"=",	op_var_set},
 	{":=",	op_func_set},
+	{"::",	op_del},
 
 	/* null terminator */
 	{NULL,	op_none}
@@ -281,6 +284,7 @@ typedef enum __stack_type__ {
 	expop	= 6,
 	ifop	= 7,
 	elseop	= 8,
+	delop	= 9,
 
 	func,
 	userword, /* user function or variable */
@@ -540,13 +544,8 @@ error_code set_variable(char *str, synge_t val) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
-	if(get_special_num(s).name) {
-		/* name is reserved -- give error */
-		ret = to_error_code(RESERVED_VARIABLE, -1);
-	} else {
-		ohm_remove(function_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
-		ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
-	}
+	ohm_remove(function_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
+	ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
 
 	free(s);
 	return ret;
@@ -558,44 +557,46 @@ error_code set_function(char *str, char *exp) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
-	if(get_special_num(s).name) {
-		/* name is reserved -- give error */
-		ret = to_error_code(RESERVED_VARIABLE, -1);
-	} else {
-		ohm_remove(variable_list, s, strlen(s) + 1); /* remove word from variable list (fake dynamic typing) */
-		ohm_insert(function_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
-	}
+	ohm_remove(variable_list, s, strlen(s) + 1); /* remove word from variable list (fake dynamic typing) */
+	ohm_insert(function_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
 
 	free(s);
 	return ret;
 } /* set_variable() */
 
-error_code del_word(char *str, bool variable) {
+error_code del_word(char *s, int pos) {
 	assert(synge_started);
 
-	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
-	error_code ret = to_error_code(variable ? DELETED_VARIABLE : DELETED_FUNCTION, -1);
+	enum {
+		tp_var,
+		tp_func,
+		tp_none
+	};
 
-	if(get_special_num(s).name)
-		/* name is reserved -- give error */
-		ret = to_error_code(RESERVED_VARIABLE, -1);
+	int type = tp_none;
 
-	else if(!ohm_search(variable_list, s, strlen(s) + 1) &&
-		!ohm_search(function_list, s, strlen(s) + 1))
-		/* word doesn't exist */
-		ret = to_error_code(variable ? UNKNOWN_VARIABLE : UNKNOWN_FUNCTION, -1);
+	if(ohm_search(variable_list, s, strlen(s) + 1))
+		type = tp_var;
+	if(ohm_search(function_list, s, strlen(s) + 1))
+		type = tp_func;
 
-	else {
-		/* try to remove it from both lists -- just to be sure */
-		if(!ohm_remove(variable_list, s, strlen(s) + 1))
-			ret.code = DELETED_VARIABLE;
-		if(!ohm_remove(function_list, s, strlen(s) + 1))
-			ret.code = DELETED_FUNCTION;
+	if(type == tp_none)
+		return to_error_code(UNKNOWN_WORD, pos);
+
+	switch(type) {
+		case tp_var:
+			ohm_remove(variable_list, s, strlen(s) + 1);
+			break;
+		case tp_func:
+			ohm_remove(function_list, s, strlen(s) + 1);
+			break;
+		default:
+			return to_error_code(UNKNOWN_WORD, pos);
+			break;
 	}
 
-	free(s);
-	return ret;
-} /* del_variable() */
+	return to_error_code(SUCCESS, -1);
+} /* del_word() */
 
 /* XXX: This hack is... ugly and difficult to explain. Consider re-doing or simplifying - cyphar */
 char *function_process_replace(char *string) {
@@ -872,6 +873,9 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 				case op_func_set:
 					type = setop;
 					break;
+				case op_del:
+					type = delop;
+					break;
 				case op_none:
 				default:
 					free(s);
@@ -944,6 +948,8 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 			nextpos = next_offset(s, i + strlen(word));
 			if(nextpos > 0 && issetop(s + nextpos))
 				type = setword;
+			if(top_stack(*infix_stack) && isdelop(top_stack(*infix_stack)->val))
+				type = setword;
 
 			debug("found word '%s'\n", word);
 
@@ -982,6 +988,7 @@ bool op_precedes(s_type op1, s_type op2) {
 	int lassoc;
 	/* here be dragons! obscure integer hacks follow. */
 	switch(op2) {
+		case delop:
 		case ifop:
 		case elseop:
 		case bitop:
@@ -1051,6 +1058,7 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 					return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
 				}
 				break;
+			case delop:
 			case setop:
 			case elseop:
 			case ifop:
@@ -1207,7 +1215,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
 	synge_t *result = NULL, arg[3];
-	error_code tmpecode;
+	error_code ecode[2];
 
 	for(i = 0; i < size; i++) {
 		/* debugging */
@@ -1276,8 +1284,8 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* evaulate and push the value of set word */
 				result = malloc(sizeof(synge_t));
-				tmpecode = eval_word(tmpstr, pos, result);
-				if(!is_success_code(tmpecode.code)) {
+				ecode[0] = eval_word(tmpstr, pos, result);
+				if(!is_success_code(ecode[0].code)) {
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
@@ -1289,17 +1297,59 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				push_valstack(result, number, true, pos, tmpstack);
 				free(tmpstr);
 				break;
+			case delop:
+				if(stack_size(tmpstack) < 1) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(OPERATOR_WRONG_ARGC, pos);
+				}
+
+				/* get word */
+				if(top_stack(tmpstack)->tp != setword) {
+					free(tmpexp);
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_DELETE, pos);
+				}
+
+				tmpstr = str_dup(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				/* get value of word */
+				result = malloc(sizeof(synge_t));
+				ecode[0] = eval_word(tmpstr, pos, result); /* ignore eval error for now (since word must be deleted) */
+
+				/* delete word */
+				ecode[1] = del_word(tmpstr, pos);
+
+				/* delete error check */
+				if(!is_success_code(ecode[1].code)) {
+					free(result);
+					free(tmpstr);
+					free_stackm(&tmpstack, rpn);
+					return ecode[1];
+				}
+
+				/* eval error check */
+				if(!is_success_code(ecode[0].code)) {
+					free(result);
+					free(tmpstr);
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(ERROR_DELETE, pos);
+				}
+
+				push_valstack(result, number, true, pos, tmpstack);
+				free(tmpstr);
+				break;
 			case userword:
 				/* get word */
 				tmp = 0;
 				tmpstr = stackp.val;
 				result = malloc(sizeof(synge_t));
 
-				tmpecode = eval_word(tmpstr, pos, result);
-				if(!is_success_code(tmpecode.code)) {
+				ecode[0] = eval_word(tmpstr, pos, result);
+				if(!is_success_code(ecode[0].code)) {
 					free(result);
 					free_stackm(&tmpstack, rpn);
-					return tmpecode;
+					return ecode[0];
 				}
 
 				/* push result of evaluation onto the stack */
@@ -1563,19 +1613,13 @@ char *get_error_tp(error_code error) {
 		case EMPTY_STACK:
 		case TOO_MANY_VALUES:
 		case INVALID_ASSIGNMENT:
+		case INVALID_DELETE:
 			return "SyntaxError";
 			break;
 		case UNKNOWN_TOKEN:
-		case UNKNOWN_VARIABLE:
-		case UNKNOWN_FUNCTION:
-		case INVALID_VARIABLE_CHAR:
-		case EMPTY_VARIABLE_NAME:
+		case UNKNOWN_WORD:
 		case RESERVED_VARIABLE:
 			return "NameError";
-			break;
-		case DELETED_VARIABLE:
-		case DELETED_FUNCTION:
-			return "FalsePositive";
 			break;
 		case TOO_DEEP:
 		default:
@@ -1609,11 +1653,11 @@ char *get_error_msg(error_code error) {
 		case INVALID_ASSIGNMENT:
 			msg = "Invalid left operand of assignment";
 			break;
-		case UNKNOWN_VARIABLE:
-			msg = "Unknown variable to delete";
+		case INVALID_DELETE:
+			msg = "Invalid word to delete";
 			break;
-		case UNKNOWN_FUNCTION:
-			msg = "Unknown function to delete";
+		case UNKNOWN_WORD:
+			msg = "Unknown word to delete";
 			break;
 		case FUNCTION_WRONG_ARGC:
 			msg = "Not enough arguments for function";
@@ -1635,21 +1679,6 @@ char *get_error_msg(error_code error) {
 			break;
 		case NUM_OVERFLOW:
 			msg = "Number caused overflow";
-			break;
-		case INVALID_VARIABLE_CHAR:
-			msg = "Invalid character in variable name";
-			break;
-		case EMPTY_VARIABLE_NAME:
-			msg = "Empty variable name";
-			break;
-		case RESERVED_VARIABLE:
-			msg = "Variable name is reserved";
-			break;
-		case DELETED_VARIABLE:
-			msg = "Variable deleted";
-			break;
-		case DELETED_FUNCTION:
-			msg = "Function deleted";
 			break;
 		case UNDEFINED:
 			msg = "Result is undefined";
@@ -1851,16 +1880,17 @@ void synge_reset_traceback(void) {
 } /* synge_reset_traceback() */
 
 int is_success_code(int code) {
-	if(code == SUCCESS ||
-	   code == DELETED_VARIABLE ||
-	   code == DELETED_FUNCTION) return true;
-
-	else return false;
+	if(code == SUCCESS)
+		return true;
+	else
+		return false;
 } /* is_success_code() */
 
 int ignore_code(int code) {
 	if(code == EMPTY_STACK ||
-	   code == ERROR_FUNC_ASSIGNMENT) return true;
-
-	else return false;
+	   code == ERROR_FUNC_ASSIGNMENT ||
+	   code == ERROR_DELETE)
+		return true;
+	else
+		return false;
 } /* ignore_code() */
