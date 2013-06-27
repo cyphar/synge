@@ -755,6 +755,7 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 			s_type type;
 
 			char *expr = NULL;
+			s_content pop, top;
 
 			/* find and set type appropriate to operator */
 			switch(get_op(s+i).tp) {
@@ -775,8 +776,45 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 					type = lparen;
 					pos--;  /* "hack" to ensure error position is correct */
 					/* every open paren with no operators before it has an implied * */
-					if(top_stack(*infix_stack) && (top_stack(*infix_stack)->tp == number || top_stack(*infix_stack)->tp == rparen))
-						push_valstack("*", multop, false, pos + 1, *infix_stack);
+
+					if(top_stack(*infix_stack)) {
+						switch(top_stack(*infix_stack)->tp) {
+							case addop:
+								tmp = false;
+								top = *pop_stack(*infix_stack);
+
+								if(!top_stack(*infix_stack))
+									tmp = true;
+
+								else {
+									pop = *pop_stack(*infix_stack);
+									if(pop.tp != number && pop.tp != rparen && pop.tp != userword)
+										tmp = true;
+
+									if(!tmp || isop(pop.tp))
+										push_ststack(pop, *infix_stack);
+								}
+
+								if(!tmp) {
+									push_ststack(top, *infix_stack);
+									break;
+								}
+
+								if(get_op(top.val).tp == op_plus)
+									tmp = 1;
+								if(get_op(top.val).tp == op_minus)
+									tmp = -1;
+
+								push_valstack(num_dup(tmp), number, true, pos, *infix_stack);
+								/* pass-through */
+							case number:
+							case rparen:
+								push_valstack("*", multop, false, pos + 1, *infix_stack);
+								break;
+							default:
+								break;
+						}
+					}
 					break;
 				case op_rparen:
 					type = rparen;
@@ -886,7 +924,7 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 						tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
 						tmpp = top_stack(*infix_stack);
 						if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
-							if(((char *) tmppop->val)[0] == '-') {
+							if(get_op(tmppop->val).tp == op_minus) {
 								/* negate the variable? */
 								push_valstack("+", addop, false, pos, *infix_stack);
 								push_valstack(num_dup(0), number, true, pos, *infix_stack);
