@@ -40,11 +40,19 @@ errors = {
 		"lparen"	: "Missing closing bracket for opening bracket",
 		"rparen"	: "Missing opening bracket for closing bracket",
 		"token"		: "Unknown token or function in expression",
-		"opvals"	: "Not enough values for operator",
+		"assign"	: "Invalid left operand of assignment",
+		"word"		: "Invalid word to delete",
+		"delword"	: "Unknown word to delete",
 		"funcvals"	: "Not enough arguments for function",
+		"opvals"	: "Not enough values for operator",
+		"ifcond"	: "Missing if conditional for else",
+		"elsecond"	: "Missing else statement for if",
+		"toomany"	: "Too many values in expression",
 		"empty"		: "Expression was empty",
 		"overflow"	: "Number caused overflow",
-		"unknown"	: "An unknown error has occured"
+		"undef"		: "Result is undefined",
+		"delved"	: "Delved too deep",
+		"unknown"	: "An unknown error has occured",
 }
 
 def error_get(key, position = 0):
