@@ -325,12 +325,32 @@ void ohm_cpy(ohm_t *to_hm, ohm_t *from_hm) {
 	if(!to_hm || !from_hm)
 		return;
 
-	/* initialise iterable */
-	ohm_iter i = ohm_iter_init(to_hm);
+	/* delete everythin in target hashmap */
+	ohm_node *current_node, *parent_node;
 
-	/* insert all keys to new hashmap */
-	for(; i.key != NULL; ohm_iter_inc(&i))
-		ohm_remove(to_hm, i.key, i.keylen);
+	int i;
+	for(i = 0; i < to_hm->size; i++) {
+		/* set width-wise node */
+		current_node = to_hm->table[i];
+		while(current_node) {
+			/* free all depth-wise nodes */
+			free(current_node->key);
+			free(current_node->value);
+
+			/* update pointers to next node */
+			parent_node = current_node;
+			current_node = current_node->next;
+
+			/* free old "current" node */
+			free(parent_node);
+		}
+	}
+
+	to_hm->count = 0;
+
+	/* set all entries to NULL */
+	for(i = 0; i < to_hm->size; i++)
+		to_hm->table[i] = NULL;
 
 	/* merge empty and template hashmaps */
 	ohm_merge(to_hm, from_hm);
