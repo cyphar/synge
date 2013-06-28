@@ -82,7 +82,7 @@
 		      get_op(str).tp == op_ch_bshiftl || get_op(str).tp == op_ch_bshiftr)
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
-#define isnumword(type) (type == number || type == userword)
+#define isnumword(type) (type == number || type == userword || type == setword)
 
 /* checks if a synge_t is technically zero */
 #define iszero(x) (sy_fabs(x) <= SYNGE_EPSILON)
@@ -337,8 +337,10 @@ typedef enum __stack_type__ {
 	ifop	=  8,
 	elseop	=  9,
 	delop	= 10,
-	premod	= 11,
-	postmod	= 12,
+
+	/* not treated as operator in parsing */
+	premod,
+	postmod,
 
 	func,
 	userword, /* user function or variable */
@@ -756,9 +758,9 @@ char *get_expression_level(char *p, char end) {
 	return stripped;
 } /* get_expression_level() */
 
-#define false_number(str, stack)	(!(!top_stack(stack) || /* first token is a number */ \
-					(((!isnumword(top_stack(stack)->tp)) || !isaddop(str)) && /* a number beginning with +/- and preceeded by a number is not a number */ \
-					(top_stack(stack)->tp != rparen || !isaddop(str))))) /* a number beginning with +/- and preceeded by a ')' is not a number */
+#define false_number(str, stack) (!(!top_stack(stack) || /* first token is a number */ \
+				 ((((!isnumword(top_stack(stack)->tp) && !iscreop(top_stack(stack)->val)) || !isaddop(str))) && /* a +/- number preceeded by a number is not a number */ \
+	 			 (top_stack(stack)->tp != rparen || (!isaddop(str) && !iscreop(top_stack(stack)->val)))))) /* a +/- number preceeded by a ')' is not a number */
 
 error_code tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started);
@@ -1072,13 +1074,11 @@ bool op_precedes(s_type op1, s_type op2) {
 		case compop:
 		case addop:
 		case multop:
-		case premod:
 			lassoc = 1;
 			break;
 		case setop:
 		case modop:
 		case expop:
-		case postmod:
 			lassoc = 0;
 			break;
 		default:
@@ -1138,6 +1138,15 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 					return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
 				}
 				break;
+			case premod:
+				i++;
+				tmpstackp = &(*infix_stack)->content[i];
+
+				push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
+				/* pass-through */
+			case postmod:
+				push_ststack(stackp, *rpn_stack);
+				break;
 			case setop:
 			case modop:
 			case elseop:
@@ -1148,8 +1157,6 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 			case multop:
 			case expop:
 			case delop:
-			case postmod:
-			case premod:
 				/* reorder operators to be in the correct order of precedence */
 				while(stack_size(op_stack)) {
 					tmpstackp = top_stack(op_stack);
