@@ -73,6 +73,8 @@
 #define issetop(str) (get_op(str).tp == op_var_set || get_op(str).tp == op_func_set)
 #define isdelop(str) (get_op(str).tp == op_del)
 
+#define iscreop(str) (get_op(str).tp == op_ch_decrement || get_op(str).tp == op_ch_increment)
+
 #define ismodop(str) (get_op(str).tp == op_ch_add || get_op(str).tp == op_ch_subtract || \
 		      get_op(str).tp == op_ch_multiply || get_op(str).tp == op_ch_divide || get_op(str).tp == op_ch_int_divide || get_op(str).tp == op_ch_modulo || \
 		      get_op(str).tp == op_ch_index || \
@@ -251,6 +253,9 @@ typedef struct operator {
 		op_ch_bshiftl,
 		op_ch_bshiftr,
 
+		op_ch_increment,
+		op_ch_decrement,
+
 		op_none
 	} tp;
 } operator;
@@ -310,6 +315,10 @@ static operator op_list[] = {
 	{"<<=",	op_ch_bshiftl},
 	{">>=",	op_ch_bshiftr},
 
+	/* pre/post modification operators */
+	{"++",	op_ch_increment},
+	{"--",	op_ch_decrement},
+
 	/* null terminator */
 	{NULL,	op_none}
 };
@@ -318,16 +327,18 @@ static operator op_list[] = {
 typedef enum __stack_type__ {
 	number,
 
-	setop	= 1,
-	modop	= 2,
-	compop	= 3,
-	bitop	= 4,
-	addop	= 5,
-	multop	= 6,
-	expop	= 7,
-	ifop	= 8,
-	elseop	= 9,
+	setop	=  1,
+	modop	=  2,
+	compop	=  3,
+	bitop	=  4,
+	addop	=  5,
+	multop	=  6,
+	expop	=  7,
+	ifop	=  8,
+	elseop	=  9,
 	delop	= 10,
+	premod	= 11,
+	postmod	= 12,
 
 	func,
 	userword, /* user function or variable */
@@ -933,6 +944,14 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 				case op_ch_bshiftr:
 					type = modop;
 					break;
+				case op_ch_increment:
+				case op_ch_decrement:
+					/* a+++b === a++ + b (same as in C) */
+					if(top_stack(*infix_stack) && top_stack(*infix_stack)->tp == setword)
+						type = postmod;
+					else
+						type = premod;
+					break;
 				case op_none:
 				default:
 					free(s);
@@ -1003,10 +1022,10 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 			/* is this word going to be set? */
 			nextpos = next_offset(s, i + strlen(word));
-			if(nextpos > 0 && (issetop(s + nextpos) || ismodop(s + nextpos)))
+			if(nextpos > 0 && (issetop(s + nextpos) || ismodop(s + nextpos) || iscreop(s + nextpos)))
 				type = setword;
 
-			if(top_stack(*infix_stack) && isdelop(top_stack(*infix_stack)->val))
+			if(top_stack(*infix_stack) && (isdelop(top_stack(*infix_stack)->val) || iscreop(top_stack(*infix_stack)->val)))
 				type = setword;
 
 			debug("found word '%s'\n", word);
@@ -1053,11 +1072,13 @@ bool op_precedes(s_type op1, s_type op2) {
 		case compop:
 		case addop:
 		case multop:
+		case premod:
 			lassoc = 1;
 			break;
 		case setop:
 		case modop:
 		case expop:
+		case postmod:
 			lassoc = 0;
 			break;
 		default:
@@ -1127,6 +1148,8 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 			case multop:
 			case expop:
 			case delop:
+			case postmod:
+			case premod:
 				/* reorder operators to be in the correct order of precedence */
 				while(stack_size(op_stack)) {
 					tmpstackp = top_stack(op_stack);
@@ -1470,6 +1493,61 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* push new value of variable */
 				push_valstack(result, number, true, pos, tmpstack);
+				free(tmpstr);
+				break;
+			case premod:
+				tmp = 1;
+				/* pass-through */
+			case postmod:
+				if(stack_size(tmpstack) < 1) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(OPERATOR_WRONG_ARGC, pos);
+				}
+
+				/* get variable to modify */
+				if(top_stack(tmpstack)->tp != setword) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
+				}
+
+				tmpstr = str_dup(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				/* check if it really is a variable */
+				if(!ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)) {
+					free(tmpstr);
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
+				}
+
+				/* get current value of variable */
+				arg[0] = SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1));
+
+				/* evaluate changed variable */
+				result = malloc(sizeof(synge_t));
+				switch(get_op(stackp.val).tp) {
+					case op_ch_increment:
+						*result = arg[0] + 1.0;
+						break;
+					case op_ch_decrement:
+						*result = arg[0] - 1.0;
+						break;
+					default:
+						/* catch-all -- unknown token */
+						free(tmpstr);
+						free(result);
+						free_stackm(&tmpstack, rpn);
+						return to_error_code(UNKNOWN_TOKEN, pos);
+						break;
+				}
+
+				/* set variable to new value */
+				set_variable(tmpstr, *result);
+
+				/* push value of variable (depending on pre/post) */
+				push_valstack(tmp ? result : num_dup(arg[0]), number, true, pos, tmpstack);
+
+				if(!tmp) free(result);
 				free(tmpstr);
 				break;
 			case delop:
