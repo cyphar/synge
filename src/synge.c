@@ -69,9 +69,15 @@
 #define assert(x) do { if(!x) { printf("synge: assertion '%s' failed -- aborting!\n", #x); exit(254); }} while(0)
 
 /* -- useful macros -- */
-#define isaddop(str) (get_op(str).tp == op_plus || get_op(str).tp == op_minus)
+#define isaddop(str) (get_op(str).tp == op_add || get_op(str).tp == op_subtract)
 #define issetop(str) (get_op(str).tp == op_var_set || get_op(str).tp == op_func_set)
 #define isdelop(str) (get_op(str).tp == op_del)
+
+#define ismodop(str) (get_op(str).tp == op_ch_add || get_op(str).tp == op_ch_subtract || \
+		      get_op(str).tp == op_ch_multiply || get_op(str).tp == op_ch_divide || get_op(str).tp == op_ch_int_divide || get_op(str).tp == op_ch_modulo || \
+		      get_op(str).tp == op_ch_index || \
+		      get_op(str).tp == op_ch_band || get_op(str).tp == op_ch_bor || get_op(str).tp == op_ch_bxor || \
+		      get_op(str).tp == op_ch_bshiftl || get_op(str).tp == op_ch_bshiftr)
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
 #define isnumword(type) (type == number || type == userword)
@@ -200,44 +206,65 @@ static special_number constant_list[] = {
 typedef struct operator {
 	char *str;
 	enum {
-		op_plus,
-		op_minus,
-		op_mult,
-		op_div,
-		op_intdiv,
-		op_mod,
-		op_pow,
+		op_add,
+		op_subtract,
+		op_multiply,
+		op_divide,
+		op_int_divide,
+		op_modulo,
+		op_index,
+
 		op_lparen,
 		op_rparen,
+
 		op_gt,
 		op_gteq,
 		op_lt,
 		op_lteq,
 		op_neq,
 		op_eq,
+
 		op_band,
 		op_bor,
 		op_bxor,
 		op_bshiftl,
 		op_bshiftr,
+
 		op_if,
 		op_else,
+
 		op_var_set,
 		op_func_set,
 		op_del,
+
+		op_ch_add,
+		op_ch_subtract,
+		op_ch_multiply,
+		op_ch_divide,
+		op_ch_int_divide,
+		op_ch_modulo,
+		op_ch_index,
+
+		op_ch_band,
+		op_ch_bor,
+		op_ch_bxor,
+		op_ch_bshiftl,
+		op_ch_bshiftr,
+
 		op_none
 	} tp;
 } operator;
 
 /* used for when a (char *) is needed, but needn't be freed */
 static operator op_list[] = {
-	{"+",	op_plus},
-	{"-",	op_minus},
-	{"*",	op_mult},
-	{"/",	op_div},
-	{"//",	op_intdiv}, /* integer division */
-	{"%",	op_mod},
-	{"^",	op_pow},
+	{"+",	op_add},
+	{"-",	op_subtract},
+	{"*",	op_multiply},
+	{"/",	op_divide},
+	{"//",	op_int_divide}, /* integer division */
+	{"%",	op_modulo},
+	{"^",	op_index},
+
 	{"(",	op_lparen},
 	{")",	op_rparen},
 
@@ -268,6 +295,21 @@ static operator op_list[] = {
 	{":=",	op_func_set},
 	{"::",	op_del},
 
+
+	/* variable modification operators */
+	{"+=",	op_ch_add},
+	{"-=",	op_ch_subtract},
+	{"*=",	op_ch_multiply},
+	{"/=",	op_ch_divide},
+	{"//=",	op_ch_int_divide}, /* integer division */
+	{"%=",	op_ch_modulo},
+	{"^=",	op_ch_index},
+	{"&=",	op_ch_band},
+	{"|=",	op_ch_bor},
+	{"><=",	op_ch_bxor},
+	{"<<=",	op_ch_bshiftl},
+	{">>=",	op_ch_bshiftr},
+
 	/* null terminator */
 	{NULL,	op_none}
 };
@@ -277,14 +319,15 @@ typedef enum __stack_type__ {
 	number,
 
 	setop	= 1,
-	compop	= 2,
-	bitop	= 3,
-	addop	= 4,
-	multop	= 5,
-	expop	= 6,
-	ifop	= 7,
-	elseop	= 8,
-	delop	= 9,
+	modop	= 2,
+	compop	= 3,
+	bitop	= 4,
+	addop	= 5,
+	multop	= 6,
+	expop	= 7,
+	ifop	= 8,
+	elseop	= 9,
+	delop	= 10,
 
 	func,
 	userword, /* user function or variable */
@@ -765,17 +808,17 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 			/* find and set type appropriate to operator */
 			switch(get_op(s+i).tp) {
-				case op_plus:
-				case op_minus:
+				case op_add:
+				case op_subtract:
 					type = addop;
 					break;
-				case op_mult:
-				case op_div:
-				case op_intdiv: /* integer division -- like in python */
-				case op_mod:
+				case op_multiply:
+				case op_divide:
+				case op_int_divide: /* integer division -- like in python */
+				case op_modulo:
 					type = multop;
 					break;
-				case op_pow:
+				case op_index:
 					type = expop;
 					break;
 				case op_lparen:
@@ -806,9 +849,9 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 									break;
 								}
 
-								if(get_op(top.val).tp == op_plus)
+								if(get_op(top.val).tp == op_add)
 									tmp = 1;
-								if(get_op(top.val).tp == op_minus)
+								if(get_op(top.val).tp == op_subtract)
 									tmp = -1;
 
 								push_valstack(num_dup(tmp), number, true, pos, *infix_stack);
@@ -876,6 +919,20 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 				case op_del:
 					type = delop;
 					break;
+				case op_ch_add:
+				case op_ch_subtract:
+				case op_ch_multiply:
+				case op_ch_divide:
+				case op_ch_int_divide: /* integer division -- like in python */
+				case op_ch_modulo:
+				case op_ch_index:
+				case op_ch_band:
+				case op_ch_bor:
+				case op_ch_bxor:
+				case op_ch_bshiftl:
+				case op_ch_bshiftr:
+					type = modop;
+					break;
 				case op_none:
 				default:
 					free(s);
@@ -919,7 +976,7 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 						tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
 						tmpp = top_stack(*infix_stack);
 						if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
-							if(get_op(tmppop->val).tp == op_minus) {
+							if(get_op(tmppop->val).tp == op_subtract) {
 								/* negate the variable? */
 								push_valstack("+", addop, false, pos, *infix_stack);
 								push_valstack(num_dup(0), number, true, pos, *infix_stack);
@@ -946,8 +1003,9 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 			/* is this word going to be set? */
 			nextpos = next_offset(s, i + strlen(word));
-			if(nextpos > 0 && issetop(s + nextpos))
+			if(nextpos > 0 && (issetop(s + nextpos) || ismodop(s + nextpos)))
 				type = setword;
+
 			if(top_stack(*infix_stack) && isdelop(top_stack(*infix_stack)->val))
 				type = setword;
 
@@ -998,6 +1056,7 @@ bool op_precedes(s_type op1, s_type op2) {
 			lassoc = 1;
 			break;
 		case setop:
+		case modop:
 		case expop:
 			lassoc = 0;
 			break;
@@ -1058,8 +1117,8 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 					return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
 				}
 				break;
-			case delop:
 			case setop:
+			case modop:
 			case elseop:
 			case ifop:
 			case bitop:
@@ -1067,6 +1126,7 @@ error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 			case addop:
 			case multop:
 			case expop:
+			case delop:
 				/* reorder operators to be in the correct order of precedence */
 				while(stack_size(op_stack)) {
 					tmpstackp = top_stack(op_stack);
@@ -1246,9 +1306,17 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* get new value for word */
 				if(top_stack(tmpstack)->tp == number)
+					/* variable value */
 					arg[0] = SYNGE_T(top_stack(tmpstack)->val);
-				else
+
+				else if(top_stack(tmpstack)->tp == expression)
+					/* function expression value */
 					tmpexp = str_dup(top_stack(tmpstack)->val);
+
+				else {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
+				}
 
 				free_scontent(pop_stack(tmpstack));
 
@@ -1256,7 +1324,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				if(top_stack(tmpstack)->tp != setword) {
 					free(tmpexp);
 					free_stackm(&tmpstack, rpn);
-					return to_error_code(INVALID_ASSIGNMENT, pos);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
 				}
 
 				tmpstr = str_dup(top_stack(tmpstack)->val);
@@ -1276,7 +1344,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						free(tmpstr);
 						free(tmpexp);
 						free_stackm(&tmpstack, rpn);
-						return to_error_code(INVALID_ASSIGNMENT, pos);
+						return to_error_code(INVALID_LEFT_OPERAND, pos);
 						break;
 				}
 
@@ -1294,6 +1362,113 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 					 ... a variable would have already been reported) */
 					return to_error_code(ERROR_FUNC_ASSIGNMENT, pos);
 				}
+				push_valstack(result, number, true, pos, tmpstack);
+				free(tmpstr);
+				break;
+			case modop:
+				if(stack_size(tmpstack) < 2) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(OPERATOR_WRONG_ARGC, pos);
+				}
+
+				if(top_stack(tmpstack)->tp != number) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_RIGHT_OPERAND, pos);
+				}
+
+				/* get value to modify variable by */
+				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				/* get variable to modify */
+				if(top_stack(tmpstack)->tp != setword) {
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
+				}
+
+				/* get variable name */
+				tmpstr = str_dup(top_stack(tmpstack)->val);
+				free_scontent(pop_stack(tmpstack));
+
+				/* check if it really is a variable */
+				if(!ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)) {
+					free(tmpstr);
+					free_stackm(&tmpstack, rpn);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
+				}
+
+				/* get current value of variable */
+				arg[0] = SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1));
+
+				/* evaluate changed variable */
+				result = malloc(sizeof(synge_t));
+
+				switch(get_op(stackp.val).tp) {
+					case op_ch_add:
+						*result = arg[0] + arg[1];
+						break;
+					case op_ch_subtract:
+						*result = arg[0] - arg[1];
+						break;
+					case op_ch_multiply:
+						*result = arg[0] * arg[1];
+						break;
+					case op_ch_int_divide:
+						/* division, but the result ignores the decimals */
+						tmp = 1;
+					case op_ch_divide:
+						if(iszero(arg[1])) {
+							/* the 11th commandment -- thoust shalt not divide by zero */
+							free(tmpstr);
+							free(result);
+							free_stackm(&tmpstack, rpn);
+							return to_error_code(DIVIDE_BY_ZERO, pos);
+						}
+						*result = arg[0] / arg[1];
+						if(tmp)
+							sy_modf(*result, result);
+						break;
+					case op_ch_modulo:
+						if(iszero(arg[1])) {
+							/* the 11.5th commandment -- thoust shalt not modulo by zero */
+							free(tmpstr);
+							free(result);
+							free_stackm(&tmpstack, rpn);
+							return to_error_code(MODULO_BY_ZERO, pos);
+						}
+						*result = sy_fmod(arg[0], arg[1]);
+						break;
+					case op_ch_index:
+						*result = pow(arg[0], arg[1]);
+						break;
+					case op_ch_band:
+						*result = (long long) arg[0] & (long long) arg[1];
+						break;
+					case op_ch_bor:
+						*result = (long long) arg[0] | (long long) arg[1];
+						break;
+					case op_ch_bxor:
+						*result = (long long) arg[0] ^ (long long) arg[1];
+						break;
+					case op_ch_bshiftl:
+						*result = (long long) arg[0] << (long long) arg[1];
+						break;
+					case op_ch_bshiftr:
+						*result = (long long) arg[0] >> (long long) arg[1];
+						break;
+					default:
+						/* catch-all -- unknown token */
+						free(tmpstr);
+						free(result);
+						free_stackm(&tmpstack, rpn);
+						return to_error_code(UNKNOWN_TOKEN, pos);
+						break;
+				}
+
+				/* set variable to new value */
+				set_variable(tmpstr, *result);
+
+				/* push new value of variable */
 				push_valstack(result, number, true, pos, tmpstack);
 				free(tmpstr);
 				break;
@@ -1458,20 +1633,20 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				result = malloc(sizeof(synge_t));
 				/* find correct evaluation and do it */
-				switch(get_op((char *) stackp.val).tp) {
-					case op_plus:
+				switch(get_op(stackp.val).tp) {
+					case op_add:
 						*result = arg[0] + arg[1];
 						break;
-					case op_minus:
+					case op_subtract:
 						*result = arg[0] - arg[1];
 						break;
-					case op_mult:
+					case op_multiply:
 						*result = arg[0] * arg[1];
 						break;
-					case op_intdiv:
+					case op_int_divide:
 						/* division, but the result ignores the decimals */
 						tmp = 1;
-					case op_div:
+					case op_divide:
 						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
 							free(result);
@@ -1482,7 +1657,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						if(tmp)
 							sy_modf(*result, result);
 						break;
-					case op_mod:
+					case op_modulo:
 						if(iszero(arg[1])) {
 							/* the 11.5th commandment -- thoust shalt not modulo by zero */
 							free(result);
@@ -1491,7 +1666,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						}
 						*result = sy_fmod(arg[0], arg[1]);
 						break;
-					case op_pow:
+					case op_index:
 						*result = pow(arg[0], arg[1]);
 						break;
 					case op_gt:
@@ -1612,7 +1787,8 @@ char *get_error_tp(error_code error) {
 		case MISSING_ELSE:
 		case EMPTY_STACK:
 		case TOO_MANY_VALUES:
-		case INVALID_ASSIGNMENT:
+		case INVALID_LEFT_OPERAND:
+		case INVALID_RIGHT_OPERAND:
 		case INVALID_DELETE:
 			return "SyntaxError";
 			break;
@@ -1650,8 +1826,11 @@ char *get_error_msg(error_code error) {
 		case UNKNOWN_TOKEN:
 			msg = "Unknown token or function in expression";
 			break;
-		case INVALID_ASSIGNMENT:
+		case INVALID_LEFT_OPERAND:
 			msg = "Invalid left operand of assignment";
+			break;
+		case INVALID_RIGHT_OPERAND:
+			msg = "Invalid right operand of assignment";
 			break;
 		case INVALID_DELETE:
 			msg = "Invalid word to delete";
