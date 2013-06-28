@@ -202,7 +202,7 @@ CASES = [
 	(["2+floor(log10(23))/32"],		["2.03125"],			0,	"Long Expression		"),
 	(["ceil((e%2.5)*300)"],			["66"],				0,	"Long Expression		"),
 	(["(fact(4)+8)/4+(2+3*4)^2-3^4+(9+10)*(15-21)+7*(17-15)"],
-						["23"],				0,	"Long Expression		"),
+						["23"],                         0,      "Long Expression		"),
 
 	(["987654321012/987654321012"],		["1"],				0,	"Big Numbers		"),
 
@@ -254,6 +254,17 @@ CASES = [
 
 	(["a=2", "y:=1/a", "a=5", "::y", "y"],
 	 ["2",   "0.5",    "5",   "0.2", error_get("token", 1)],		0,	"Function Deletion	"),
+
+	(["a=2", "a++", "a", "++a"],		["2", "2", "3", "4"],		0,	"Increment Variable	"),
+	(["a=3", "a--", "a", "--a"],		["3", "3", "2", "1"],		0,	"Decrement Variable	"),
+
+	(["a=5", "a+=2", "a", "a+=0.5", "a"],	["5", "7", "7", "7.5", "7.5"],	0,	"Compound Assignment	"),
+	(["a=1", "a-=2", "a", "a-=0.5", "a"],	["1","-1","-1","-1.5","-1.5"],	0,	"Compound Assignment	"),
+	(["a=3", "a*=2", "a", "a*=0.5", "a"],	["3", "6", "6", "3", "3"],	0,	"Compound Assignment	"),
+	(["a=3", "a/=2", "a", "a/=0.5", "a"],	["3", "1.5", "1.5", "3", "3"],	0,	"Compound Assignment	"),
+	(["a=3", "a//=2", "a", "a//=0.5", "a"],	["3", "1", "1", "2", "2"],	0,	"Compound Assignment	"),
+	(["a=8", "a%=5", "a", "a%=3", "a"],	["8", "3", "3", "0", "0"],	0,	"Compound Assignment	"),
+	(["a=3", "a^=2", "a", "a^=0.5", "a"],	["3", "9", "9", "3", "3"],	0,	"Compound Assignment	"),
 
 	# expected errors
 	([""],					[error_get("empty")],		0,	"Empty Expression Error	"),
