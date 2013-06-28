@@ -73,13 +73,13 @@
 #define issetop(str) (get_op(str).tp == op_var_set || get_op(str).tp == op_func_set)
 #define isdelop(str) (get_op(str).tp == op_del)
 
-#define iscreop(str) (get_op(str).tp == op_ch_decrement || get_op(str).tp == op_ch_increment)
+#define iscreop(str) (get_op(str).tp == op_ca_decrement || get_op(str).tp == op_ca_increment)
 
-#define ismodop(str) (get_op(str).tp == op_ch_add || get_op(str).tp == op_ch_subtract || \
-		      get_op(str).tp == op_ch_multiply || get_op(str).tp == op_ch_divide || get_op(str).tp == op_ch_int_divide || get_op(str).tp == op_ch_modulo || \
-		      get_op(str).tp == op_ch_index || \
-		      get_op(str).tp == op_ch_band || get_op(str).tp == op_ch_bor || get_op(str).tp == op_ch_bxor || \
-		      get_op(str).tp == op_ch_bshiftl || get_op(str).tp == op_ch_bshiftr)
+#define ismodop(str) (get_op(str).tp == op_ca_add || get_op(str).tp == op_ca_subtract || \
+		      get_op(str).tp == op_ca_multiply || get_op(str).tp == op_ca_divide || get_op(str).tp == op_ca_int_divide || get_op(str).tp == op_ca_modulo || \
+		      get_op(str).tp == op_ca_index || \
+		      get_op(str).tp == op_ca_band || get_op(str).tp == op_ca_bor || get_op(str).tp == op_ca_bxor || \
+		      get_op(str).tp == op_ca_bshiftl || get_op(str).tp == op_ca_bshiftr)
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
 #define isnumword(type) (type == number || type == userword || type == setword)
@@ -239,22 +239,22 @@ typedef struct operator {
 		op_func_set,
 		op_del,
 
-		op_ch_add,
-		op_ch_subtract,
-		op_ch_multiply,
-		op_ch_divide,
-		op_ch_int_divide,
-		op_ch_modulo,
-		op_ch_index,
+		op_ca_add,
+		op_ca_subtract,
+		op_ca_multiply,
+		op_ca_divide,
+		op_ca_int_divide,
+		op_ca_modulo,
+		op_ca_index,
 
-		op_ch_band,
-		op_ch_bor,
-		op_ch_bxor,
-		op_ch_bshiftl,
-		op_ch_bshiftr,
+		op_ca_band,
+		op_ca_bor,
+		op_ca_bxor,
+		op_ca_bshiftl,
+		op_ca_bshiftr,
 
-		op_ch_increment,
-		op_ch_decrement,
+		op_ca_increment,
+		op_ca_decrement,
 
 		op_none
 	} tp;
@@ -300,24 +300,23 @@ static operator op_list[] = {
 	{":=",	op_func_set},
 	{"::",	op_del},
 
+	/* compound assignment operators */
+	{"+=",	op_ca_add},
+	{"-=",	op_ca_subtract},
+	{"*=",	op_ca_multiply},
+	{"/=",	op_ca_divide},
+	{"//=",	op_ca_int_divide}, /* integer division */
+	{"%=",	op_ca_modulo},
+	{"^=",	op_ca_index},
+	{"&=",	op_ca_band},
+	{"|=",	op_ca_bor},
+	{"><=",	op_ca_bxor},
+	{"<<=",	op_ca_bshiftl},
+	{">>=",	op_ca_bshiftr},
 
-	/* variable modification operators */
-	{"+=",	op_ch_add},
-	{"-=",	op_ch_subtract},
-	{"*=",	op_ch_multiply},
-	{"/=",	op_ch_divide},
-	{"//=",	op_ch_int_divide}, /* integer division */
-	{"%=",	op_ch_modulo},
-	{"^=",	op_ch_index},
-	{"&=",	op_ch_band},
-	{"|=",	op_ch_bor},
-	{"><=",	op_ch_bxor},
-	{"<<=",	op_ch_bshiftl},
-	{">>=",	op_ch_bshiftr},
-
-	/* pre/post modification operators */
-	{"++",	op_ch_increment},
-	{"--",	op_ch_decrement},
+	/* prefix/postfix compound assignment operators */
+	{"++",	op_ca_increment},
+	{"--",	op_ca_decrement},
 
 	/* null terminator */
 	{NULL,	op_none}
@@ -932,22 +931,22 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 				case op_del:
 					type = delop;
 					break;
-				case op_ch_add:
-				case op_ch_subtract:
-				case op_ch_multiply:
-				case op_ch_divide:
-				case op_ch_int_divide: /* integer division -- like in python */
-				case op_ch_modulo:
-				case op_ch_index:
-				case op_ch_band:
-				case op_ch_bor:
-				case op_ch_bxor:
-				case op_ch_bshiftl:
-				case op_ch_bshiftr:
+				case op_ca_add:
+				case op_ca_subtract:
+				case op_ca_multiply:
+				case op_ca_divide:
+				case op_ca_int_divide: /* integer division -- like in python */
+				case op_ca_modulo:
+				case op_ca_index:
+				case op_ca_band:
+				case op_ca_bor:
+				case op_ca_bxor:
+				case op_ca_bshiftl:
+				case op_ca_bshiftr:
 					type = modop;
 					break;
-				case op_ch_increment:
-				case op_ch_decrement:
+				case op_ca_increment:
+				case op_ca_decrement:
 					/* a+++b === a++ + b (same as in C) */
 					if(top_stack(*infix_stack) && top_stack(*infix_stack)->tp == setword)
 						type = postmod;
@@ -1434,19 +1433,19 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				result = malloc(sizeof(synge_t));
 
 				switch(get_op(stackp.val).tp) {
-					case op_ch_add:
+					case op_ca_add:
 						*result = arg[0] + arg[1];
 						break;
-					case op_ch_subtract:
+					case op_ca_subtract:
 						*result = arg[0] - arg[1];
 						break;
-					case op_ch_multiply:
+					case op_ca_multiply:
 						*result = arg[0] * arg[1];
 						break;
-					case op_ch_int_divide:
+					case op_ca_int_divide:
 						/* division, but the result ignores the decimals */
 						tmp = 1;
-					case op_ch_divide:
+					case op_ca_divide:
 						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
 							free(tmpstr);
@@ -1458,7 +1457,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						if(tmp)
 							sy_modf(*result, result);
 						break;
-					case op_ch_modulo:
+					case op_ca_modulo:
 						if(iszero(arg[1])) {
 							/* the 11.5th commandment -- thoust shalt not modulo by zero */
 							free(tmpstr);
@@ -1468,22 +1467,22 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 						}
 						*result = sy_fmod(arg[0], arg[1]);
 						break;
-					case op_ch_index:
+					case op_ca_index:
 						*result = pow(arg[0], arg[1]);
 						break;
-					case op_ch_band:
+					case op_ca_band:
 						*result = (long long) arg[0] & (long long) arg[1];
 						break;
-					case op_ch_bor:
+					case op_ca_bor:
 						*result = (long long) arg[0] | (long long) arg[1];
 						break;
-					case op_ch_bxor:
+					case op_ca_bxor:
 						*result = (long long) arg[0] ^ (long long) arg[1];
 						break;
-					case op_ch_bshiftl:
+					case op_ca_bshiftl:
 						*result = (long long) arg[0] << (long long) arg[1];
 						break;
-					case op_ch_bshiftr:
+					case op_ca_bshiftr:
 						*result = (long long) arg[0] >> (long long) arg[1];
 						break;
 					default:
@@ -1533,10 +1532,10 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				/* evaluate changed variable */
 				result = malloc(sizeof(synge_t));
 				switch(get_op(stackp.val).tp) {
-					case op_ch_increment:
+					case op_ca_increment:
 						*result = arg[0] + 1.0;
 						break;
-					case op_ch_decrement:
+					case op_ca_decrement:
 						*result = arg[0] - 1.0;
 						break;
 					default:
