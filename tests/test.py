@@ -94,6 +94,18 @@ CASES = [
 	(["13%-2"],				["1"],				0,	"Modulo			"),
 	(["15.1%2"],				["1.1"],			0,	"Modulo			"),
 
+	(["5|2"],				["7"],				0,	"Bitwise OR		"),
+	(["8|-2"],				["-2"],				0,	"Bitwise OR		"),
+	(["15.1|2"],				["15"],				0,	"Bitwise OR		"),
+
+	(["5&2"],				["0"],				0,	"Bitwise AND		"),
+	(["7&-2"],				["6"],				0,	"Bitwise AND		"),
+	(["15.1&5"],				["5"],				0,	"Bitwise AND		"),
+
+	(["5|2"],				["7"],				0,	"Bitwise XOR		"),
+	(["8|-2"],				["-2"],				0,	"Bitwise XOR		"),
+	(["15.1|2"],				["15"],				0,	"Bitwise XOR		"),
+
 	(["(1+1)*2"],				["4"],				0,	"Parenthesis		"),
 	(["1+(-2)"],				["-1"],				0,	"Parenthesis		"),
 	(["(0.5+0.5)*(1.5+1.5)"],		["3"],				0,	"Parenthesis		"),
@@ -265,6 +277,9 @@ CASES = [
 	(["a=3", "a//=2", "a", "a//=0.5", "a"],	["3", "1", "1", "2", "2"],	0,	"Compound Assignment	"),
 	(["a=8", "a%=5", "a", "a%=3", "a"],	["8", "3", "3", "0", "0"],	0,	"Compound Assignment	"),
 	(["a=3", "a^=2", "a", "a^=0.5", "a"],	["3", "9", "9", "3", "3"],	0,	"Compound Assignment	"),
+	(["a=3", "a@=2", "a", "a@=2", "a"],	["3", "1", "1", "3", "3"],	0,	"Compound Assignment	"),
+	(["a=3", "a|=2", "a", "a|=8", "a"],	["3", "3", "3", "11", "11"],	0,	"Compound Assignment	"),
+	(["a=3", "a&=2", "a", "a&=1", "a"],	["3", "2", "2", "0", "0"],	0,	"Compound Assignment	"),
 
 	# expected errors
 	([""],					[error_get("empty")],		0,	"Empty Expression Error	"),
