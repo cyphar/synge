@@ -474,7 +474,6 @@ char *trim_spaces(char *str) {
 	strncpy(ret, str, len); /* copy stripped section */
 	ret[len] = '\0'; /* ensure null termination */
 
-	debug("original: '%s'\nnew: '%s'\n", str, ret);
 	return ret;
 } /* trim_spaces() */
 
@@ -685,9 +684,6 @@ char *function_process_replace(char *string) {
 
 		char *tmpfinal = replace(final, tmpfrom, tmpto);
 
-		if(strcmp(final, tmpfinal))
-			debug("(%s)\t%s => %s\n", func_list[i].name, final, tmpfinal);
-
 		free(final);
 		free(tmpfrom);
 		free(tmpto);
@@ -751,8 +747,6 @@ char *get_expression_level(char *p, char end) {
 
 	char *stripped = trim_spaces(ret);
 
-	debug("explevel '%s' -> '%s'\n", p, stripped);
-
 	free(ret);
 	return stripped;
 } /* get_expression_level() */
@@ -765,6 +759,7 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
 
+	debug("--\nTokenise\n--\n");
 	debug("%s\n%s\n", string, s);
 
 	init_stack(*infix_stack);
@@ -905,8 +900,6 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 					tmp = next_offset(s, i + oplen);
 					expr = get_expression_level(s + i + oplen, ':');
 
-					debug("if expression '%s'\n", expr);
-
 					/* push expression */
 					push_valstack(expr, expression, true, tmp, *infix_stack);
 					tmpoffset = strlen(expr);
@@ -917,8 +910,6 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 					/* get expression and position of it */
 					tmp = next_offset(s, i + oplen);
 					expr = get_expression_level(s + i + oplen, '\0');
-
-					debug("else expression '%s'\n", expr);
 
 					/* push expression */
 					push_valstack(expr, expression, true, tmp, *infix_stack);
@@ -966,8 +957,6 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 			if(get_op(s+i).tp == op_func_set) {
 				char *func_expr = get_expression_level(s + i + oplen, '\0');
-
-				debug("expression: '%s'\n", expr);
 
 				push_valstack(func_expr, expression, true, next_offset(s, i + oplen), *infix_stack);
 				tmpoffset = strlen(func_expr);
@@ -1028,8 +1017,6 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 
 			if(top_stack(*infix_stack) && (isdelop(top_stack(*infix_stack)->val) || iscreop(top_stack(*infix_stack)->val)))
 				type = setword;
-
-			debug("found word '%s'\n", word);
 
 			push_valstack(str_dup(word), type, true, pos, *infix_stack);
 			tmpoffset = strlen(word); /* update iterator to correct offset */
@@ -1092,6 +1079,8 @@ bool op_precedes(s_type op1, s_type op2) {
 error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
 	s_content stackp, *tmpstackp;
 	stack *op_stack = malloc(sizeof(stack));
+
+	debug("--\nParse\n--\n");
 
 	init_stack(op_stack);
 	init_stack(*rpn_stack);
@@ -1297,6 +1286,8 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	stack *tmpstack = malloc(sizeof(stack));
 	init_stack(tmpstack);
 
+	debug("--\nEvaluate\n--\n");
+
 	s_content stackp;
 
 	char *tmpstr = NULL, *tmpexp = NULL;
@@ -1307,15 +1298,19 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 	error_code ecode[2];
 
 	for(i = 0; i < size; i++) {
-		/* debugging */
-		print_stack(tmpstack);
-		print_stack(*rpn);
-
 		stackp = (*rpn)->content[i]; /* shorthand for current stack item */
 		pos = stackp.position; /* shorthand for current error position */
 
 		tmp = 0;
 		tmpstr = tmpexp = NULL;
+
+		/* debugging */
+		if(stackp.tp == number)
+			debug("%" SYNGE_FORMAT "\n", SYNGE_T(stackp.val));
+		else
+			debug("%s\n", stackp.val);
+
+		print_stack(tmpstack);
 
 		switch(stackp.tp) {
 			case number:
@@ -1362,11 +1357,9 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				/* set variable or function */
 				switch(get_op(stackp.val).tp) {
 					case op_var_set:
-						debug("setting variable '%s' -> %" SYNGE_FORMAT "\n", tmpstr, arg[0]);
 						set_variable(tmpstr, arg[0]);
 						break;
 					case op_func_set:
-						debug("setting function '%s' -> '%s'\n", tmpstr, tmpexp);
 						set_function(tmpstr, tmpexp);
 						break;
 					default:
@@ -1668,9 +1661,6 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 				result = malloc(sizeof(synge_t));
 				error_code tmpecode;
-
-				debug("if: '%s' else: '%s'\n", tmpif, tmpelse);
-				debug("doing: %s\n", iszero(arg[0]) ? "else" : "if");
 
 				/* set correct value */
 				if(!iszero(arg[0]))
