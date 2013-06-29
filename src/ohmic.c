@@ -25,6 +25,38 @@
 
 #include "ohmic.h"
 
+typedef struct ohm_node {
+	void *key;
+	int keylen;
+
+	void *value;
+	int valuelen;
+
+	struct ohm_node *next;
+} ohm_node;
+
+struct ohm_t {
+	ohm_node **table;
+	int count;
+	int size;
+	int (*hash)(void *, int, int);
+};
+
+struct ohm_iter {
+	void *key;
+	int keylen;
+
+	void *value;
+	int valuelen;
+
+	struct ohm_iter_internal {
+		ohm_t *hashmap;
+
+		ohm_node *node;
+		int index;
+	} internal;
+};
+
 ohm_t *ohm_init(int size, int (*hash_func)(void *, int, int)) {
 	if(size < 1) return NULL;
 
@@ -368,3 +400,11 @@ int ohm_hash(void *key, int keylen, int size) {
 
 	return hash % size; /* a more poisson distribution method for max range probably exists, oh well. */
 } /* ohm_hash() */
+
+int ohm_count(ohm_t *hm) {
+	return hm->count;
+} /* ohm_count() */
+
+int ohm_size(ohm_t *hm) {
+	return hm->size;
+} /* ohm_size() */
