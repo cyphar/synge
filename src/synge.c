@@ -1995,9 +1995,9 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	static int depth = -1;
 	assert(synge_started);
 
-	if(variable_list->count > variable_list->size)
+	if(ohm_count(variable_list) > ohm_size(variable_list))
 		/* "dynamically" resize hashmap to keep efficiency up */
-		variable_list = ohm_resize(variable_list, variable_list->size * 2);
+		variable_list = ohm_resize(variable_list, ohm_size(variable_list) * 2);
 
 	ohm_t *backup_var = ohm_dup(variable_list);
 	ohm_t *backup_func = ohm_dup(function_list);
