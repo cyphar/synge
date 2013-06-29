@@ -27,6 +27,28 @@
 
 #include "linked.h"
 
+typedef struct link_node {
+	void *content;
+	int contentlen;
+
+	struct link_node *prev;
+	struct link_node *next;
+} link_node;
+
+struct link_t {
+	link_node *chain;
+	int length;
+};
+
+struct link_iter {
+	void *content;
+
+	struct link_iter_internal {
+		link_t *link;
+		link_node *node;
+	} internal;
+};
+
 static void *pop_container = NULL;
 
 link_t *link_init(void) {
@@ -234,6 +256,10 @@ int link_shorten(link_t *link, int num) {
 	return 0;
 } /* link_shorten() */
 
+int link_length(link_t *link) {
+	return link->length;
+} /* link_length() */
+
 link_iter *link_iter_init(link_t *link) {
 	if(!link)
 		return NULL;
@@ -269,3 +295,7 @@ void link_iter_free(link_iter *iter) {
 	/* wrapper to free iterator */
 	free(iter);
 } /* link_iter_free() */
+
+void *link_iter_content(link_iter *iter) {
+	return iter->content;
+} /* link_iter_content() */
