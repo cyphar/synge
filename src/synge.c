@@ -1840,7 +1840,7 @@ char *get_trace(link_t *link) {
 	int len = 0;
 	do {
 		/* get current function traceback information */
-		current = (char *) ii->content;
+		current = (char *) link_iter_content(ii);
 		if(!current)
 			continue;
 
