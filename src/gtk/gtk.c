@@ -209,7 +209,7 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 
 #ifdef __DEBUG__
 		g_print("selected expression is: %s\n", value);
-		printf("'%s' => %d\n", value, strlen(value));
+		printf("'%s' => %d\n", value, (int) strlen(value));
 #endif
 
 		char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + strlen(value) + 1) * sizeof(char));
