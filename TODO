@@ -1,23 +1,24 @@
 Things to fix/implement:
 
-  ALL:
-   + Documentation
-   * Replace as many hardcoded comparisons with structs
-   * General code clean-up (especially tokenisation & evaluation code)
+ALL:
++ Documentation
+* Replace as many hardcoded comparisons with structs
+* General code clean-up (especially tokenisation & evaluation code)
 
-  SYNGE:
-   + Add bignum support
-   + Multiple evaluations per line (a=1;a+2;a=a+1;a)
-   + Functions to:
-	- Get factors of a number
-   * Refactor helper functions
+SYNGE:
++ Add bignum support
++ Multiple evaluations per line (a=1;a+2;a=a+1;a)
++ Functions to:
+  - Get factors of a number
+* Refactor helper functions
+* Move implied parsing to a parsing function
 
-  CLI:
-   + Getopt command line options for cli
-   + Add help page
+CLI:
++ Getopt command line options for cli
++ Add help page
 
-  GTK:
-   * (Better) GTK+ interface
+GTK:
+* (Better) GTK+ interface
 
-  TESTS:
-   * Add more tests
+TESTS:
+* Add more tests
