@@ -29,11 +29,14 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <stack.h>
 #include <synge.h>
+#include <version.h>
 #include <definitions.h>
 
 #include "xmlui.h" /* generated header to bake the gtk_builder xml string */
+
+#define true 1
+#define false 0
 
 #ifndef __SYNGE_GTK_VERSION__
 #	define __SYNGE_GTK_VERSION__ ""
@@ -76,22 +79,22 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	isout = true;
 	iserr = false;
 
-	if((ecode = compute_infix_string(text, &result)).code != SUCCESS && !ignore_code(ecode.code)) {
+	if((ecode = synge_compute_string(text, &result)).code != SUCCESS && !synge_is_ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), FALSE);
 
-		char *markup = g_markup_printf_escaped("<b><span color=\"%s\">%s</span></b>", is_success_code(ecode.code) ? "#008800" : "red", get_error_msg(ecode));
+		char *markup = g_markup_printf_escaped("<b><span color=\"%s\">%s</span></b>", synge_is_success_code(ecode.code) ? "#008800" : "red", synge_error_msg(ecode));
 		gtk_label_set_markup(GTK_LABEL(statusbar), markup);
 		gtk_label_set_text(GTK_LABEL(output), "");
 
 		g_free(markup);
 
-		iserr = !is_success_code(ecode.code);
+		iserr = !synge_is_success_code(ecode.code);
 	}
-	else if(!ignore_code(ecode.code)) {
+	else if(!synge_is_ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), TRUE);
 
-		char *outputs = malloc((snprintf(NULL, 0, "%.*" SYNGE_FORMAT, get_precision(result), result) + 1) * sizeof(char));
-		sprintf(outputs, "%.*" SYNGE_FORMAT, get_precision(result), result);
+		char *outputs = malloc((snprintf(NULL, 0, "%.*" SYNGE_FORMAT, synge_get_precision(result), result) + 1) * sizeof(char));
+		sprintf(outputs, "%.*" SYNGE_FORMAT, synge_get_precision(result), result);
 
 		char *markup = g_markup_printf_escaped("<b>%s</b>", outputs);
 		gtk_label_set_markup(GTK_LABEL(output), markup);
@@ -146,7 +149,7 @@ __EXPORT_SYMBOL void gui_about_popup(GtkWidget *widget, gpointer data) {
 } /* gui_about_popup() */
 
 __EXPORT_SYMBOL void gui_toggle_mode(GtkWidget *widget, gpointer data) {
-	synge_settings new = get_synge_settings();
+	synge_settings new = synge_get_settings();
 	switch(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		case TRUE:
 			if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "degrees")) new.mode = degrees;
@@ -157,7 +160,7 @@ __EXPORT_SYMBOL void gui_toggle_mode(GtkWidget *widget, gpointer data) {
 			else if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "radians")) new.mode = degrees;
 			break;
 	}
-	set_synge_settings(new);
+	synge_set_settings(new);
 } /* gui_toggle_mode() */
 
 __EXPORT_SYMBOL void gui_open_function_list(GtkWidget *widget, gpointer data) {
@@ -172,7 +175,7 @@ __EXPORT_SYMBOL void gui_populate_function_list(void) {
 	GtkTreeIter iter;
 	GtkListStore *func_store;
 	GtkCellRenderer *cell;
-	function *tmp_function_list = get_synge_function_list();
+	function *tmp_function_list = synge_get_function_list();
 
 	func_store = gtk_list_store_new(FUNCL_N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(func_tree), GTK_TREE_MODEL(func_store));

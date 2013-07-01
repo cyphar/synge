@@ -122,11 +122,11 @@ void cli_print_list(char *s) {
 	char *args = strchr(s, ' ') + 1;
 	int i;
 	if(!strcmp(args, "functions")) {
-		function *function_list = get_synge_function_list();
+		function *function_list = synge_get_function_list();
 		for(i = 0; function_list[i].name != NULL; i++)
 			printf("%s%*s - %s%s\n", ANSI_INFO, 10, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
 	}
-	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 } /* cli_print_list() */
 
 #define intlen(number) (int) (number ? floor(log10(abs(number))) + 1 : 1) /* magical math hack to get number of digits in an integer */
@@ -148,7 +148,7 @@ char *itoa(int i) {
 } /* itoa() */
 
 void cli_print_settings(char *s) {
-	synge_settings current_settings = get_synge_settings();
+	synge_settings current_settings = synge_get_settings();
 	char *args = strchr(s, ' ') + 1, *ret = NULL, *tmpfree = NULL;
 
 	/* should be replaced with a struct lookup */
@@ -193,14 +193,14 @@ void cli_print_settings(char *s) {
 	}
 
 	if(!ret)
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 	else printf("%s%s%s\n", ANSI_INFO, ret, ANSI_CLEAR);
 
 	free(tmpfree);
 } /* cli_print_settings() */
 
 void cli_set_settings(char *s) {
-	synge_settings new_settings = get_synge_settings();
+	synge_settings new_settings = synge_get_settings();
 	char *args = strchr(s, ' ') + 1;
 	char *val = strchr(args, ' ') + 1;
 	bool err = false;
@@ -243,9 +243,9 @@ void cli_set_settings(char *s) {
 	else err = true;
 
 	if(err)
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, get_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 	else {
-		set_synge_settings(new_settings);
+		synge_set_settings(new_settings);
 
 		char *tmp = malloc(strlen(s) + 1);
 		strcpy(tmp, s);
@@ -412,13 +412,13 @@ int main(int argc, char **argv) {
 				if(!tmp.exec) break; /* command is to exit */
 				tmp.exec(cur_str);
 			}
-			else if((ecode = compute_infix_string(cur_str, &result)).code != SUCCESS) {
+			else if((ecode = synge_compute_string(cur_str, &result)).code != SUCCESS) {
 				if(ecode.code == EMPTY_STACK)
 					continue;
-				else if(!ignore_code(ecode.code))
-					printf("%s%s%s%s\n", OUTPUT_PADDING, is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, get_error_msg(ecode), ANSI_CLEAR);
+				else if(!synge_is_ignore_code(ecode.code))
+					printf("%s%s%s%s\n", OUTPUT_PADDING, synge_is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, synge_error_msg(ecode), ANSI_CLEAR);
 			}
-			else printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, get_precision(result), result, ANSI_CLEAR);
+			else printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
 #ifndef __WIN32
 			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
 #endif
