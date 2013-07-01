@@ -31,6 +31,7 @@
 
 #include "stack.h"
 #include "synge.h"
+#include "internal.h"
 #include "ohmic.h"
 #include "linked.h"
 
@@ -41,6 +42,7 @@
  * 1 Addition, Subtraction (left associative)
  */
 
+#define SYNGE_MAIN		"<main>"
 #define SYNGE_EPSILON		10e-14
 #define SYNGE_MAX_PRECISION	13
 #define SYNGE_MAX_DEPTH		2048
@@ -169,11 +171,6 @@ static function func_list[] = {
 	{NULL,		NULL,		NULL,		NULL}
 };
 
-typedef struct __function_alias__ {
-	char *alias;
-	char *function;
-} function_alias;
-
 static function_alias alias_list[] = {
 	{"asinh",	"sinhi"},
 	{"acosh",	"coshi"},
@@ -183,11 +180,6 @@ static function_alias alias_list[] = {
 	{"atan",	 "tani"},
 	{NULL,		   NULL},
 };
-
-typedef struct __special_number__ {
-	char *name;
-	synge_t value;
-} special_number;
 
 static ohm_t *variable_list = NULL;
 static ohm_t *function_list = NULL;
@@ -204,62 +196,6 @@ static special_number constant_list[] = {
 	{SYNGE_PREV_ANSWER,			0.0},
 	{NULL,					0.0},
 };
-
-typedef struct operator {
-	char *str;
-	enum {
-		op_add,
-		op_subtract,
-		op_multiply,
-		op_divide,
-		op_int_divide,
-		op_modulo,
-		op_index,
-
-		op_lparen,
-		op_rparen,
-
-		op_gt,
-		op_gteq,
-		op_lt,
-		op_lteq,
-		op_neq,
-		op_eq,
-
-		op_band,
-		op_bor,
-		op_bxor,
-		op_bshiftl,
-		op_bshiftr,
-
-		op_if,
-		op_else,
-
-		op_var_set,
-		op_func_set,
-		op_del,
-
-		op_ca_add,
-		op_ca_subtract,
-		op_ca_multiply,
-		op_ca_divide,
-		op_ca_int_divide,
-		op_ca_modulo,
-		op_ca_index,
-
-		op_ca_band,
-		op_ca_bor,
-		op_ca_bxor,
-		op_ca_bshiftl,
-		op_ca_bshiftr,
-
-		op_ca_increment,
-		op_ca_decrement,
-
-		op_none
-	} tp;
-} operator;
-
 /* used for when a (char *) is needed, but needn't be freed */
 static operator op_list[] = {
 	{"+",	op_add},
@@ -321,34 +257,6 @@ static operator op_list[] = {
 	/* null terminator */
 	{NULL,	op_none}
 };
-
-/* internal stack types */
-typedef enum __stack_type__ {
-	number,
-
-	setop	=  1,
-	modop	=  2,
-	compop	=  3,
-	bitop	=  4,
-	addop	=  5,
-	multop	=  6,
-	expop	=  7,
-	ifop	=  8,
-	elseop	=  9,
-	delop	= 10,
-
-	/* not treated as operator in parsing */
-	premod,
-	postmod,
-
-	func,
-	userword, /* user function or variable */
-	setword, /* user function or variable to be set */
-	expression, /* saved expression */
-
-	lparen,
-	rparen,
-} s_type;
 
 /* default settings */
 static synge_settings active_settings = {
@@ -513,7 +421,7 @@ char *str_dup(char *s) {
 	return ret;
 } /* str_dup() */
 
-int get_precision(synge_t num) {
+int synge_get_precision(synge_t num) {
 	/* use the current settings' precision if given */
 	if(active_settings.precision >= 0)
 		return active_settings.precision;
@@ -755,7 +663,7 @@ char *get_expression_level(char *p, char end) {
 				 ((((!isnumword(top_stack(stack)->tp) && !iscreop(top_stack(stack)->val)) || !isaddop(str))) && /* a +/- number preceeded by a number is not a number */ \
 	 			 (top_stack(stack)->tp != rparen || (!isaddop(str) && !iscreop(top_stack(stack)->val)))))) /* a +/- number preceeded by a ')' is not a number */
 
-error_code tokenise_string(char *string, stack **infix_stack) {
+error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started);
 	char *s = function_process_replace(string);
 
@@ -1042,7 +950,7 @@ error_code tokenise_string(char *string, stack **infix_stack) {
 	print_stack(*infix_stack);
 
 	return to_error_code(SUCCESS, -1);
-} /* tokenise_string() */
+} /* synge_tokenise_string() */
 
 bool op_precedes(s_type op1, s_type op2) {
 	/* returns true if:
@@ -1076,7 +984,7 @@ bool op_precedes(s_type op1, s_type op2) {
 } /* op_precedes() */
 
 /* my implementation of Dijkstra's really cool shunting-yard algorithm */
-error_code shunting_yard_parse(stack **infix_stack, stack **rpn_stack) {
+error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 	s_content stackp, *tmpstackp;
 	stack *op_stack = malloc(sizeof(stack));
 
@@ -1228,48 +1136,45 @@ synge_t rad_to_settings(synge_t in) {
 } /* rad_to_settings() */
 
 error_code eval_word(char *str, int pos, synge_t *result) {
-	int tmp = 0;
-
 	/* is it a legitamate variable or function? */
-	if((ohm_search(variable_list, str, strlen(str) + 1) &&  (tmp = 1)) ||
-	   (ohm_search(function_list, str, strlen(str) + 1) && !(tmp = 0))) {
+	if(ohm_search(variable_list, str, strlen(str) + 1)) {
+		/* variable */
+		*result = SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1));
+	}
+	else if(ohm_search(function_list, str, strlen(str) + 1)) {
 
-		if(tmp) {
-			/* variable */
-			*result = SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1));
-		} else {
-			/* function */
-			/* recursively evaluate a user function's value */
-			char *expression = ohm_search(function_list, str, strlen(str) + 1);
-			error_code tmpecode = internal_compute_infix_string(expression, result, str, pos);
+		/* function */
+		/* recursively evaluate a user function's value */
+		char *expression = ohm_search(function_list, str, strlen(str) + 1);
+		error_code tmpecode = synge_internal_compute_string(expression, result, str, pos);
 
-			/* error was encountered */
-			if(!is_success_code(tmpecode.code)) {
-				if(active_settings.error == traceback)
-					/* return real error code for traceback */
-					return tmpecode;
-				else
-					/* return relative error code for all other error formats */
-					return to_error_code(tmpecode.code, pos);
-			}
+		/* error was encountered */
+		if(!synge_is_success_code(tmpecode.code)) {
+			if(active_settings.error == traceback)
+				/* return real error code for traceback */
+				return tmpecode;
+			else
+				/* return relative error code for all other error formats */
+				return to_error_code(tmpecode.code, pos);
 		}
-
-		/* is the result a nan? */
-		if(*result != *result)
-			return to_error_code(UNDEFINED, pos);
-	} else {
+	}
+	else {
 		/* unknown variable or function */
 		return to_error_code(UNKNOWN_TOKEN, pos);
 	}
+
+	/* is the result a nan? */
+	if(*result != *result)
+		return to_error_code(UNDEFINED, pos);
 
 	return to_error_code(SUCCESS, -1);
 } /* eval_word() */
 
 error_code eval_expression(char *exp, char *caller, int pos, synge_t *result) {
-	error_code ret = internal_compute_infix_string(exp, result, caller, pos);
+	error_code ret = synge_internal_compute_string(exp, result, caller, pos);
 
 	/* error was encountered */
-	if(!is_success_code(ret.code)) {
+	if(!synge_is_success_code(ret.code)) {
 		if(active_settings.error == traceback)
 			/* return real error code for traceback */
 			return ret;
@@ -1281,8 +1186,8 @@ error_code eval_expression(char *exp, char *caller, int pos, synge_t *result) {
 	return to_error_code(SUCCESS, -1);
 }
 
-/* evaluate a rpn stack */
-error_code eval_rpnstack(stack **rpn, synge_t *output) {
+/* evaluate an rpn stack */
+error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 	stack *tmpstack = malloc(sizeof(stack));
 	init_stack(tmpstack);
 
@@ -1375,7 +1280,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				/* evaulate and push the value of set word */
 				result = malloc(sizeof(synge_t));
 				ecode[0] = eval_word(tmpstr, pos, result);
-				if(!is_success_code(ecode[0].code)) {
+				if(!synge_is_success_code(ecode[0].code)) {
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
@@ -1573,7 +1478,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				ecode[1] = del_word(tmpstr, pos);
 
 				/* delete error check */
-				if(!is_success_code(ecode[1].code)) {
+				if(!synge_is_success_code(ecode[1].code)) {
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
@@ -1581,7 +1486,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				}
 
 				/* eval error check */
-				if(!is_success_code(ecode[0].code)) {
+				if(!synge_is_success_code(ecode[0].code)) {
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
@@ -1598,7 +1503,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				result = malloc(sizeof(synge_t));
 
 				ecode[0] = eval_word(tmpstr, pos, result);
-				if(!is_success_code(ecode[0].code)) {
+				if(!synge_is_success_code(ecode[0].code)) {
 					free(result);
 					free_stackm(&tmpstack, rpn);
 					return ecode[0];
@@ -1673,7 +1578,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 				free(tmpif);
 				free(tmpelse);
 
-				if(!is_success_code(tmpecode.code)) {
+				if(!synge_is_success_code(tmpecode.code)) {
 					free(result);
 					free_stackm(&tmpstack, rpn);
 					return tmpecode;
@@ -1821,7 +1726,7 @@ error_code eval_rpnstack(stack **rpn, synge_t *output) {
 
 	free_stackm(&tmpstack, rpn);
 	return to_error_code(SUCCESS, -1);
-} /* eval_rpnstack() */
+} /* synge_eval_rpnstack() */
 
 char *get_trace(link_t *link) {
 	char *ret = str_dup(""), *current = NULL;
@@ -1845,7 +1750,7 @@ char *get_trace(link_t *link) {
 	return ret;
 } /* get_trace() */
 
-char *get_error_tp(error_code error) {
+char *get_error_type(error_code error) {
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
 		case MODULO_BY_ZERO:
@@ -1878,9 +1783,9 @@ char *get_error_tp(error_code error) {
 
 	}
 	return "IHaveNoIdea";
-}
+} /* get_error_type() */
 
-char *get_error_msg(error_code error) {
+char *synge_error_msg(error_code error) {
 	char *msg = NULL;
 
 	/* get correct printf string */
@@ -1951,11 +1856,11 @@ char *get_error_msg(error_code error) {
 	/* allocates memory and sets error_msg_container to correct (printf'd) string */
 	switch(active_settings.error) {
 		case traceback:
-			if(!is_success_code(error.code)) {
+			if(!synge_is_success_code(error.code)) {
 				char *fulltrace = get_trace(traceback_list);
 
-				trace = malloc(lenprintf(SYNGE_TRACEBACK_FORMAT, fulltrace, get_error_tp(error), msg));
-				sprintf(trace, SYNGE_TRACEBACK_FORMAT, fulltrace, get_error_tp(error), msg);
+				trace = malloc(lenprintf(SYNGE_TRACEBACK_FORMAT, fulltrace, get_error_type(error), msg));
+				sprintf(trace, SYNGE_TRACEBACK_FORMAT, fulltrace, get_error_type(error), msg);
 
 				free(fulltrace);
 			}
@@ -1977,11 +1882,11 @@ char *get_error_msg(error_code error) {
 	return error_msg_container;
 } /* get_error_msg() */
 
-char *get_error_msg_pos(int code, int pos) {
-	return get_error_msg(to_error_code(code, pos));
+char *synge_error_msg_pos(int code, int pos) {
+	return synge_error_msg(to_error_code(code, pos));
 } /* get_error_msg_pos() */
 
-error_code internal_compute_infix_string(char *original_str, synge_t *result, char *caller, int position) {
+error_code synge_internal_compute_string(char *original_str, synge_t *result, char *caller, int position) {
 	static int depth = -1;
 	assert(synge_started);
 
@@ -2034,17 +1939,15 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	char *final_pass_str = str_dup(original_str);
 	char *string = final_pass_str;
 
-	if(ecode.code == SUCCESS) {
-		/* generate infix stack */
-		if((ecode = tokenise_string(string, &infix_stack)).code == SUCCESS)
-			/* convert to postfix (or RPN) stack */
-			if((ecode = shunting_yard_parse(&infix_stack, &rpn_stack)).code == SUCCESS)
-				/* evaluate postfix (or RPN) stack */
-				if((ecode = eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
-					/* fix up negative zeros */
-					if(*result == abs(*result))
-						*result = abs(*result);
-	}
+	/* generate infix stack */
+	if((ecode = synge_tokenise_string(string, &infix_stack)).code == SUCCESS)
+		/* convert to postfix (or RPN) stack */
+		if((ecode = synge_infix_parse(&infix_stack, &rpn_stack)).code == SUCCESS)
+			/* evaluate postfix (or RPN) stack */
+			if((ecode = synge_eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
+				/* fix up negative zeros */
+				if(iszero(*result))
+					*result = abs(*result);
 
 	/* measure depth, not length */
 	depth--;
@@ -2054,13 +1957,13 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 		ecode = to_error_code(UNDEFINED, -1);
 
 	/* if some error occured, revert variables and functions back to a previous state */
-	if(!is_success_code(ecode.code) && !ignore_code(ecode.code)) {
+	if(!synge_is_success_code(ecode.code) && !synge_is_ignore_code(ecode.code)) {
 		ohm_cpy(variable_list, backup_var);
 		ohm_cpy(function_list, backup_func);
 	}
 
 	/* FINALLY, set the answer variable */
-	if(is_success_code(ecode.code)) {
+	if(synge_is_success_code(ecode.code)) {
 		set_special_number(SYNGE_PREV_ANSWER, *result, constant_list);
 		/* and remove last item from traceback - no errors occured */
 		link_pend(traceback_list);
@@ -2073,13 +1976,18 @@ error_code internal_compute_infix_string(char *original_str, synge_t *result, ch
 	free(final_pass_str);
 	free_stackm(&infix_stack, &rpn_stack);
 	return ecode;
-} /* internal_calculate_infix_string() */
+} /* synge_internal_compute_string() */
 
-synge_settings get_synge_settings(void) {
+/* wrapper for above function */
+error_code synge_compute_string(char *expression, synge_t *result) {
+	return synge_internal_compute_string(expression, result, SYNGE_MAIN, 0);
+} /* synge_compute_string() */
+
+synge_settings synge_get_settings(void) {
 	return active_settings;
 } /* get_synge_settings() */
 
-void set_synge_settings(synge_settings new_settings) {
+void synge_set_settings(synge_settings new_settings) {
 	active_settings = new_settings;
 
 	/* sanitise precision */
@@ -2087,7 +1995,7 @@ void set_synge_settings(synge_settings new_settings) {
 		active_settings.precision = SYNGE_MAX_PRECISION;
 } /* set_synge_settings() */
 
-function *get_synge_function_list(void) {
+function *synge_get_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
@@ -2132,14 +2040,14 @@ void synge_reset_traceback(void) {
 	free(tmp);
 } /* synge_reset_traceback() */
 
-int is_success_code(int code) {
+int synge_is_success_code(int code) {
 	if(code == SUCCESS)
 		return true;
 	else
 		return false;
 } /* is_success_code() */
 
-int ignore_code(int code) {
+int synge_is_ignore_code(int code) {
 	if(code == EMPTY_STACK ||
 	   code == ERROR_FUNC_ASSIGNMENT ||
 	   code == ERROR_DELETE)

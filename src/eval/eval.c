@@ -64,7 +64,7 @@ synge_settings test_settings;
 int skip_ignorable = 1;
 
 void bake_args(int argc, char ***argv) {
-	test_settings = get_synge_settings();
+	test_settings = synge_get_settings();
 
 	int i;
 	for(i = 1; i < argc; i++) {
@@ -96,7 +96,7 @@ void bake_args(int argc, char ***argv) {
 		}
 	}
 
-	set_synge_settings(test_settings);
+	synge_set_settings(test_settings);
 } /* bake_args() */
 
 int main(int argc, char **argv) {
@@ -111,13 +111,13 @@ int main(int argc, char **argv) {
 	int i;
 	for(i = 1; i < argc; i++) {
 		if(!argv[i]) continue;
-		ecode = compute_infix_string(argv[i], &result);
+		ecode = synge_compute_string(argv[i], &result);
 
-		if(skip_ignorable && ignore_code(ecode.code)) continue;
+		if(skip_ignorable && synge_is_ignore_code(ecode.code)) continue;
 		else if(ecode.code != SUCCESS)
-			printf("%s\n", get_error_msg(ecode));
+			printf("%s\n", synge_error_msg(ecode));
 		else
-			printf("%.*" SYNGE_FORMAT "\n", get_precision(result), result);
+			printf("%.*" SYNGE_FORMAT "\n", synge_get_precision(result), result);
 	}
 
 	synge_end();

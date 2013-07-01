@@ -23,7 +23,6 @@
 #ifndef __SYNGE_H__
 #define __SYNGE_H__
 
-#define SYNGE_MAIN "<main>"
 #define SYNGE_FORMAT "Lf"
 
 typedef long double synge_t;
@@ -89,20 +88,20 @@ typedef struct __function__ {
 	char *description;
 } function;
 
-int get_precision(synge_t); /* returns minimum decimal precision needed to print number */
+int synge_get_precision(synge_t); /* returns minimum decimal precision needed to print number */
 
-synge_settings get_synge_settings(void); /* returns active settings */
-function *get_synge_function_list(void); /* returns list of available functions */
-void set_synge_settings(synge_settings); /* set active settings to given settings */
+synge_settings synge_get_settings(void); /* returns active settings */
+void synge_set_settings(synge_settings); /* set active settings to given settings */
 
-char *get_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
-char *get_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
+function *synge_get_function_list(void); /* returns list of available functions */
 
-error_code internal_compute_infix_string(char *, synge_t *, char *, int); /* takes an infix-style string and runs it through the "engine" */
-#define compute_infix_string(...) internal_compute_infix_string(__VA_ARGS__, SYNGE_MAIN, 0) 
+char *synge_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
+char *synge_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
 
-int is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
-int ignore_code(int); /* returns true if the return code and result should be ignored, otherwise false */
+error_code synge_compute_string(char *, synge_t *); /* takes an infix-style string and runs it through the "engine" */
+
+int synge_is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
+int synge_is_ignore_code(int); /* returns true if the return code and result should be ignored, otherwise false */
 
 void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
 void synge_end(void); /* run at program termination -- memory WILL leak if not run at end */
