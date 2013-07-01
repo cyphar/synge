@@ -28,13 +28,13 @@ typedef struct ohm_t ohm_t;
 typedef struct ohm_iter ohm_iter;
 
 /* basic hashmap functionality */
-ohm_t *ohm_init(int size, int (*)(void *, int, int));
+ohm_t *ohm_init(int, int (*)(void *, size_t));
 void ohm_free(ohm_t *);
 
-void *ohm_search(ohm_t *, void *, int);
+void *ohm_search(ohm_t *, void *, size_t);
 
-void *ohm_insert(ohm_t *, void *, int, void *, int);
-int ohm_remove(ohm_t *, void *, int);
+void *ohm_insert(ohm_t *, void *, size_t, void *, size_t);
+int ohm_remove(ohm_t *, void *, size_t);
 
 ohm_t *ohm_resize(ohm_t *, int);
 
@@ -53,6 +53,6 @@ int ohm_count(ohm_t *hm);
 int ohm_size(ohm_t *hm);
 
 /* default hashing function (modulo of djb2 hash -- not reccomended) */
-int ohm_hash(void *, int, int);
+int ohm_hash(void *, size_t);
 
 #endif /* __OHMIC_H__ */

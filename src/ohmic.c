@@ -27,10 +27,10 @@
 
 typedef struct ohm_node {
 	void *key;
-	int keylen;
+	size_t keylen;
 
 	void *value;
-	int valuelen;
+	size_t valuelen;
 
 	struct ohm_node *next;
 } ohm_node;
@@ -39,15 +39,15 @@ struct ohm_t {
 	ohm_node **table;
 	int count;
 	int size;
-	int (*hash)(void *, int, int);
+	int (*hash)(void *, size_t);
 };
 
 struct ohm_iter {
 	void *key;
-	int keylen;
+	size_t keylen;
 
 	void *value;
-	int valuelen;
+	size_t valuelen;
 
 	struct ohm_iter_internal {
 		ohm_t *hashmap;
@@ -57,8 +57,9 @@ struct ohm_iter {
 	} internal;
 };
 
-ohm_t *ohm_init(int size, int (*hash_func)(void *, int, int)) {
-	if(size < 1) return NULL;
+ohm_t *ohm_init(int size, int (*hash_func)(void *, size_t)) {
+	if(size < 1)
+		return NULL;
 
 	/* set default hash function, if none given */
 	if(!hash_func)
@@ -84,7 +85,8 @@ ohm_t *ohm_init(int size, int (*hash_func)(void *, int, int)) {
 } /* ohm_init() */
 
 void ohm_free(ohm_t *hashmap) {
-	if(!hashmap) return;
+	if(!hashmap)
+		return;
 
 	ohm_node *current_node, *parent_node;
 
@@ -111,11 +113,12 @@ void ohm_free(ohm_t *hashmap) {
 	free(hashmap);
 } /* ohm_free() */
 
-void *ohm_search(ohm_t *hashmap, void *key, int keylen) {
-	if(!key || keylen < 1) return NULL;
+void *ohm_search(ohm_t *hashmap, void *key, size_t keylen) {
+	if(!key || keylen < 1)
+		return NULL;
 
 	/* get hash index */
-	int index = hashmap->hash(key, keylen, hashmap->size);
+	int index = hashmap->hash(key, keylen) % hashmap->size;
 	if(index < 0 || !hashmap->table[index])
 		return NULL;
 
@@ -137,12 +140,14 @@ void *ohm_search(ohm_t *hashmap, void *key, int keylen) {
 	return NULL; /* nothing found */
 } /* ohm_search() */
 
-void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuelen) {
-	if(!key || keylen < 1 || !value || valuelen < 1) return NULL;
+void *ohm_insert(ohm_t *hashmap, void *key, size_t keylen, void *value, size_t valuelen) {
+	if(!key || keylen < 1 || !value || valuelen < 1)
+		return NULL;
 
 	/* get hash index */
-	int index = hashmap->hash(key, keylen, hashmap->size);
-	if(index < 0) return NULL;
+	int index = hashmap->hash(key, keylen) % hashmap->size;
+	if(index < 0)
+		return NULL;
 
 	/* initialise start point for key search */
 	ohm_node *parent_node = NULL, *current_node;
@@ -198,12 +203,14 @@ void *ohm_insert(ohm_t *hashmap, void *key, int keylen, void *value, int valuele
 	return current_node->value;
 } /* ohm_insert() */
 
-int ohm_remove(ohm_t *hashmap, void *key, int keylen) {
-	if(!key || keylen < 1) return 1;
+int ohm_remove(ohm_t *hashmap, void *key, size_t keylen) {
+	if(!key || keylen < 1)
+		return 1;
 
 	/* get hash index */
-	int index = hashmap->hash(key, keylen, hashmap->size);
-	if(index < 0) return 1;
+	int index = hashmap->hash(key, keylen) % hashmap->size;
+	if(index < 0)
+		return 1;
 
 	/* initialise start point for key search */
 	ohm_node *parent_node = NULL, *current_node;
@@ -242,7 +249,8 @@ int ohm_remove(ohm_t *hashmap, void *key, int keylen) {
 } /* ohm_remove() */
 
 ohm_t *ohm_resize(ohm_t *old_hm, int size) {
-	if(!old_hm || size < 1) return NULL;
+	if(!old_hm || size < 1)
+		return NULL;
 
 	/* initialise the iterables */
 	ohm_t *new_hm = ohm_init(size, old_hm->hash);
@@ -272,7 +280,8 @@ ohm_iter ohm_iter_init(ohm_t *hashmap) {
 
 /* depth-first node incrementor */
 void ohm_iter_inc(ohm_iter *i) {
-	if(!i) return;
+	if(!i)
+		return;
 
 	/* get current node and index information */
 	ohm_t *hashmap = i->internal.hashmap;
@@ -389,16 +398,17 @@ void ohm_cpy(ohm_t *to_hm, ohm_t *from_hm) {
 } /* ohm_cpy() */
 
 /* the djb2 hashing algorithm by Dan Bernstein */
-int ohm_hash(void *key, int keylen, int size) {
-	if(!key || keylen < 1 || size < 1) return -1;
+int ohm_hash(void *key, size_t keylen) {
+	if(!key || keylen < 1)
+		return -1;
 
-	unsigned int hash = 5381;
+	int hash = 5381;
 	char c, *k = (char *) key;
 
 	while((c = *k++))
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-	return hash % size; /* a more poisson distribution method for max range probably exists, oh well. */
+	return abs(hash); /* a more poisson distribution method for max range probably exists, oh well. */
 } /* ohm_hash() */
 
 int ohm_count(ohm_t *hm) {
