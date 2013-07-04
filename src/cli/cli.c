@@ -406,21 +406,34 @@ int main(int argc, char **argv) {
 #endif
 
 		if(cur_str && strlen(cur_str) && count) {
+
+			/* input is cli wrapper command */
 			if(cli_is_command(cur_str)) {
 				synge_reset_traceback();
 				cli_command tmp = cli_get_command(cur_str);
-				if(!tmp.exec) break; /* command is to exit */
+
+				if(!tmp.exec)
+					break; /* command is to exit */
+
 				tmp.exec(cur_str);
 			}
+			/* computation yielded error */
 			else if((ecode = synge_compute_string(cur_str, &result)).code != SUCCESS) {
+
+				/* do not add history for empty stack errors */
 				if(ecode.code == EMPTY_STACK)
 					continue;
+
+				/* if there is some form of non-ignorable return code, print it */
 				else if(!synge_is_ignore_code(ecode.code))
 					printf("%s%s%s%s\n", OUTPUT_PADDING, synge_is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, synge_error_msg(ecode), ANSI_CLEAR);
-			}
-			else printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
+			} else
+				/* otherwise, print the result of the computation*/
+				printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
+
 #ifndef __WIN32
-			history(cli_history, &cli_ev, H_ENTER, cur_str); /* add input to history */
+			/* add input to history */
+			history(cli_history, &cli_ev, H_ENTER, cur_str);
 #endif
 		}
 #ifdef __WIN32
