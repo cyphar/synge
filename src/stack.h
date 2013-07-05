@@ -23,8 +23,6 @@
 #ifndef __SYNGE_STACK_H__
 #define __SYNGE_STACK_H__
 
-#include <stdbool.h>
-
 /* stack types */
 
 typedef struct __stack_content__ {

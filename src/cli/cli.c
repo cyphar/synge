@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <strings.h>
 #include <math.h>
@@ -67,18 +66,6 @@
 #endif
 
 #define OUTPUT_PADDING	""
-
-#ifndef __SYNGE_CLI_VERSION__
-#	define __SYNGE_CLI_VERSION__ ""
-#endif
-
-#ifndef __SYNGE_SAFE__
-#	define __SYNGE_SAFE__ 1
-#endif
-
-#ifndef __SYNGE_GIT_VERSION__
-#	define __SYNGE_GIT_VERSION__ ""
-#endif
 
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
 			"Copyright (C) 2013 Cyphar\n" \

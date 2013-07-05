@@ -35,18 +35,7 @@
 
 #include "xmlui.h" /* generated header to bake the gtk_builder xml string */
 
-#define true 1
-#define false 0
-
-#ifndef __SYNGE_GTK_VERSION__
-#	define __SYNGE_GTK_VERSION__ ""
-#endif
-
-#ifndef __SYNGE_GIT_VERSION__
-#	define __SYNGE_GIT_VERSION__ "unknown"
-#endif
-
-#ifdef _WIN32
+#ifdef __WIN32
 #	define __EXPORT_SYMBOL __declspec(dllexport)
 #else
 #	define __EXPORT_SYMBOL

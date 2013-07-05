@@ -25,6 +25,12 @@
 
 #define SYNGE_FORMAT "Lf"
 
+#if !defined(true) || !defined(false) || !defined(bool)
+#	define bool int
+#	define true 1
+#	define false 0
+#endif
+
 typedef long double synge_t;
 
 typedef struct {

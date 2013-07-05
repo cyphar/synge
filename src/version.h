@@ -39,4 +39,8 @@
 #define __SYNGE_EVAL_VERSION__ 		"1.0.2"	 /* ANSI string */
 #define B__SYNGE_EVAL_VERSION__ 	 1,0,2,0 /* binary (for resources) */
 
+#ifndef __SYNGE_SAFE__
+#	define __SYNGE_SAFE__ 1
+#endif
+
 #endif /* __SYNGE_VERSION_H__ */
