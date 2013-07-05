@@ -124,7 +124,13 @@ INSTALL_DIR	= $(PREFIX)/bin
 # PRODUCTION SECTION #
 ######################
 
-# Compile "production" engine and wrappers
+# Compile "final" engine and wrappers (w/o git-version)
+final:
+	make $(NAME_CLI) GIT_VERSION=
+	make $(NAME_GTK) GIT_VERSION=
+	make $(NAME_EVAL) GIT_VERSION=
+
+# Compile "production" engine and wrappers (w/ git-version)
 all:
 	make $(NAME_CLI)
 	make $(NAME_GTK)
