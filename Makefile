@@ -74,13 +74,13 @@ EXEC_EVAL	= $(NAME_EVAL)$(EXEC_SUFFIX)
 
 RES_DIR		= res
 
-RC_CLI		= $(RES_DIR)/$(NAME_CLI).rc
-RC_GTK		= $(RES_DIR)/$(NAME_GTK).rc
-RC_EVAL		= $(RES_DIR)/$(NAME_EVAL).rc
+RC_CLI		= $(RES_SDIR)/$(NAME_CLI).rc
+RC_GTK		= $(RES_SDIR)/$(NAME_GTK).rc
+RC_EVAL		= $(RES_SDIR)/$(NAME_EVAL).rc
 
-ICON_CLI	= $(RES_DIR)/$(NAME_CLI).o
-ICON_GTK	= $(RES_DIR)/$(NAME_GTK).o
-ICON_EVAL	= $(RES_DIR)/$(NAME_EVAL).o
+ICON_CLI	= $(RES_SDIR)/$(NAME_CLI).o
+ICON_GTK	= $(RES_SDIR)/$(NAME_GTK).o
+ICON_EVAL	= $(RES_SDIR)/$(NAME_EVAL).o
 
 ifeq ($(OS), Windows_NT)
 	LINK_CLI	+= $(ICON_CLI)
@@ -88,14 +88,23 @@ ifeq ($(OS), Windows_NT)
 	LINK_EVAL	+= $(ICON_EVAL)
 endif
 
+# Source directories
 SRC_DIR		= src
-CLI_DIR		= $(SRC_DIR)/cli
-GTK_DIR		= $(SRC_DIR)/gtk
-EVAL_DIR	= $(SRC_DIR)/eval
+CLI_SDIR	= $(SRC_DIR)/cli
+GTK_SDIR	= $(SRC_DIR)/gtk
+EVAL_SDIR	= $(SRC_DIR)/eval
+
+# Include directories
+INCLUDE_DIR	= include
+CLI_IDIR	= $(INCLUDE_DIR)/cli
+GTK_IDIR	= $(INCLUDE_DIR)/gtk
+EVAL_IDIR	= $(INCLUDE_DIR)/eval
+
+# Test directories
 TEST_DIR	= tests
 
 WARNINGS	= -Wall -Wextra -pedantic -Wno-overlength-strings -Wno-unused-parameter
-SHR_CFLAGS	+= -std=c99 -I$(SRC_DIR)/
+SHR_CFLAGS	+= -std=c99 -I$(INCLUDE_DIR)/
 CLI_CFLAGS	+=
 GTK_CFLAGS	+= `pkg-config --cflags gtk+-2.0`
 EVAL_CFLAGS	+=
@@ -106,16 +115,16 @@ GTK_LFLAGS	+= `pkg-config --libs gtk+-2.0 gmodule-2.0`
 EVAL_LFLAGS	+=
 
 SHR_SRC		+= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c $(SRC_DIR)/linked.c
-CLI_SRC		+= $(CLI_DIR)/cli.c
-GTK_SRC		+= $(GTK_DIR)/gtk.c
-EVAL_SRC	+= $(EVAL_DIR)/eval.c
+CLI_SRC		+= $(CLI_SDIR)/cli.c
+GTK_SRC		+= $(GTK_SDIR)/gtk.c
+EVAL_SRC	+= $(EVAL_SDIR)/eval.c
 
-SHR_DEPS	+= $(SRC_DIR)/stack.h $(SRC_DIR)/synge.h $(SRC_DIR)/ohmic.h $(SRC_DIR)/definitions.h $(SRC_DIR)/version.h
+SHR_DEPS	+= $(INCLUDE_DIR)/stack.h $(INCLUDE_DIR)/synge.h $(INCLUDE_DIR)/ohmic.h $(INCLUDE_DIR)/definitions.h $(INCLUDE_DIR)/version.h
 CLI_DEPS	+=
-GTK_DEPS	+= $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/bakeui.py
+GTK_DEPS	+= $(GTK_SDIR)/xmltemplate.h $(GTK_SDIR)/ui.glade $(GTK_SDIR)/bakeui.py
 EVAL_DEPS	+=
 
-TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_DIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
+TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
 
 PREFIX		?= /usr
 INSTALL_DIR	= $(PREFIX)/bin
@@ -124,17 +133,17 @@ INSTALL_DIR	= $(PREFIX)/bin
 # PRODUCTION SECTION #
 ######################
 
-# Compile "final" engine and wrappers (w/o git-version)
-final:
-	make $(NAME_CLI) GIT_VERSION=
-	make $(NAME_GTK) GIT_VERSION=
-	make $(NAME_EVAL) GIT_VERSION=
-
 # Compile "production" engine and wrappers (w/ git-version)
 all:
 	make $(NAME_CLI)
 	make $(NAME_GTK)
 	make $(NAME_EVAL)
+
+# Compile "final" engine and wrappers (w/o git-version)
+final:
+	make $(NAME_CLI) GIT_VERSION=
+	make $(NAME_GTK) GIT_VERSION=
+	make $(NAME_EVAL) GIT_VERSION=
 
 # Compile "production" engine and command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
@@ -291,7 +300,7 @@ xmlui:
 		false; \
 	else \
 		echo "--- BAKING UI ---"; \
-		$(PYTHON) $(GTK_DIR)/bakeui.py $(GTK_DIR)/xmltemplate.h $(GTK_DIR)/ui.glade $(GTK_DIR)/xmlui.h; \
+		$(PYTHON) $(GTK_SDIR)/bakeui.py $(GTK_SDIR)/xmltemplate.h $(GTK_SDIR)/ui.glade $(GTK_SDIR)/xmlui.h; \
 	fi
 
 ###########################
