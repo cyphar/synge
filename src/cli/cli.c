@@ -352,7 +352,7 @@ char *cli_get_prompt(void *e) {
 
 /* for some reason, this code (when run on Windows) has
  * history and line editing automatically added */
-char *fallback_prompt(int *count) {
+char *cli_fallback_prompt(int *count) {
 	printf("%s", cli_get_prompt(NULL));
 	fflush(stdout);
 
@@ -370,6 +370,19 @@ char *fallback_prompt(int *count) {
 	*count = len;
 	return input;
 } /* fallback_prompt() */
+
+int cli_str_empty(char *str) {
+	int i, len = strlen(str);
+
+	/* go through entire string */
+	for(i = 0; i < len; i++)
+		/* if a character isn't whitepace, gtfo */
+		if(!isspace(str[i]))
+			return false;
+
+	/* string was empty */
+	return true;
+} /* cli_str_empty() */
 
 int main(int argc, char **argv) {
 	synge_start();
@@ -402,10 +415,10 @@ int main(int argc, char **argv) {
 		cur_str = (char *) el_gets(cli_el, &count); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 #else
-		cur_str = fallback_prompt(&count);
+		cur_str = cli_fallback_prompt(&count);
 #endif
 
-		if(cur_str && strlen(cur_str) && count) {
+		if(cur_str && !cli_str_empty(cur_str)) {
 
 			/* input is cli wrapper command */
 			if(cli_is_command(cur_str)) {
