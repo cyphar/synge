@@ -51,14 +51,6 @@
 #include <synge.h>
 #include <definitions.h>
 
-#ifndef __SYNGE_EVAL_VERSION__
-#	define __SYNGE_EVAL_VERSION__ ""
-#endif
-
-#ifndef __SYNGE_GIT_VERSION__
-#	define __SYNGE_GIT_VERSION__ ""
-#endif
-
 synge_settings test_settings;
 
 int skip_ignorable = 1;
