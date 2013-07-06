@@ -25,7 +25,7 @@
 
 #include "ohmic.h"
 
-typedef struct ohm_node {
+struct ohm_node {
 	void *key;
 	size_t keylen;
 
@@ -33,28 +33,13 @@ typedef struct ohm_node {
 	size_t valuelen;
 
 	struct ohm_node *next;
-} ohm_node;
+};
 
 struct ohm_t {
 	ohm_node **table;
 	int count;
 	int size;
 	int (*hash)(void *, size_t);
-};
-
-struct ohm_iter {
-	void *key;
-	size_t keylen;
-
-	void *value;
-	size_t valuelen;
-
-	struct ohm_iter_internal {
-		ohm_t *hashmap;
-
-		ohm_node *node;
-		int index;
-	} internal;
 };
 
 ohm_t *ohm_init(int size, int (*hash_func)(void *, size_t)) {

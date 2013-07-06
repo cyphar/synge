@@ -51,6 +51,10 @@
 #include <synge.h>
 #include <definitions.h>
 
+#ifndef __SYNGE_GIT_VERSION__
+#	define __SYNGE_GIT_VERSION__ ""
+#endif
+
 synge_settings test_settings;
 
 int skip_ignorable = 1;
@@ -98,6 +102,8 @@ int main(int argc, char **argv) {
 	bake_args(argc, &argv);
 
 	synge_t result;
+	mpfr_init2(result, SYNGE_PRECISION);
+
 	error_code ecode;
 
 	int i;
@@ -109,9 +115,10 @@ int main(int argc, char **argv) {
 		else if(ecode.code != SUCCESS)
 			printf("%s\n", synge_error_msg(ecode));
 		else
-			printf("%.*" SYNGE_FORMAT "\n", synge_get_precision(result), result);
+			synge_printf("%.*" SYNGE_FORMAT "\n", synge_get_precision(result), result);
 	}
 
+	mpfr_clears(result, NULL);
 	synge_end();
 	return 0;
 } /* main() */

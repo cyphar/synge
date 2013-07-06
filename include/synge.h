@@ -20,10 +20,22 @@
  * SOFTWARE.
  */
 
+#include <stdarg.h>
+#include <stdio.h>
+#include <mpfr.h>
+
 #ifndef __SYNGE_H__
 #define __SYNGE_H__
 
-#define SYNGE_FORMAT "Lf"
+#define SYNGE_FORMAT		"Rf"
+#define SYNGE_PRECISION		20
+#define SYNGE_ROUND		MPFR_RNDA
+
+#define synge_printf(...)	mpfr_printf(__VA_ARGS__)
+#define synge_sprintf(...)	mpfr_sprintf(__VA_ARGS__)
+#define synge_snprintf(...)	mpfr_snprintf(__VA_ARGS__)
+#define synge_vprintf(...)	mpfr_vprintf(__VA_ARGS__)
+#define synge_vnprintf(...)	mpfr_vnprintf(__VA_ARGS__)
 
 #if !defined(true) || !defined(false) || !defined(bool)
 #	define bool int
@@ -31,7 +43,7 @@
 #	define false 0
 #endif
 
-typedef long double synge_t;
+typedef mpfr_t synge_t;
 
 typedef struct {
 	enum {
@@ -90,7 +102,9 @@ typedef struct __synge_settings__ {
 
 typedef struct __function__ {
 	char *name;
-	synge_t (*get)(synge_t);
+	/* a function pointer with the same format as the mpfr_* functions */
+	/*int (*get)(mpfr_t, mpfr_t, mpfr_rnd_t);*/
+	int (*get)();
 	/* to hard-code explanations and name strings */
 	char *prototype;
 	char *description;

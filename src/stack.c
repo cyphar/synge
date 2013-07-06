@@ -24,6 +24,7 @@
 #include <stdarg.h>
 
 #include "stack.h"
+#include "internal.h"
 
 void init_stack(stack *s) {
 	s->content = NULL;
@@ -68,6 +69,9 @@ s_content *top_stack(stack *s) {
 void free_scontent(s_content *s) {
 	if(!s) return;
 	if(s->free) {
+		if(s->tp == number && s->val)
+			mpfr_clear(*(mpfr_t *) s->val);
+
 		free(s->val);
 		s->val = NULL;
 	}
