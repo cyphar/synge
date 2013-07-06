@@ -49,7 +49,6 @@ errors = {
 		"elsecond"	: "Missing else statement for if",
 		"toomany"	: "Too many values in expression",
 		"empty"		: "Expression was empty",
-		"overflow"	: "Number caused overflow",
 		"undef"		: "Result is undefined",
 		"delved"	: "Delved too deep",
 		"unknown"	: "An unknown error has occured",
@@ -308,11 +307,6 @@ CASES = [
 	(["1+-+4"],				[error_get("opvals", 2)],	0,	"Token Number Error	"),
 	(["2+1-"],				[error_get("opvals", 4)],	0,	"Token Number Error	"),
 	(["abs()"],				[error_get("funcvals", 1)],	0,	"Token Number Error	"),
-	(["100000000000000000000000000"],	[error_get("overflow", 1)],	0,	"Input Overflow Error	"),
-	(["231664726992975794912959502"],	[error_get("overflow", 1)],	0,	"Input Overflow Error	"),
-	(["1+1000000000000000000000000"],	[error_get("overflow", 3)],	0,	"Input Overflow Error	"),
-	(["17^68"],				[error_get("overflow", 3)],	0,	"Output Overflow Error	"),
-	(["100^23"],				[error_get("overflow", 4)],	0,	"Output Overflow Error	"),
 ]
 
 def test_calc(program, test, expected, mode, description):

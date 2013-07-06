@@ -24,8 +24,23 @@
 #define __OHMIC_H__
 
 /* opaque structures */
+typedef struct ohm_node ohm_node;
 typedef struct ohm_t ohm_t;
-typedef struct ohm_iter ohm_iter;
+
+typedef struct ohm_iter {
+	void *key;
+	size_t keylen;
+
+	void *value;
+	size_t valuelen;
+
+	struct ohm_iter_internal {
+		ohm_t *hashmap;
+
+		ohm_node *node;
+		int index;
+	} internal;
+} ohm_iter;
 
 /* basic hashmap functionality */
 ohm_t *ohm_init(int, int (*)(void *, size_t));

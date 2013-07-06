@@ -41,6 +41,10 @@
 #	define __EXPORT_SYMBOL
 #endif
 
+#ifndef __SYNGE_GIT_VERSION__
+#	define __SYNGE_GIT_VERSION__ ""
+#endif
+
 enum {
 	FUNCL_COLUMN_NAME,
 	FUNCL_COLUMN_DESCRIPTION,
@@ -61,6 +65,8 @@ __EXPORT_SYMBOL gboolean kill_window(GtkWidget *widget, GdkEvent *event, gpointe
 
 __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	synge_t result;
+	mpfr_init2(result, SYNGE_PRECISION);
+
 	error_code ecode;
 
 	char *text = (char *) gtk_entry_get_text(GTK_ENTRY(input));
@@ -82,8 +88,8 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	else if(!synge_is_ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), TRUE);
 
-		char *outputs = malloc((snprintf(NULL, 0, "%.*" SYNGE_FORMAT, synge_get_precision(result), result) + 1) * sizeof(char));
-		sprintf(outputs, "%.*" SYNGE_FORMAT, synge_get_precision(result), result);
+		char *outputs = malloc((synge_snprintf(NULL, 0, "%.*" SYNGE_FORMAT, synge_get_precision(result), result) + 1) * sizeof(char));
+		synge_sprintf(outputs, "%.*" SYNGE_FORMAT, synge_get_precision(result), result);
 
 		char *markup = g_markup_printf_escaped("<b>%s</b>", outputs);
 		gtk_label_set_markup(GTK_LABEL(output), markup);
@@ -97,6 +103,7 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 		gtk_label_set_text(GTK_LABEL(statusbar), "");
 	}
 
+	mpfr_clears(result, NULL);
 } /* gui_compute_string() */
 
 __EXPORT_SYMBOL void gui_append_key(GtkWidget *widget, gpointer data) {

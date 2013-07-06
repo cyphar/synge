@@ -65,6 +65,10 @@
 #	define ANSI_CLEAR	""
 #endif
 
+#ifndef __SYNGE_GIT_VERSION__
+#	define __SYNGE_GIT_VERSION__ ""
+#endif
+
 #define OUTPUT_PADDING	""
 
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
@@ -377,7 +381,9 @@ int main(int argc, char **argv) {
 
 	char *cur_str = NULL;
 	int count;
-	synge_t result = 0;
+	synge_t result;
+	mpfr_init2(result, SYNGE_PRECISION);
+
 	error_code ecode;
 #ifndef __WIN32
 	/* Local stuff for libedit */
@@ -419,7 +425,6 @@ int main(int argc, char **argv) {
 			}
 			/* computation yielded error */
 			else if((ecode = synge_compute_string(cur_str, &result)).code != SUCCESS) {
-
 				/* do not add history for empty stack errors */
 				if(ecode.code == EMPTY_STACK)
 					continue;
@@ -427,9 +432,10 @@ int main(int argc, char **argv) {
 				/* if there is some form of non-ignorable return code, print it */
 				else if(!synge_is_ignore_code(ecode.code))
 					printf("%s%s%s%s\n", OUTPUT_PADDING, synge_is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, synge_error_msg(ecode), ANSI_CLEAR);
-			} else
+			} else {
 				/* otherwise, print the result of the computation*/
-				printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
+				synge_printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
+			}
 
 #ifndef __WIN32
 			/* add input to history */
@@ -448,6 +454,7 @@ int main(int argc, char **argv) {
 #else
 	free(cur_str);
 #endif
+	mpfr_clears(result, NULL);
 	synge_end();
 	return 0;
 }

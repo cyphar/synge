@@ -42,8 +42,6 @@
  */
 
 #define SYNGE_MAIN		"<main>"
-#define SYNGE_EPSILON		10e-14
-#define SYNGE_MAX_PRECISION	13
 #define SYNGE_MAX_DEPTH		2048
 
 #define SYNGE_PREV_ANSWER	"ans"
@@ -55,8 +53,6 @@
 				"%s: %s"
 
 #define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
-
-#define PI 3.14159265358979323
 
 #define strlower(x) do { char *p = x; for(; *p; ++p) *p = tolower(*p); } while(0)
 #define strupper(x) do { char *p = x; for(; *p; ++p) *p = toupper(*p); } while(0)
@@ -86,13 +82,13 @@
 #define isnumword(type) (type == number || type == userword || type == setword)
 
 /* checks if a synge_t is technically zero */
-#define iszero(x) (sy_fabs(x) <= SYNGE_EPSILON)
+#define iszero(x) (mpfr_zero_p(x))
 
 /* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
 #define has_rounding_error(number) ((number + 1) == number || (number - 1) == number)
 
 /* hack to get amount of memory needed to store a sprintf() */
-#define lenprintf(...) (snprintf(NULL, 0, __VA_ARGS__) + 1)
+#define lenprintf(...) (synge_snprintf(NULL, 0, __VA_ARGS__) + 1)
 
 /* macros for casting void stack pointers */
 #define SYNGE_T(x) (*(synge_t *) x)
@@ -100,73 +96,117 @@
 
 static int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
 
-synge_t deg2rad(synge_t deg) {
-	return deg * (PI / 180.0);
+int deg2rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
+	/* get pi */
+	synge_t pi;
+	mpfr_init2(pi, SYNGE_PRECISION);
+	mpfr_const_pi(pi, round);
+
+	/* get conversion for deg -> rad */
+	synge_t from_deg;
+	mpfr_init2(from_deg, SYNGE_PRECISION);
+	mpfr_div_si(from_deg, pi, 180, SYNGE_PRECISION);
+
+	/* convert it */
+	mpfr_mul(rad, deg, from_deg, round);
+
+	/* free memory associated with values */
+	mpfr_clears(pi, from_deg, NULL);
+	return 0;
 } /* deg2rad() */
 
-synge_t rad2deg(synge_t rad) {
-	return rad * (180.0 / PI);
+int rad2deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
+	/* get pi */
+	synge_t pi;
+	mpfr_init2(pi, SYNGE_PRECISION);
+	mpfr_const_pi(pi, round);
+
+	/* get conversion for deg -> rad */
+	synge_t from_rad;
+	mpfr_init2(from_rad, SYNGE_PRECISION);
+	mpfr_si_div(from_rad, 180, pi, SYNGE_PRECISION);
+
+	/* convert it */
+	mpfr_mul(deg, rad, from_rad, round);
+
+	/* free memory associated with values */
+	mpfr_clears(pi, from_rad, NULL);
+	return 0;
 } /* rad2deg() */
 
-synge_t sy_rand(synge_t to) {
+int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
+	/* round input */
+	mpfr_round(number, number);
+	int max = mpfr_get_si(number, round);
 	int min = 0;
-	int max = (int) floor(to);
+
 	/* better than the standard skewed (rand() % max + min + 1) range */
-	return (rand() % (max + 1 - min)) + min;
+	int random = (rand() % (max + 1 - min)) + min;
+
+	/* set input */
+	mpfr_set_si(to, random, round);
+	return 0;
 } /* sy_rand() */
 
-synge_t sy_factorial(synge_t x) {
-	synge_t number = floor(x);
-	synge_t factorial = number;
-	while(number > 1.0)
-		factorial *= --number;
-	return factorial;
+int sy_factorial(synge_t to, synge_t number, mpfr_rnd_t round) {
+	/* round input */
+	mpfr_round(number, number);
+	unsigned int num = mpfr_get_ui(number, round);
+
+	/* get factorial */
+	mpfr_fac_ui(to, num, round);
+	return 0;
 } /* sy_factorial() */
 
-synge_t sy_series(synge_t x) {
-	x = floor(x);
-	/* an epic formula I learnt in year 5 */
-	return (x * (x+1)) / 2;
+int sy_series(synge_t to, synge_t number, mpfr_rnd_t round) {
+	/* round input */
+	mpfr_round(number, number);
+	int num = mpfr_get_si(number, round);
+
+	/* (x * (x + 1)) / 2 */
+	mpfr_mul_si(to, number, num + 1, round);
+	mpfr_div_si(to, to, 2, round);
+	return 0;
 } /* sy_series() */
 
-synge_t sy_assert(synge_t x) {
-	return iszero(x) ? 0.0 : 1.0;
+int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
+	return mpfr_set_si(to, iszero(check) ? 0 : 1, round);
 } /* sy_assert */
 
 static function func_list[] = {
-	{"abs",		fabsl,		"abs(x)",	"Absolute value of x"},
-	{"sqrt",	sqrtl,		"sqrt(x)",	"Square root of x"},
-	{"cbrt",	cbrtl,		"cbrt(x)",	"Cubic root of x"},
+	{"abs",		mpfr_abs,	"abs(x)",	"Absolute value of x"},
+	{"sqrt",	mpfr_sqrt,	"sqrt(x)",	"Square root of x"},
+	{"cbrt",	mpfr_cbrt,	"cbrt(x)",	"Cubic root of x"},
 
-	{"floor",	floorl,		"floor(x)",	"Largest integer not greater than x"},
-	{"round",	roundl,		"round(x)",	"Closest integer to x"},
-	{"ceil",	ceill,		"ceil(x)",	"Smallest integer not smaller than x"},
+	{"floor",	mpfr_floor,	"floor(x)",	"Largest integer not greater than x"},
+	{"round",	mpfr_round,	"round(x)",	"Closest integer to x"},
+	{"ceil",	mpfr_ceil,	"ceil(x)",	"Smallest integer not smaller than x"},
 
-	{"log10",	log10l,		"log10(x)",	"Base 10 logarithm of x"},
-	{"log",		log2l,		"log(x)",	"Base 2 logarithm of x"},
-	{"ln",		logl,		"ln(x)",	"Base e logarithm of x"},
+	{"log10",	mpfr_log10,	"log10(x)",	"Base 10 logarithm of x"},
+	{"log",		mpfr_log2,	"log(x)",	"Base 2 logarithm of x"},
+	{"ln",		mpfr_log,	"ln(x)",	"Base e logarithm of x"},
 
-	{"rand",	sy_rand,	"rand(x)",	"Generate a psedu-random integer between 0 and floor(x)"},
-	{"fact",	sy_factorial,	"fact(x)",	"Factorial of floor(x)"},
-	{"series",	sy_series,	"series(x)",	"Gives addition of all integers up to floor(x)"},
+	{"rand",	sy_rand,	"rand(x)",	"Generate a psedu-random integer between 0 and round(x)"},
+	{"fact",	sy_factorial,	"fact(x)",	"Factorial of round(x)"},
+	{"series",	sy_series,	"series(x)",	"Gives addition of all integers up to round(x)"},
 	{"assert",	sy_assert,	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise"},
 
 	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"Convert x degrees to radians"},
 	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"Convert x radians to degrees"},
 
-	{"sinhi",	asinhl,		"asinh(x)",	"Inverse hyperbolic sine of x"},
-	{"coshi",	acoshl,		"acosh(x)",	"Inverse hyperbolic cosine of x"},
-	{"tanhi",	atanhl,		"atanh(x)",	"Inverse hyperbolic tangent of x"},
-	{"sinh",	sinhl,		"sinh(x)",	"Hyperbolic sine of x"},
-	{"cosh",	coshl,		"cosh(x)",	"Hyperbolic cosine of x"},
-	{"tanh",	tanhl,		"tanh(x)",	"Hyperbolic tangent of x"},
+	{"sinhi",	mpfr_asinh,	"asinh(x)",	"Inverse hyperbolic sine of x"},
+	{"coshi",	mpfr_acosh,	"acosh(x)",	"Inverse hyperbolic cosine of x"},
+	{"tanhi",	mpfr_atanh,	"atanh(x)",	"Inverse hyperbolic tangent of x"},
+	{"sinh",	mpfr_sinh,	"sinh(x)",	"Hyperbolic sine of x"},
+	{"cosh",	mpfr_cosh,	"cosh(x)",	"Hyperbolic cosine of x"},
+	{"tanh",	mpfr_tanh,	"tanh(x)",	"Hyperbolic tangent of x"},
 
-	{"sini",	asinl,		"asin(x)",	"Inverse sine of x"},
-	{"cosi",	acosl,		"acos(x)",	"Inverse cosine of x"},
-	{"tani",	atanl,		"atan(x)",	"Inverse tangent of x"},
-	{"sin",		sinl,		"sin(x)",	"Sine of x"},
-	{"cos",		cosl,		"cos(x)",	"Cosine of x"},
-	{"tan",		tanl,		"tan(x)",	"Tangent of x"},
+	{"sini",	mpfr_asin,	"asin(x)",	"Inverse sine of x"},
+	{"cosi",	mpfr_acos,	"acos(x)",	"Inverse cosine of x"},
+	{"tani",	mpfr_atan,	"atan(x)",	"Inverse tangent of x"},
+	{"sin",		mpfr_sin,	"sin(x)",	"Sine of x"},
+	{"cos",		mpfr_cos,	"cos(x)",	"Cosine of x"},
+	{"tan",		mpfr_tan,	"tan(x)",	"Tangent of x"},
 	{NULL,		NULL,		NULL,		NULL}
 };
 
@@ -183,17 +223,71 @@ static function_alias alias_list[] = {
 static ohm_t *variable_list = NULL;
 static ohm_t *function_list = NULL;
 
+static synge_t prev_answer;
+
+int synge_pi(synge_t num, mpfr_rnd_t round) {
+	mpfr_const_pi(num, round);
+	return 0;
+} /* synge_pi() */
+
+int synge_phi(synge_t num, mpfr_rnd_t round) {
+	/* get sqrt(5) */
+	synge_t root_five;
+	mpfr_init2(root_five, SYNGE_PRECISION);
+	mpfr_sqrt_ui(root_five, 5, round);
+
+	/* (1 + sqrt(5)) / 2 */
+	mpfr_add_si(num, root_five, 1, round);
+	mpfr_div_si(num, num, 2, round);
+
+	mpfr_clears(root_five, NULL);
+	return 0;
+} /* synge_phi() */
+
+int synge_euler(synge_t num, mpfr_rnd_t round) {
+	/* get one */
+	synge_t one;
+	mpfr_init2(one, SYNGE_PRECISION);
+	mpfr_set_si(one, 1, round);
+
+	/* e^1 */
+	mpfr_exp(num, one, round);
+
+	mpfr_clears(one, NULL);
+	return 0;
+} /* synge_euler() */
+
+int synge_life(synge_t num, mpfr_rnd_t round) {
+	mpfr_set_si(num, 42, round);
+	return 0;
+} /* synge_life() */
+
+int synge_true(synge_t num, mpfr_rnd_t round) {
+	mpfr_set_si(num, 1, round);
+	return 0;
+} /* synge_true() */
+
+int synge_false(synge_t num, mpfr_rnd_t round) {
+	mpfr_set_si(num, 0, round);
+	return 0;
+} /* synge_false() */
+
+int synge_ans(synge_t num, mpfr_rnd_t round) {
+	mpfr_set(num, prev_answer, round);
+	return 0;
+} /* synge_ans() */
+
 static special_number constant_list[] = {
-	{"pi",			3.14159265358979323},
-	{"phi",			1.61803398874989484},
-	{"e",			2.71828182845904523},
-	{"life",			       42.0}, /* Sorry, I couldn't resist */
+	{"pi",			synge_pi},
+	{"phi",			synge_phi},
+	{"e",			synge_euler},
+	{"life",		synge_life}, /* Sorry, I couldn't resist */
 
-	{"true",				1.0},
-	{"false",				0.0},
+	{"true",		synge_true},
+	{"false",		synge_false},
 
-	{SYNGE_PREV_ANSWER,			0.0},
-	{NULL,					0.0},
+	{SYNGE_PREV_ANSWER,	synge_ans},
+	{NULL,			NULL},
 };
 /* used for when a (char *) is needed, but needn't be freed */
 static operator op_list[] = {
@@ -271,14 +365,14 @@ static link_t *traceback_list = NULL;
 /* __DEBUG__ FUNCTIONS */
 
 void print_stack(stack *s) {
-#ifdef __DEBUG__
+#ifdef __SYNGE_DEBUG__
 	int i, size = stack_size(s);
 	for(i = 0; i < size; i++) {
 		s_content tmp = s->content[i];
 		if(!tmp.val) continue;
 
 		if(tmp.tp == number)
-			printf("%" SYNGE_FORMAT " ", SYNGE_T(tmp.val));
+			synge_printf("%" SYNGE_FORMAT " ", SYNGE_T(tmp.val));
 		else if(tmp.tp == func)
 			printf("%s ", FUNCTION(tmp.val)->name);
 		else
@@ -289,10 +383,10 @@ void print_stack(stack *s) {
 } /* print_stack() */
 
 void debug(char *format, ...) {
-#ifdef __DEBUG__
+#ifdef __SYNGE_DEBUG__
 	va_list ap;
 	va_start(ap, format);
-	vprintf(format, ap);
+	synge_vprintf(format, ap);
 	va_end(ap);
 #endif
 } /* debug() */
@@ -410,7 +504,10 @@ operator get_op(char *ch) {
 
 synge_t *num_dup(synge_t num) {
 	synge_t *ret = malloc(sizeof(synge_t));
-	*ret = num;
+
+	mpfr_init2(*ret, SYNGE_PRECISION);
+	mpfr_set(*ret, num, SYNGE_ROUND);
+
 	return ret;
 } /* num_dup() */
 
@@ -426,12 +523,12 @@ int synge_get_precision(synge_t num) {
 		return active_settings.precision;
 
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
-	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
+	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
-	sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* sprintf it */
+	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_PRECISION, num); /* sprintf it */
 
 	char *p = tmp + tmpsize - 2;
-	int precision = SYNGE_MAX_PRECISION;
+	int precision = SYNGE_PRECISION;
 	while(*p == '0') { /* find all trailing zeros */
 		precision--;
 		p--;
@@ -454,7 +551,7 @@ error_code to_error_code(int error, int position) {
 
 special_number get_special_num(char *s) {
 	int i;
-	special_number ret = {NULL, 0.0};
+	special_number ret = {NULL, NULL};
 	for(i = 0; constant_list[i].name != NULL; i++)
 		if(!strcmp(constant_list[i].name, s))
 			return constant_list[i];
@@ -484,7 +581,11 @@ bool isnum(char *string) {
 	char *s = get_word(string, SYNGE_VARIABLE_CHARS, &endptr);
 
 	endptr = NULL;
-	strtold(string, &endptr);
+
+	synge_t tmp;
+	mpfr_init2(tmp, SYNGE_PRECISION);
+	mpfr_strtofr(tmp, string, &endptr, 10, SYNGE_ROUND);
+	mpfr_clears(tmp, NULL);
 
 	/* all cases where word is a number */
 	ret = (get_special_num(s).name || string != endptr);
@@ -492,12 +593,9 @@ bool isnum(char *string) {
 	return ret;
 } /* isnum() */
 
-void set_special_number(char *s, synge_t val, special_number *list) {
+void set_answer(synge_t val, mpfr_rnd_t round) {
 	/* specifically made for the ans "variable" -- use the hashmap for real variables */
-	int i;
-	for(i = 0; list[i].name != NULL; i++)
-		if(!strcmp(list[i].name, s)) list[i].value = val;
-} /* set_special_number() */
+} /* set_answer() */
 
 error_code set_variable(char *str, synge_t val) {
 	assert(synge_started);
@@ -505,8 +603,12 @@ error_code set_variable(char *str, synge_t val) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
+	synge_t tosave;
+	mpfr_init2(tosave, SYNGE_PRECISION);
+	mpfr_set(tosave, val, SYNGE_ROUND);
+
 	ohm_remove(function_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
-	ohm_insert(variable_list, s, strlen(s) + 1, &val, sizeof(val));
+	ohm_insert(variable_list, s, strlen(s) + 1, tosave, sizeof(synge_t));
 
 	free(s);
 	return ret;
@@ -523,7 +625,7 @@ error_code set_function(char *str, char *exp) {
 
 	free(s);
 	return ret;
-} /* set_variable() */
+} /* set_function() */
 
 error_code del_word(char *s, int pos) {
 	assert(synge_started);
@@ -686,27 +788,28 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 		if(isnum(s+i) && !false_number(s+i, *infix_stack)) {
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
+			mpfr_init2(*num, SYNGE_PRECISION);
 
 			/* if it is a "special" number */
 			if(get_special_num(word).name) {
 				special_number stnum = get_special_num(word);
-				*num = stnum.value;
+				stnum.value(*num, SYNGE_ROUND);
 				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
 			}
 			else {
 				char *endptr;
-				*num = strtold(s+i, &endptr);
+
+				/* get offset */
+				mpfr_strtofr(*num, s+i, &endptr, 10, SYNGE_ROUND);
 				tmpoffset = endptr - (s + i); /* update iterator to correct offset */
+
+				/* set accurate value */
+				mpfr_set_str(*num, s+i, 10, SYNGE_ROUND);
 			}
 			push_valstack(num, number, true, pos, *infix_stack); /* push given value */
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
-			if(has_rounding_error(*num)) {
-				free(s);
-				free(word);
-				return to_error_code(NUM_OVERFLOW, pos);
-			}
-			else if(*num != *num) {
+			if(mpfr_nan_p(*num)) {
 				free(s);
 				free(word);
 				return to_error_code(UNDEFINED, pos);
@@ -741,6 +844,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					/* every open paren with no operators before it has an implied * */
 
 					if(top_stack(*infix_stack)) {
+						synge_t implied;
 						switch(top_stack(*infix_stack)->tp) {
 							case addop:
 								tmp = false;
@@ -762,12 +866,16 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 									break;
 								}
 
-								if(get_op(top.val).tp == op_add)
-									tmp = 1;
-								if(get_op(top.val).tp == op_subtract)
-									tmp = -1;
+								mpfr_init2(implied, SYNGE_PRECISION);
 
-								push_valstack(num_dup(tmp), number, true, pos, *infix_stack);
+								if(get_op(top.val).tp == op_add)
+									mpfr_set_si(implied, 1, SYNGE_ROUND);
+
+								if(get_op(top.val).tp == op_subtract)
+									mpfr_set_si(implied, -1, SYNGE_ROUND);
+
+								push_valstack(num_dup(implied), number, true, pos, *infix_stack);
+								mpfr_clears(implied, NULL);
 								/* pass-through */
 							case number:
 							case rparen:
@@ -896,6 +1004,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			/* is it a variable or user function? */
 			if(top_stack(*infix_stack)) {
 				s_content *tmppop, *tmpp;
+				synge_t implied;
 				/* make variables act more like numbers (and more like variables) */
 				switch(top_stack(*infix_stack)->tp) {
 					case addop:
@@ -904,10 +1013,15 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						tmpp = top_stack(*infix_stack);
 						if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
 							if(get_op(tmppop->val).tp == op_subtract) {
-								/* negate the variable? */
+								mpfr_init2(implied, SYNGE_PRECISION);
+								mpfr_set_zero(implied, SYNGE_ROUND);
+
+								/* negate the variable? +0-x negates it */
 								push_valstack("+", addop, false, pos, *infix_stack);
-								push_valstack(num_dup(0), number, true, pos, *infix_stack);
+								push_valstack(num_dup(implied), number, true, pos, *infix_stack);
 								push_valstack("-", addop, false, pos, *infix_stack);
+
+								mpfr_clears(implied, NULL);
 							} else {
 								/* otherwise, add the variable */
 								push_valstack("+", addop, false, pos, *infix_stack);
@@ -949,6 +1063,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 		print_stack(*infix_stack);
 		free(word);
 
+		/* update iterator */
 		i += tmpoffset - 1;
 	}
 
@@ -1112,16 +1227,15 @@ char *angle_infunc_list[] = {
 };
 
 /* convert from set mode to radians */
-synge_t settings_to_rad(synge_t in) {
+void settings_to_rad(synge_t out, synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
-			return deg2rad(in);
+			deg2rad(out, in, SYNGE_ROUND);
+			break;
 		case radians:
-			return in;
+			mpfr_set(out, in, SYNGE_ROUND);
+			break;
 	}
-
-	/* catch-all -- wtf? */
-	return 0.0;
 } /* settings_to_rad() */
 
 /* functions' whose output is in radians */
@@ -1133,23 +1247,22 @@ char *angle_outfunc_list[] = {
 };
 
 /* convert radians to set mode */
-synge_t rad_to_settings(synge_t in) {
+void rad_to_settings(synge_t out, synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
-			return rad2deg(in);
+			rad2deg(out, in, SYNGE_ROUND);
+			break;
 		case radians:
-			return in;
+			mpfr_set(out, in, SYNGE_ROUND);
+			break;
 	}
-
-	/* catch-all -- wtf? */
-	return 0.0;
 } /* rad_to_settings() */
 
 error_code eval_word(char *str, int pos, synge_t *result) {
 	/* is it a legitamate variable or function? */
 	if(ohm_search(variable_list, str, strlen(str) + 1)) {
 		/* variable */
-		*result = SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1));
+		mpfr_set(*result, SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1)), SYNGE_ROUND);
 	}
 	else if(ohm_search(function_list, str, strlen(str) + 1)) {
 
@@ -1174,7 +1287,7 @@ error_code eval_word(char *str, int pos, synge_t *result) {
 	}
 
 	/* is the result a nan? */
-	if(*result != *result)
+	if(mpfr_nan_p(*result))
 		return to_error_code(UNDEFINED, pos);
 
 	return to_error_code(SUCCESS, -1);
@@ -1212,6 +1325,9 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 	synge_t *result = NULL, arg[3];
 	error_code ecode[2];
 
+	/* initialise operators */
+	mpfr_inits2(SYNGE_PRECISION, arg[0], arg[1], arg[2], NULL);
+
 	for(i = 0; i < size; i++) {
 		stackp = (*rpn)->content[i]; /* shorthand for current stack item */
 		pos = stackp.position; /* shorthand for current error position */
@@ -1240,13 +1356,14 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 			case setop:
 				if(stack_size(tmpstack) < 2) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(OPERATOR_WRONG_ARGC, pos);
 				}
 
 				/* get new value for word */
 				if(top_stack(tmpstack)->tp == number)
 					/* variable value */
-					arg[0] = SYNGE_T(top_stack(tmpstack)->val);
+					mpfr_set(arg[0], SYNGE_T(top_stack(tmpstack)->val), SYNGE_ROUND);
 
 				else if(top_stack(tmpstack)->tp == expression)
 					/* function expression value */
@@ -1254,6 +1371,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				else {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_LEFT_OPERAND, pos);
 				}
 
@@ -1263,6 +1381,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				if(top_stack(tmpstack)->tp != setword) {
 					free(tmpexp);
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_LEFT_OPERAND, pos);
 				}
 
@@ -1281,6 +1400,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						free(tmpstr);
 						free(tmpexp);
 						free_stackm(&tmpstack, rpn);
+						mpfr_clears(arg[0], arg[1], arg[2], NULL);
 						return to_error_code(INVALID_LEFT_OPERAND, pos);
 						break;
 				}
@@ -1289,8 +1409,11 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* evaulate and push the value of set word */
 				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
+
 				ecode[0] = eval_word(tmpstr, pos, result);
 				if(!synge_is_success_code(ecode[0].code)) {
+					mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
@@ -1305,21 +1428,24 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 			case modop:
 				if(stack_size(tmpstack) < 2) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(OPERATOR_WRONG_ARGC, pos);
 				}
 
 				if(top_stack(tmpstack)->tp != number) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_RIGHT_OPERAND, pos);
 				}
 
 				/* get value to modify variable by */
-				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
+				mpfr_set(arg[1], SYNGE_T(top_stack(tmpstack)->val), SYNGE_ROUND);
 				free_scontent(pop_stack(tmpstack));
 
 				/* get variable to modify */
 				if(top_stack(tmpstack)->tp != setword) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_LEFT_OPERAND, pos);
 				}
 
@@ -1331,24 +1457,26 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				if(!ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)) {
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_LEFT_OPERAND, pos);
 				}
 
 				/* get current value of variable */
-				arg[0] = SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1));
+				mpfr_set(arg[0], SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)), SYNGE_ROUND);
 
 				/* evaluate changed variable */
 				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
 
 				switch(get_op(stackp.val).tp) {
 					case op_ca_add:
-						*result = arg[0] + arg[1];
+						mpfr_add(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_ca_subtract:
-						*result = arg[0] - arg[1];
+						mpfr_sub(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_ca_multiply:
-						*result = arg[0] * arg[1];
+						mpfr_mul(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_ca_int_divide:
 						/* division, but the result ignores the decimals */
@@ -1356,45 +1484,103 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_ca_divide:
 						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
+							mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 							free(tmpstr);
 							free(result);
 							free_stackm(&tmpstack, rpn);
 							return to_error_code(DIVIDE_BY_ZERO, pos);
 						}
-						*result = arg[0] / arg[1];
+						mpfr_div(*result, arg[0], arg[1], SYNGE_ROUND);
 						if(tmp)
-							sy_modf(*result, result);
+							mpfr_trunc(*result, *result);
 						break;
 					case op_ca_modulo:
 						if(iszero(arg[1])) {
 							/* the 11.5th commandment -- thoust shalt not modulo by zero */
+							mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 							free(tmpstr);
 							free(result);
 							free_stackm(&tmpstack, rpn);
 							return to_error_code(MODULO_BY_ZERO, pos);
 						}
-						*result = sy_fmod(arg[0], arg[1]);
+						mpfr_fmod(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_ca_index:
-						*result = pow(arg[0], arg[1]);
+						mpfr_pow(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_ca_band:
-						*result = (long long) arg[0] & (long long) arg[1];
+						{
+							mpz_t final, op1, op2;
+							mpz_init2(final, SYNGE_ROUND);
+							mpz_init2(op1, SYNGE_ROUND);
+							mpz_init2(op2, SYNGE_ROUND);
+
+							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
+							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
+
+							mpz_and(final, op1, op2);
+							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							mpz_clears(final, op1, op2, NULL);
+						}
 						break;
 					case op_ca_bor:
-						*result = (long long) arg[0] | (long long) arg[1];
+						{
+							mpz_t final, op1, op2;
+							mpz_init2(final, SYNGE_ROUND);
+							mpz_init2(op1, SYNGE_ROUND);
+							mpz_init2(op2, SYNGE_ROUND);
+
+							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
+							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
+
+							mpz_ior(final, op1, op2);
+							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							mpz_clears(final, op1, op2, NULL);
+						}
 						break;
 					case op_ca_bxor:
-						*result = (long long) arg[0] ^ (long long) arg[1];
+						{
+							mpz_t final, op1, op2;
+							mpz_init2(final, SYNGE_ROUND);
+							mpz_init2(op1, SYNGE_ROUND);
+							mpz_init2(op2, SYNGE_ROUND);
+
+							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
+							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
+
+							mpz_xor(final, op1, op2);
+							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							mpz_clears(final, op1, op2, NULL);
+						}
 						break;
 					case op_ca_bshiftl:
-						*result = (long long) arg[0] << (long long) arg[1];
+						{
+							long final, op1, op2;
+
+							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
+							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
+							final = op1 << op2;
+
+							mpfr_set_si(*result, final, SYNGE_ROUND);
+						}
 						break;
 					case op_ca_bshiftr:
-						*result = (long long) arg[0] >> (long long) arg[1];
+						{
+							long final, op1, op2;
+
+							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
+							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
+							final = op1 >> op2;
+
+							mpfr_set_si(*result, final, SYNGE_ROUND);
+						}
 						break;
 					default:
 						/* catch-all -- unknown token */
+						mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 						free(tmpstr);
 						free(result);
 						free_stackm(&tmpstack, rpn);
@@ -1415,12 +1601,14 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 			case postmod:
 				if(stack_size(tmpstack) < 1) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(OPERATOR_WRONG_ARGC, pos);
 				}
 
 				/* get variable to modify */
 				if(top_stack(tmpstack)->tp != setword) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_LEFT_OPERAND, pos);
 				}
 
@@ -1431,23 +1619,27 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				if(!ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)) {
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_LEFT_OPERAND, pos);
 				}
 
 				/* get current value of variable */
-				arg[0] = SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1));
+				mpfr_set(arg[0], SYNGE_T(ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)), SYNGE_ROUND);
 
 				/* evaluate changed variable */
 				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
+
 				switch(get_op(stackp.val).tp) {
 					case op_ca_increment:
-						*result = arg[0] + 1.0;
+						mpfr_add_si(*result, arg[0], 1, SYNGE_ROUND);
 						break;
 					case op_ca_decrement:
-						*result = arg[0] - 1.0;
+						mpfr_sub_si(*result, arg[0], 1, SYNGE_ROUND);
 						break;
 					default:
 						/* catch-all -- unknown token */
+						mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 						free(tmpstr);
 						free(result);
 						free_stackm(&tmpstack, rpn);
@@ -1461,12 +1653,16 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				/* push value of variable (depending on pre/post) */
 				push_valstack(tmp ? result : num_dup(arg[0]), number, true, pos, tmpstack);
 
-				if(!tmp) free(result);
+				if(!tmp) {
+					mpfr_clear(*result);
+					free(result);
+				}
 				free(tmpstr);
 				break;
 			case delop:
 				if(stack_size(tmpstack) < 1) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(OPERATOR_WRONG_ARGC, pos);
 				}
 
@@ -1474,6 +1670,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				if(top_stack(tmpstack)->tp != setword) {
 					free(tmpexp);
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(INVALID_DELETE, pos);
 				}
 
@@ -1482,6 +1679,8 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* get value of word */
 				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
+
 				ecode[0] = eval_word(tmpstr, pos, result); /* ignore eval error for now (since word must be deleted) */
 
 				/* delete word */
@@ -1489,6 +1688,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* delete error check */
 				if(!synge_is_success_code(ecode[1].code)) {
+					mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
@@ -1497,6 +1697,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* eval error check */
 				if(!synge_is_success_code(ecode[0].code)) {
+					mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 					free(result);
 					free(tmpstr);
 					free_stackm(&tmpstack, rpn);
@@ -1511,9 +1712,11 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				tmp = 0;
 				tmpstr = stackp.val;
 				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
 
 				ecode[0] = eval_word(tmpstr, pos, result);
 				if(!synge_is_success_code(ecode[0].code)) {
+					mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 					free(result);
 					free_stackm(&tmpstack, rpn);
 					return ecode[0];
@@ -1526,24 +1729,27 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				/* check if there is enough numbers for function arguments */
 				if(stack_size(tmpstack) < 1) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(FUNCTION_WRONG_ARGC, pos);
 				}
 
 				/* get the first (and, for now, only) argument */
-				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
+				mpfr_set(arg[0], SYNGE_T(top_stack(tmpstack)->val), SYNGE_ROUND);
 				free_scontent(pop_stack(tmpstack));
 
 				/* does the input need to be converted? */
 				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
-					arg[0] = settings_to_rad(arg[0]);
+					settings_to_rad(arg[0], arg[0]);
 
 				/* allocate result and evaluate it */
 				result = malloc(sizeof(synge_t));
-				*result = FUNCTION(stackp.val)->get(arg[0]);
+				mpfr_init2(*result, SYNGE_PRECISION);
+
+				FUNCTION(stackp.val)->get(*result, arg[0], SYNGE_ROUND);
 
 				/* does the output need to be converted? */
 				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_outfunc_list)) /* convert radians to settings angles */
-					*result = rad_to_settings(*result);
+					rad_to_settings(*result, *result);
 
 				/* push result of evaluation onto the stack */
 				push_valstack(result, number, true, pos, tmpstack);
@@ -1553,14 +1759,15 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				if(stack_size(tmpstack) < 3) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(OPERATOR_WRONG_ARGC, pos);
 				}
 
 				if((*rpn)->content[i].tp != ifop) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(MISSING_IF, pos);
 				}
-
 
 				/* get else value */
 				tmpelse = str_dup(top_stack(tmpstack)->val);
@@ -1571,10 +1778,12 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				free_scontent(pop_stack(tmpstack));
 
 				/* get if condition */
-				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
+				mpfr_set(arg[0], SYNGE_T(top_stack(tmpstack)->val), SYNGE_ROUND);
 				free_scontent(pop_stack(tmpstack));
 
 				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
+
 				error_code tmpecode;
 
 				/* set correct value */
@@ -1589,6 +1798,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				free(tmpelse);
 
 				if(!synge_is_success_code(tmpecode.code)) {
+					mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 					free(result);
 					free_stackm(&tmpstack, rpn);
 					return tmpecode;
@@ -1599,6 +1809,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 			case ifop:
 				/* ifop should never be found */
 				free_stackm(&tmpstack, rpn);
+				mpfr_clears(arg[0], arg[1], arg[2], NULL);
 				return to_error_code(MISSING_ELSE, pos);
 				break;
 			case bitop:
@@ -1609,28 +1820,31 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				/* check if there is enough numbers for operator "arguments" */
 				if(stack_size(tmpstack) < 2) {
 					free_stackm(&tmpstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
 					return to_error_code(OPERATOR_WRONG_ARGC, pos);
 				}
 
 				/* get second argument */
-				arg[1] = SYNGE_T(top_stack(tmpstack)->val);
+				mpfr_set(arg[1], SYNGE_T(top_stack(tmpstack)->val), SYNGE_ROUND);
 				free_scontent(pop_stack(tmpstack));
 
 				/* get first argument */
-				arg[0] = SYNGE_T(top_stack(tmpstack)->val);
+				mpfr_set(arg[0], SYNGE_T(top_stack(tmpstack)->val), SYNGE_ROUND);
 				free_scontent(pop_stack(tmpstack));
 
 				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
+
 				/* find correct evaluation and do it */
 				switch(get_op(stackp.val).tp) {
 					case op_add:
-						*result = arg[0] + arg[1];
+						mpfr_add(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_subtract:
-						*result = arg[0] - arg[1];
+						mpfr_sub(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_multiply:
-						*result = arg[0] * arg[1];
+						mpfr_mul(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_int_divide:
 						/* division, but the result ignores the decimals */
@@ -1638,61 +1852,139 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_divide:
 						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
+							mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 							free(result);
 							free_stackm(&tmpstack, rpn);
 							return to_error_code(DIVIDE_BY_ZERO, pos);
 						}
-						*result = arg[0] / arg[1];
-						if(tmp)
-							sy_modf(*result, result);
+						mpfr_div(*result, arg[0], arg[1], SYNGE_ROUND);
+
+						if(tmp) {
+							mpfr_trunc(*result, *result);
+						}
 						break;
 					case op_modulo:
 						if(iszero(arg[1])) {
 							/* the 11.5th commandment -- thoust shalt not modulo by zero */
+							mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 							free(result);
 							free_stackm(&tmpstack, rpn);
 							return to_error_code(MODULO_BY_ZERO, pos);
 						}
-						*result = sy_fmod(arg[0], arg[1]);
+						mpfr_fmod(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_index:
-						*result = pow(arg[0], arg[1]);
+						mpfr_pow(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_gt:
-						*result = arg[0] > arg[1];
+						{
+							int cmp = mpfr_cmp(arg[0], arg[1]);
+							mpfr_set_si(*result, cmp > 0, SYNGE_ROUND);
+						}
 						break;
 					case op_gteq:
-						*result = arg[0] >= arg[1];
+						{
+							int cmp = mpfr_cmp(arg[0], arg[1]);
+							mpfr_set_si(*result, cmp >= 0, SYNGE_ROUND);
+						}
 						break;
 					case op_lt:
-						*result = arg[0] < arg[1];
+						{
+							int cmp = mpfr_cmp(arg[0], arg[1]);
+							mpfr_set_si(*result, cmp < 0, SYNGE_ROUND);
+						}
 						break;
 					case op_lteq:
-						*result = arg[0] <= arg[1];
+						{
+							int cmp = mpfr_cmp(arg[0], arg[1]);
+							mpfr_set_si(*result, cmp <= 0, SYNGE_ROUND);
+						}
 						break;
 					case op_neq:
-						*result = arg[0] != arg[1];
+						{
+							int cmp = mpfr_cmp(arg[0], arg[1]);
+							mpfr_set_si(*result, cmp != 0, SYNGE_ROUND);
+						}
 						break;
 					case op_eq:
-						*result = arg[0] == arg[1];
+						{
+							int cmp = mpfr_cmp(arg[0], arg[1]);
+							mpfr_set_si(*result, cmp == 0, SYNGE_ROUND);
+						}
 						break;
 					case op_band:
-						*result = (long long) arg[0] & (long long) arg[1];
+						{
+							mpz_t final, op1, op2;
+							mpz_init2(final, SYNGE_ROUND);
+							mpz_init2(op1, SYNGE_ROUND);
+							mpz_init2(op2, SYNGE_ROUND);
+
+							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
+							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
+
+							mpz_and(final, op1, op2);
+							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							mpz_clears(final, op1, op2, NULL);
+						}
 						break;
 					case op_bor:
-						*result = (long long) arg[0] | (long long) arg[1];
+						{
+							mpz_t final, op1, op2;
+							mpz_init2(final, SYNGE_ROUND);
+							mpz_init2(op1, SYNGE_ROUND);
+							mpz_init2(op2, SYNGE_ROUND);
+
+							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
+							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
+
+							mpz_ior(final, op1, op2);
+							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							mpz_clears(final, op1, op2, NULL);
+						}
 						break;
 					case op_bxor:
-						*result = (long long) arg[0] ^ (long long) arg[1];
+						{
+							mpz_t final, op1, op2;
+							mpz_init2(final, SYNGE_ROUND);
+							mpz_init2(op1, SYNGE_ROUND);
+							mpz_init2(op2, SYNGE_ROUND);
+
+							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
+							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
+
+							mpz_xor(final, op1, op2);
+							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							mpz_clears(final, op1, op2, NULL);
+						}
 						break;
 					case op_bshiftl:
-						*result = (long long) arg[0] << (long long) arg[1];
+						{
+							long final, op1, op2;
+
+							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
+							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
+							final = op1 << op2;
+
+							mpfr_set_si(*result, final, SYNGE_ROUND);
+						}
 						break;
 					case op_bshiftr:
-						*result = (long long) arg[0] >> (long long) arg[1];
+						{
+							long final, op1, op2;
+
+							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
+							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
+							final = op1 >> op2;
+
+							mpfr_set_si(*result, final, SYNGE_ROUND);
+						}
 						break;
 					default:
 						/* catch-all -- unknown token */
+						mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
 						free(result);
 						free_stackm(&tmpstack, rpn);
 						return to_error_code(UNKNOWN_TOKEN, pos);
@@ -1705,19 +1997,12 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 			default:
 				/* catch-all -- unknown token */
 				free_stackm(&tmpstack, rpn);
+				mpfr_clears(arg[0], arg[1], arg[2], NULL);
 				return to_error_code(UNKNOWN_TOKEN, pos);
 				break;
 		}
-
-		if(top_stack(tmpstack) && top_stack(tmpstack)->tp == number) {
-			/* check if a rounding error occured in above operation */
-			synge_t tmp = SYNGE_T(top_stack(tmpstack)->val);
-			if(has_rounding_error(tmp)) {
-				free_stackm(&tmpstack, rpn);
-				return to_error_code(NUM_OVERFLOW, pos);
-			}
-		}
 	}
+	mpfr_clears(arg[0], arg[1], arg[2], NULL);
 
 	/* if there is not one item on the stack, there are too many values on the stack */
 	if(stack_size(tmpstack) != 1) {
@@ -1725,14 +2010,12 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 		return to_error_code(TOO_MANY_VALUES, -1);
 	}
 
-	/* otherwise, the last item is the result */
-	*output = SYNGE_T(top_stack(tmpstack)->val);
+	print_stack(tmpstack);
 
-	/* check for rounding errors */
-	if(has_rounding_error(*output)) {
-		free_stackm(&tmpstack, rpn);
-		return to_error_code(NUM_OVERFLOW, -1);
-	}
+	/* otherwise, the last item is the result */
+	mpfr_set(*output, SYNGE_T(tmpstack->content[0].val), SYNGE_ROUND);
+	debug("stack -> %.*" SYNGE_FORMAT "\n", synge_get_precision(SYNGE_T(tmpstack->content[0].val)), SYNGE_T(tmpstack->content[0].val));
+	debug("output -> %.*" SYNGE_FORMAT "\n", synge_get_precision(*output), *output);
 
 	free_stackm(&tmpstack, rpn);
 	return to_error_code(SUCCESS, -1);
@@ -1913,8 +2196,8 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	ohm_t *backup_var = ohm_dup(variable_list);
 	ohm_t *backup_func = ohm_dup(function_list);
 
-	/* intiialise result to 0.0 */
-	*result = 0.0;
+	/* intiialise result to zero */
+	mpfr_set_zero(*result, SYNGE_ROUND);
 
 	/*
 	 * We have delved too greedily and too deep.
@@ -1963,13 +2246,13 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 			if((ecode = synge_eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
 				/* fix up negative zeros */
 				if(iszero(*result))
-					*result = abs(*result);
+					mpfr_abs(*result, *result, SYNGE_ROUND);
 
 	/* measure depth, not length */
 	depth--;
 
 	/* is it a nan? */
-	if(*result != *result)
+	if(mpfr_nan_p(*result))
 		ecode = to_error_code(UNDEFINED, -1);
 
 	/* if some error occured, revert variables and functions back to a previous state */
@@ -1978,10 +2261,9 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 		ohm_cpy(function_list, backup_func);
 	}
 
-	/* FINALLY, set the answer variable */
+	/* if everythin went well, set the answer variable (and remove current depth from traceback) */
 	if(synge_is_success_code(ecode.code)) {
-		set_special_number(SYNGE_PREV_ANSWER, *result, constant_list);
-		/* and remove last item from traceback - no errors occured */
+		mpfr_set(prev_answer, *result, SYNGE_ROUND);
 		link_pend(traceback_list);
 	}
 
@@ -2007,8 +2289,8 @@ void synge_set_settings(synge_settings new_settings) {
 	active_settings = new_settings;
 
 	/* sanitise precision */
-	if(new_settings.precision > SYNGE_MAX_PRECISION)
-		active_settings.precision = SYNGE_MAX_PRECISION;
+	if(new_settings.precision > SYNGE_PRECISION)
+		active_settings.precision = SYNGE_PRECISION;
 } /* set_synge_settings() */
 
 function *synge_get_function_list(void) {
@@ -2020,20 +2302,28 @@ void synge_start(void) {
 	function_list = ohm_init(2, NULL);
 	traceback_list = link_init();
 
+	mpfr_init2(prev_answer, SYNGE_PRECISION);
+	mpfr_set_si(prev_answer, 0, SYNGE_ROUND);
+
 	synge_started = true;
 } /* synge_end() */
 
 void synge_end(void) {
 	assert(synge_started);
 
-	if(variable_list)
-		ohm_free(variable_list);
-	if(function_list)
-		ohm_free(function_list);
-	if(traceback_list)
-		link_free(traceback_list);
+	/* mpfr_free variables */
+	ohm_iter i = ohm_iter_init(variable_list);
+	for(; i.key != NULL; ohm_iter_inc(&i))
+		mpfr_clear(i.value);
 
+	ohm_free(variable_list);
+	ohm_free(function_list);
+	link_free(traceback_list);
 	free(error_msg_container);
+
+	mpfr_clears(prev_answer, NULL);
+	mpfr_free_cache();
+
 	synge_started = false;
 } /* synge_end() */
 
@@ -2057,17 +2347,9 @@ void synge_reset_traceback(void) {
 } /* synge_reset_traceback() */
 
 int synge_is_success_code(int code) {
-	if(code == SUCCESS)
-		return true;
-	else
-		return false;
+	return (code == SUCCESS);
 } /* is_success_code() */
 
 int synge_is_ignore_code(int code) {
-	if(code == EMPTY_STACK ||
-	   code == ERROR_FUNC_ASSIGNMENT ||
-	   code == ERROR_DELETE)
-		return true;
-	else
-		return false;
+	return (code == EMPTY_STACK || code == ERROR_FUNC_ASSIGNMENT || code == ERROR_DELETE);
 } /* ignore_code() */
