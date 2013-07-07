@@ -103,7 +103,6 @@ typedef struct __synge_settings__ {
 typedef struct __function__ {
 	char *name;
 	/* a function pointer with the same format as the mpfr_* functions */
-	/*int (*get)(mpfr_t, mpfr_t, mpfr_rnd_t);*/
 	int (*get)();
 	/* to hard-code explanations and name strings */
 	char *prototype;

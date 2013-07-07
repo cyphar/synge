@@ -42,7 +42,7 @@
  */
 
 #define SYNGE_MAIN		"<main>"
-#define SYNGE_EXT_PRECISION	50
+#define SYNGE_MAX_PRECISION	64
 #define SYNGE_MAX_DEPTH		2048
 
 #define SYNGE_PREV_ANSWER	"ans"
@@ -100,7 +100,7 @@ int iszero(synge_t num) {
 	/* generate "epsilon" */
 	mpfr_init2(epsilon, SYNGE_PRECISION);
 	mpfr_set_si(epsilon, 0, SYNGE_ROUND);
-	mpfr_pow_si(epsilon, epsilon, -SYNGE_EXT_PRECISION, SYNGE_ROUND);
+	mpfr_pow_si(epsilon, epsilon, -SYNGE_MAX_PRECISION, SYNGE_ROUND);
 
 	/* if abs(num) < epsilon then it is zero */
 	int cmp = mpfr_cmpabs(num, epsilon);
@@ -536,12 +536,12 @@ int synge_get_precision(synge_t num) {
 		return active_settings.precision;
 
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
-	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_EXT_PRECISION, num); /* get the amount of memory needed to store this printf*/
+	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
-	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_EXT_PRECISION, num); /* sprintf it */
+	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* sprintf it */
 
 	char *p = tmp + tmpsize - 2;
-	int precision = SYNGE_EXT_PRECISION;
+	int precision = SYNGE_MAX_PRECISION;
 	while(*p == '0') { /* find all trailing zeros */
 		precision--;
 		p--;
@@ -2297,8 +2297,8 @@ void synge_set_settings(synge_settings new_settings) {
 	active_settings = new_settings;
 
 	/* sanitise precision */
-	if(new_settings.precision > SYNGE_PRECISION)
-		active_settings.precision = SYNGE_PRECISION;
+	if(new_settings.precision > SYNGE_MAX_PRECISION)
+		active_settings.precision = SYNGE_MAX_PRECISION;
 } /* set_synge_settings() */
 
 function *synge_get_function_list(void) {
