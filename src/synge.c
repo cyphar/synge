@@ -754,8 +754,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 									if(pop.tp != number && pop.tp != rparen && pop.tp != userword)
 										tmp = true;
 
-									if(!tmp || isop(pop.tp))
-										push_ststack(pop, *infix_stack);
+									push_ststack(pop, *infix_stack);
 								}
 
 								if(!tmp) {
