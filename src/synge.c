@@ -1019,7 +1019,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
 							if(get_op(tmppop->val).tp == op_subtract) {
 								mpfr_init2(implied, SYNGE_PRECISION);
-								mpfr_set_zero(implied, SYNGE_ROUND);
+								mpfr_set_si(implied, 0, SYNGE_ROUND);
 
 								/* negate the variable? +0-x negates it */
 								push_valstack("+", addop, false, pos, *infix_stack);
@@ -2207,7 +2207,7 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	ohm_t *backup_func = ohm_dup(function_list);
 
 	/* intiialise result to zero */
-	mpfr_set_zero(*result, SYNGE_ROUND);
+	mpfr_set_si(*result, 0, SYNGE_ROUND);
 
 	/*
 	 * We have delved too greedily and too deep.
