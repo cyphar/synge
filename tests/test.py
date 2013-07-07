@@ -45,8 +45,10 @@ errors = {
 		"delword"	: "Unknown word to delete",
 		"funcvals"	: "Not enough arguments for function",
 		"opvals"	: "Not enough values for operator",
-		"ifcond"	: "Missing if conditional for else",
-		"elsecond"	: "Missing else statement for if",
+		"ifop"		: "Missing if operator for else",
+		"elseop"	: "Missing else operator for if",
+		"ifblock"	: "Missing if block for else",
+		"elseblock"	: "Missing else block for if",
 		"toomany"	: "Too many values in expression",
 		"empty"		: "Expression was empty",
 		"undef"		: "Result is undefined",
@@ -110,13 +112,13 @@ CASES = [
 	(["(0.5+0.5)*(1.5+1.5)"],		["3"],				0,	"Parenthesis		"),
 
 	(["1(2)"],				["2"],				0,	"Implied Multiplication	"),
-	(["-3(6)"],				["-18"],			0,	"implied multiplication	"),
-	(["4(-3)"],				["-12"],			0,	"implied multiplication	"),
-	(["-1(-3)"],				["3"],				0,	"implied multiplication	"),
+	(["-3(6)"],				["-18"],			0,	"implied Multiplication	"),
+	(["4(-3)"],				["-12"],			0,	"implied Multiplication	"),
+	(["-1(-3)"],				["3"],				0,	"implied Multiplication	"),
 	(["(2)8"],				["16"],				0,	"Implied Multiplication	"),
-	(["-3(6)-2"],				["-20"],			0,	"implied multiplication	"),
-	(["(-3)+2"],				["-1"],				0,	"implied multiplication	"),
-	(["4(0.25)"],				["1"],				0,	"implied multiplication	"),
+	(["-3(6)-2"],				["-20"],			0,	"implied Multiplication	"),
+	(["(-3)+2"],				["-1"],				0,	"implied Multiplication	"),
+	(["4(0.25)"],				["1"],				0,	"implied Multiplication	"),
 	(["-3.5(2)"],				["-7"],				0,	"Implied Multiplication	"),
 	(["7.2(-5)"],				["-36"],			0,	"Implied Multiplication	"),
 	(["-2.9(-2.4)"],			["6.96"],			0,	"Implied Multiplication	"),
@@ -309,6 +311,10 @@ CASES = [
 	(["1+-+4"],				[error_get("opvals", 2)],	0,	"Token Number Error	"),
 	(["2+1-"],				[error_get("opvals", 4)],	0,	"Token Number Error	"),
 	(["abs()"],				[error_get("funcvals", 1)],	0,	"Token Number Error	"),
+
+	(["3?3"],				[error_get("elseop", 2)],	0,	"Conditional Error	"),
+	(["3?:3"],				[error_get("ifblock", 2)],	0,	"Conditional Error	"),
+	(["3?3:"],				[error_get("elseblock", 4)],	0,	"Conditional Error	"),
 ]
 
 def test_calc(program, test, expected, mode, description):
