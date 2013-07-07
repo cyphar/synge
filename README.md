@@ -1,6 +1,8 @@
 Synge
 -----
-[![Build Status](https://travis-ci.org/cyphar/synge.png)](https://travis-ci.org/cyphar/synge)
+Master: [![Build Status](https://travis-ci.org/cyphar/synge.png?branch=master)](https://travis-ci.org/cyphar/synge)
+
+Stable: [![Build Status](https://travis-ci.org/cyphar/synge.png?branch=stable)](https://travis-ci.org/cyphar/synge)
 
 A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers
 
