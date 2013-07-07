@@ -328,7 +328,7 @@ static operator op_list[] = {
 	/* bitwise operators */
 	{"&",	op_band},
 	{"|",	op_bor},
-	{"@",	op_bxor},
+	{"**",	op_bxor},
 
 	{"<<",	op_bshiftl},
 	{">>",	op_bshiftr},
@@ -1113,7 +1113,7 @@ bool op_precedes(s_type op1, s_type op2) {
 			return false; /* what the hell are you doing? */
 			break;
 	}
-	return (op1 > op2 - lassoc);
+	return op1 > (op2 - lassoc);
 } /* op_precedes() */
 
 /* my implementation of Dijkstra's really cool shunting-yard algorithm */
@@ -1519,9 +1519,9 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_ca_band:
 						{
 							mpz_t final, op1, op2;
-							mpz_init2(final, SYNGE_ROUND);
-							mpz_init2(op1, SYNGE_ROUND);
-							mpz_init2(op2, SYNGE_ROUND);
+							mpz_init2(final, SYNGE_PRECISION);
+							mpz_init2(op1, SYNGE_PRECISION);
+							mpz_init2(op2, SYNGE_PRECISION);
 
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
@@ -1535,9 +1535,9 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_ca_bor:
 						{
 							mpz_t final, op1, op2;
-							mpz_init2(final, SYNGE_ROUND);
-							mpz_init2(op1, SYNGE_ROUND);
-							mpz_init2(op2, SYNGE_ROUND);
+							mpz_init2(final, SYNGE_PRECISION);
+							mpz_init2(op1, SYNGE_PRECISION);
+							mpz_init2(op2, SYNGE_PRECISION);
 
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
@@ -1551,15 +1551,19 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_ca_bxor:
 						{
 							mpz_t final, op1, op2;
-							mpz_init2(final, SYNGE_ROUND);
-							mpz_init2(op1, SYNGE_ROUND);
-							mpz_init2(op2, SYNGE_ROUND);
+							mpz_init2(final, SYNGE_PRECISION);
+							mpz_init2(op1, SYNGE_PRECISION);
+							mpz_init2(op2, SYNGE_PRECISION);
 
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
 							mpz_xor(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							debug("1: %Zd\n", op1);
+							debug("2: %Zd\n", op2);
+							debug("f: %Zd\n", final);
 
 							mpz_clears(final, op1, op2, NULL);
 						}
@@ -1923,9 +1927,9 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_band:
 						{
 							mpz_t final, op1, op2;
-							mpz_init2(final, SYNGE_ROUND);
-							mpz_init2(op1, SYNGE_ROUND);
-							mpz_init2(op2, SYNGE_ROUND);
+							mpz_init2(final, SYNGE_PRECISION);
+							mpz_init2(op1, SYNGE_PRECISION);
+							mpz_init2(op2, SYNGE_PRECISION);
 
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
@@ -1939,9 +1943,9 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_bor:
 						{
 							mpz_t final, op1, op2;
-							mpz_init2(final, SYNGE_ROUND);
-							mpz_init2(op1, SYNGE_ROUND);
-							mpz_init2(op2, SYNGE_ROUND);
+							mpz_init2(final, SYNGE_PRECISION);
+							mpz_init2(op1, SYNGE_PRECISION);
+							mpz_init2(op2, SYNGE_PRECISION);
 
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
@@ -1955,15 +1959,19 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_bxor:
 						{
 							mpz_t final, op1, op2;
-							mpz_init2(final, SYNGE_ROUND);
-							mpz_init2(op1, SYNGE_ROUND);
-							mpz_init2(op2, SYNGE_ROUND);
+							mpz_init2(final, SYNGE_PRECISION);
+							mpz_init2(op1, SYNGE_PRECISION);
+							mpz_init2(op2, SYNGE_PRECISION);
 
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
 							mpz_xor(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
+
+							debug("1: %Zd\n", op1);
+							debug("2: %Zd\n", op2);
+							debug("f: %Zd\n", final);
 
 							mpz_clears(final, op1, op2, NULL);
 						}

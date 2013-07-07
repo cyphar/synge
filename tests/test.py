@@ -101,9 +101,9 @@ CASES = [
 	(["7&-2"],				["6"],				0,	"Bitwise AND		"),
 	(["15.1&5"],				["5"],				0,	"Bitwise AND		"),
 
-	(["5@2"],				["7"],				0,	"Bitwise XOR		"),
-	(["8@-2"],				["-2"],				0,	"Bitwise XOR		"),
-	(["15.1@2"],				["15"],				0,	"Bitwise XOR		"),
+	(["5**2"],				["7"],				0,	"Bitwise XOR		"),
+	(["8**-2"],				["-10"],			0,	"Bitwise XOR		"),
+	(["15.1**2"],				["13"],				0,	"Bitwise XOR		"),
 
 	(["(1+1)*2"],				["4"],				0,	"Parenthesis		"),
 	(["1+(-2)"],				["-1"],				0,	"Parenthesis		"),
@@ -136,13 +136,13 @@ CASES = [
 
 	(["-0"],				["0"],				0,	"Negative Zero		"),
 
-	(["0xDEADBEEF + 0xA"],			["3735928569"],			0,	"Hexadecimal Addition	"),
-	(["0xDEADBEEF - 0xA"],			["3735928549"],			0,	"Hexadecimal Subtraction	"),
-	(["0xA0 / 0xA"],			["16"],				0,	"Hexadecimal Division	"),
+#	(["0xDEADBEEF + 0xA"],			["3735928569"],			0,	"Hexadecimal Addition	"),
+#	(["0xDEADBEEF - 0xA"],			["3735928549"],			0,	"Hexadecimal Subtraction	"),
+#	(["0xA0 / 0xA"],			["16"],				0,	"Hexadecimal Division	"),
 
-	(["0xDEADBEEF + 10"],			["3735928569"],			0,	"Mixed Addition		"),
-	(["0xDEADBEEF - 10"],			["3735928549"],			0,	"Mixed Subtraction	"),
-	(["0xA0 / 10"],				["16"],				0,	"Mixed Division		"),
+#	(["0xDEADBEEF + 10"],			["3735928569"],			0,	"Mixed Addition		"),
+#	(["0xDEADBEEF - 10"],			["3735928549"],			0,	"Mixed Subtraction	"),
+#	(["0xA0 / 10"],				["16"],				0,	"Mixed Division		"),
 
 	(["3.0+2.1"],				["5.1"],			0,	"Decimal Notation	"),
 	(["5.3+2"],				["7.3"],			0,	"Decimal Notation	"),

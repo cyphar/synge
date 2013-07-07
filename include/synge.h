@@ -29,7 +29,7 @@
 
 #define SYNGE_FORMAT		"Rf"
 #define SYNGE_PRECISION		512
-#define SYNGE_ROUND		MPFR_RNDA
+#define SYNGE_ROUND		MPFR_RNDN
 
 #define synge_printf(...)	mpfr_printf(__VA_ARGS__)
 #define synge_sprintf(...)	mpfr_sprintf(__VA_ARGS__)
