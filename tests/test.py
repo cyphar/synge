@@ -188,15 +188,17 @@ CASES = [
 
 	(["rand(100)"],				["32"],				0,	'"Random" Number		'),
 	(["rand(26)"],				["19"],				0,	'"Random" Number		'),
-	(["rand(146.7)"],			["64"],				0,	'"Random" Number		'),
+	(["rand(146.7)"],			["71"],				0,	'"Random" Number		'),
 	(["rand(32)"],				["28"],				0,	'"Random" Number		'),
 
 	(["tan(45)+cos(60)+sin(30)"],		["2"],				deg,	"Degrees Trigonometry	"),
 	(["atan(1)+acos(0.5)+asin(0)"],		["105"],			deg,	"Degrees Trigonometry	"),
 	(["atan(sin(30)/cos(30))"],		["30"],				deg,	"Degrees Trigonometry	"),
 
-	(["tan(45)+cos(60)+sin(30)"],		["-0.3206694139642"],		rad,	"Radian Trigonometry	"),
-	(["atan(1)+acos(0.5)+asin(0)"],		["1.832595714594"],		rad,	"Radian Trigonometry	"),
+	(["tan(45)+cos(60)+sin(30)"],
+	["-0.3206694139641565326987689858924589712956105145341298199928108166"],rad,	"Radian Trigonometry	"),
+	(["atan(1)+acos(0.5)+asin(0)"],
+	["1.8325957145940460557698753069130433491150154829688117289020510122"],	rad,	"Radian Trigonometry	"),
 	(["atan(sin(1.1)/cos(1.1))"],		["1.1"],			rad,	"Radian Trigonometry	"),
 
 	(["tanh(ln(2))"],			["0.6"],			0,	"Hyperbolic Trigonometry	"),
