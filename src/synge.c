@@ -806,6 +806,12 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					tmp = next_offset(s, i + oplen);
 					expr = get_expression_level(s + i + oplen, ':');
 
+					if(!expr) {
+						free(s);
+						free(word);
+						return to_error_code(EMPTY_IF, pos);
+					}
+
 					/* push expression */
 					push_valstack(expr, expression, true, tmp, *infix_stack);
 					tmpoffset = strlen(expr);
@@ -816,6 +822,12 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					/* get expression and position of it */
 					tmp = next_offset(s, i + oplen);
 					expr = get_expression_level(s + i + oplen, '\0');
+
+					if(!expr) {
+						free(s);
+						free(word);
+						return to_error_code(EMPTY_ELSE, pos);
+					}
 
 					/* push expression */
 					push_valstack(expr, expression, true, tmp, *infix_stack);
@@ -1822,10 +1834,16 @@ char *synge_error_msg(error_code error) {
 			msg = "Not enough values for operator";
 			break;
 		case MISSING_IF:
-			msg = "Missing if conditional for else";
+			msg = "Missing if operator for else";
 			break;
 		case MISSING_ELSE:
-			msg = "Missing else statement for if";
+			msg = "Missing else operator for if";
+			break;
+		case EMPTY_IF:
+			msg = "Missing if block for else";
+			break;
+		case EMPTY_ELSE:
+			msg = "Missing else block for if";
 			break;
 		case TOO_MANY_VALUES:
 			msg = "Too many values in expression";
