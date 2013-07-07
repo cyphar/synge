@@ -807,12 +807,9 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			else {
 				char *endptr;
 
-				/* get offset */
+				/* set value */
 				mpfr_strtofr(*num, s+i, &endptr, 10, SYNGE_ROUND);
 				tmpoffset = endptr - (s + i); /* update iterator to correct offset */
-
-				/* set accurate value */
-				mpfr_set_str(*num, s+i, 10, SYNGE_ROUND);
 			}
 			push_valstack(num, number, true, pos, *infix_stack); /* push given value */
 
