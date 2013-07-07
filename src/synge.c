@@ -99,14 +99,13 @@ int iszero(synge_t num) {
 
 	/* generate "epsilon" */
 	mpfr_init2(epsilon, SYNGE_PRECISION);
-	mpfr_set_si(epsilon, 0, SYNGE_ROUND);
-	mpfr_pow_si(epsilon, epsilon, -SYNGE_MAX_PRECISION, SYNGE_ROUND);
+	mpfr_set_str(epsilon, "0.00000000000000000000000000000000000000000000000000000000000000001", 10, SYNGE_ROUND);
 
 	/* if abs(num) < epsilon then it is zero */
 	int cmp = mpfr_cmpabs(num, epsilon);
 	mpfr_clears(epsilon, NULL);
 
-	return cmp > 0 || mpfr_zero_p(num);
+	return cmp < 0 || mpfr_zero_p(num);
 } /* iszero() */
 
 int deg2rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
@@ -2030,8 +2029,6 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 	/* otherwise, the last item is the result */
 	mpfr_set(*output, SYNGE_T(tmpstack->content[0].val), SYNGE_ROUND);
-	debug("stack -> %.*" SYNGE_FORMAT "\n", synge_get_precision(SYNGE_T(tmpstack->content[0].val)), SYNGE_T(tmpstack->content[0].val));
-	debug("output -> %.*" SYNGE_FORMAT "\n", synge_get_precision(*output), *output);
 
 	free_stackm(&tmpstack, rpn);
 	return to_error_code(SUCCESS, -1);
