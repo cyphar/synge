@@ -74,13 +74,13 @@ EXEC_EVAL	= $(NAME_EVAL)$(EXEC_SUFFIX)
 
 RES_DIR		= res
 
-RC_CLI		= $(RES_SDIR)/$(NAME_CLI).rc
-RC_GTK		= $(RES_SDIR)/$(NAME_GTK).rc
-RC_EVAL		= $(RES_SDIR)/$(NAME_EVAL).rc
+RC_CLI		= $(RES_DIR)/$(NAME_CLI).rc
+RC_GTK		= $(RES_DIR)/$(NAME_GTK).rc
+RC_EVAL		= $(RES_DIR)/$(NAME_EVAL).rc
 
-ICON_CLI	= $(RES_SDIR)/$(NAME_CLI).o
-ICON_GTK	= $(RES_SDIR)/$(NAME_GTK).o
-ICON_EVAL	= $(RES_SDIR)/$(NAME_EVAL).o
+ICON_CLI	= $(RES_DIR)/$(NAME_CLI).o
+ICON_GTK	= $(RES_DIR)/$(NAME_GTK).o
+ICON_EVAL	= $(RES_DIR)/$(NAME_EVAL).o
 
 ifeq ($(OS), Windows_NT)
 	LINK_CLI	+= $(ICON_CLI)
@@ -309,9 +309,9 @@ xmlui:
 
 # Windows pre-compilation (make resource files)
 windows-pre: $(RC_CLI) $(RC_GTK) $(RC_EVAL)
-	windres $(RC_CLI)  -I$(SRC_DIR)/ -o $(ICON_CLI)
-	windres $(RC_GTK)  -I$(SRC_DIR)/ -o $(ICON_GTK)
-	windres $(RC_EVAL) -I$(SRC_DIR)/ -o $(ICON_EVAL)
+	windres $(RC_CLI)  -I$(INCLUDE_DIR)/ -o $(ICON_CLI)
+	windres $(RC_GTK)  -I$(INCLUDE_DIR)/ -o $(ICON_GTK)
+	windres $(RC_EVAL) -I$(INCLUDE_DIR)/ -o $(ICON_EVAL)
 
 # Windows post-compilation
 windows-post:
