@@ -42,7 +42,7 @@
  */
 
 #define SYNGE_MAIN		"<main>"
-#define SYNGE_INT_PRECISION	50
+#define SYNGE_EXT_PRECISION	50
 #define SYNGE_MAX_DEPTH		2048
 
 #define SYNGE_PREV_ANSWER	"ans"
@@ -82,9 +82,6 @@
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
 #define isnumword(type) (type == number || type == userword || type == setword)
 
-/* checks if a synge_t is technically zero */
-#define iszero(x) (mpfr_zero_p(x))
-
 /* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
 #define has_rounding_error(number) ((number + 1) == number || (number - 1) == number)
 
@@ -96,6 +93,21 @@
 #define FUNCTION(x) ((function *) x)
 
 static int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
+
+int iszero(synge_t num) {
+	synge_t epsilon;
+
+	/* generate "epsilon" */
+	mpfr_init2(epsilon, SYNGE_PRECISION);
+	mpfr_set_si(epsilon, 0, SYNGE_ROUND);
+	mpfr_pow_si(epsilon, epsilon, -SYNGE_EXT_PRECISION, SYNGE_ROUND);
+
+	/* if abs(num) < epsilon then it is zero */
+	int cmp = mpfr_cmpabs(num, epsilon);
+	mpfr_clears(epsilon, NULL);
+
+	return cmp > 0 || mpfr_zero_p(num);
+} /* iszero() */
 
 int deg2rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
 	/* get pi */
@@ -524,12 +536,12 @@ int synge_get_precision(synge_t num) {
 		return active_settings.precision;
 
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
-	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_INT_PRECISION, num); /* get the amount of memory needed to store this printf*/
+	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_EXT_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
-	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_INT_PRECISION, num); /* sprintf it */
+	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_EXT_PRECISION, num); /* sprintf it */
 
 	char *p = tmp + tmpsize - 2;
-	int precision = SYNGE_INT_PRECISION;
+	int precision = SYNGE_EXT_PRECISION;
 	while(*p == '0') { /* find all trailing zeros */
 		precision--;
 		p--;
