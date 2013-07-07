@@ -42,6 +42,7 @@
  */
 
 #define SYNGE_MAIN		"<main>"
+#define SYNGE_INT_PRECISION	50
 #define SYNGE_MAX_DEPTH		2048
 
 #define SYNGE_PREV_ANSWER	"ans"
@@ -372,7 +373,7 @@ void print_stack(stack *s) {
 		if(!tmp.val) continue;
 
 		if(tmp.tp == number)
-			synge_printf("%" SYNGE_FORMAT " ", SYNGE_T(tmp.val));
+			synge_printf("%.*" SYNGE_FORMAT " ", synge_get_precision(SYNGE_T(tmp.val)), SYNGE_T(tmp.val));
 		else if(tmp.tp == func)
 			printf("%s ", FUNCTION(tmp.val)->name);
 		else
@@ -523,12 +524,12 @@ int synge_get_precision(synge_t num) {
 		return active_settings.precision;
 
 	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
-	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_PRECISION, num); /* get the amount of memory needed to store this printf*/
+	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_INT_PRECISION, num); /* get the amount of memory needed to store this printf*/
 	char *tmp = malloc(tmpsize);
-	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_PRECISION, num); /* sprintf it */
+	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_INT_PRECISION, num); /* sprintf it */
 
 	char *p = tmp + tmpsize - 2;
-	int precision = SYNGE_PRECISION;
+	int precision = SYNGE_INT_PRECISION;
 	while(*p == '0') { /* find all trailing zeros */
 		precision--;
 		p--;
@@ -592,10 +593,6 @@ bool isnum(char *string) {
 	free(s);
 	return ret;
 } /* isnum() */
-
-void set_answer(synge_t val, mpfr_rnd_t round) {
-	/* specifically made for the ans "variable" -- use the hashmap for real variables */
-} /* set_answer() */
 
 error_code set_variable(char *str, synge_t val) {
 	assert(synge_started);
@@ -769,7 +766,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	char *s = function_process_replace(string);
 
 	debug("--\nTokenise\n--\n");
-	debug("%s\n%s\n", string, s);
+	debug("Input: %s\nProcessed: %s\n", string, s);
 
 	init_stack(*infix_stack);
 	int i, pos, len = strlen(s), nextpos = 0, tmpoffset = 0;
@@ -1073,7 +1070,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 	/* debugging */
 	print_stack(*infix_stack);
-
 	return to_error_code(SUCCESS, -1);
 } /* synge_tokenise_string() */
 

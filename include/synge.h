@@ -28,7 +28,7 @@
 #define __SYNGE_H__
 
 #define SYNGE_FORMAT		"Rf"
-#define SYNGE_PRECISION		20
+#define SYNGE_PRECISION		512
 #define SYNGE_ROUND		MPFR_RNDA
 
 #define synge_printf(...)	mpfr_printf(__VA_ARGS__)
