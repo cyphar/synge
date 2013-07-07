@@ -33,7 +33,6 @@ typedef struct __function_alias__ {
 typedef struct __special_number__ {
 	char *name;
 	/* an mpfr_* like function to set the value of the special number */
-	/*int (*value)(synge_t, synge_t, mpfr_rnd_t);*/
 	int (*value)();
 } special_number;
 
