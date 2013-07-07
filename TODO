@@ -6,7 +6,6 @@ ALL:
 * General code clean-up (especially tokenisation & evaluation code)
 
 SYNGE:
-+ Add bignum support
 + Multiple evaluations per line (a=1;a+2;a=a+1;a)
 + Functions to:
   - Get factors of a number
