@@ -29,10 +29,11 @@ rad = "radians"
 
 if name is not "nt":
 	ansi_error = "\x1b[1;31m"
+	ansi_warn  = "\x1b[1;33m"
 	ansi_good  = "\x1b[1;32m"
 	ansi_reset = "\x1b[0m"
 else:
-	ansi_error = ansi_good = ansi_reset = ""
+	ansi_error = ansi_warn = ansi_good = ansi_reset = ""
 
 errors = {
 		"zerodiv"	: "Cannot divide by zero",
@@ -65,273 +66,273 @@ def error_get(key, position = 0):
 # List of case tuples
 
 CASES = [
-#	[test expressions]			[expected results]	mode	test description
+#	[test expressions]			[expected results]		mode	changes		test description
 
 	# expected successes
-	(["1+1"],				["2"],				0,	"Addition		"),
-	(["41+1"],				["42"],				0,	"Addition		"),
-	(["43.7+2.3"],				["46"],				0,	"Addition		"),
-	(["1+-1"],				["0"],				0,	"Convoluted Addition	"),
+	(["1+1"],				["2"],				0,	0,		"Addition		"),
+	(["41+1"],				["42"],				0,	0,		"Addition		"),
+	(["43.7+2.3"],				["46"],				0,	0,		"Addition		"),
+	(["1+-1"],				["0"],				0,	0,		"Convoluted Addition	"),
 
-	(["5-3"],				["2"],				0,	"Subtraction		"),
-	(["-5-3"],				["-8"],				0,	"Subtraction		"),
-	(["15-3.5-10"],				["1.5"],			0,	"Subtraction		"),
-	(["1-+1"],				["0"],				0,	"Convoluted Subtraction	"),
+	(["5-3"],				["2"],				0,	0,		"Subtraction		"),
+	(["-5-3"],				["-8"],				0,	0,		"Subtraction		"),
+	(["15-3.5-10"],				["1.5"],			0,	0,		"Subtraction		"),
+	(["1-+1"],				["0"],				0,	0,		"Convoluted Subtraction	"),
 
-	(["3*4"],				["12"],				0,	"Multiplication		"),
-	(["-2*6"],				["-12"],			0,	"Multiplication		"),
+	(["3*4"],				["12"],				0,	0,		"Multiplication		"),
+	(["-2*6"],				["-12"],			0,	0,		"Multiplication		"),
 
-	(["4/2"],				["2"],				0,	"Division		"),
-	(["-9/3"],				["-3"],				0,	"Division		"),
-	(["5/0.2"],				["25"],				0,	"Division		"),
-	(["-4.2/2.1"],				["-2"],				0,	"Division		"),
+	(["4/2"],				["2"],				0,	0,		"Division		"),
+	(["-9/3"],				["-3"],				0,	0,		"Division		"),
+	(["5/0.2"],				["25"],				0,	0,		"Division		"),
+	(["-4.2/2.1"],				["-2"],				0,	0,		"Division		"),
 
-	(["4//2"],				["2"],				0,	"Integer Division	"),
-	(["-9//3"],				["-3"],				0,	"Integer Division	"),
-	(["5.2412//1.223"],			["4"],				0,	"Integer Division	"),
-	(["-4.2394//2.3"],			["-1"],				0,	"Integer Division	"),
+	(["4//2"],				["2"],				0,	0,		"Integer Division	"),
+	(["-9//3"],				["-3"],				0,	0,		"Integer Division	"),
+	(["5.2412//1.223"],			["4"],				0,	0,		"Integer Division	"),
+	(["-4.2394//2.3"],			["-1"],				0,	0,		"Integer Division	"),
 
-	(["5%2"],				["1"],				0,	"Modulo			"),
-	(["13%-2"],				["1"],				0,	"Modulo			"),
-	(["15.1%2"],				["1.1"],			0,	"Modulo			"),
+	(["5%2"],				["1"],				0,	0,		"Modulo			"),
+	(["13%-2"],				["1"],				0,	0,		"Modulo			"),
+	(["15.1%2"],				["1.1"],			0,	0,		"Modulo			"),
 
-	(["5|2"],				["7"],				0,	"Bitwise OR		"),
-	(["8|-2"],				["-2"],				0,	"Bitwise OR		"),
-	(["15.1|2"],				["15"],				0,	"Bitwise OR		"),
+	(["5|2"],				["7"],				0,	0,		"Bitwise OR		"),
+	(["8|-2"],				["-2"],				0,	0,		"Bitwise OR		"),
+	(["15.1|2"],				["15"],				0,	0,		"Bitwise OR		"),
 
-	(["5&2"],				["0"],				0,	"Bitwise AND		"),
-	(["7&-2"],				["6"],				0,	"Bitwise AND		"),
-	(["15.1&5"],				["5"],				0,	"Bitwise AND		"),
+	(["5&2"],				["0"],				0,	0,		"Bitwise AND		"),
+	(["7&-2"],				["6"],				0,	0,		"Bitwise AND		"),
+	(["15.1&5"],				["5"],				0,	0,		"Bitwise AND		"),
 
-	(["5**2"],				["7"],				0,	"Bitwise XOR		"),
-	(["8**-2"],				["-10"],			0,	"Bitwise XOR		"),
-	(["15.1**2"],				["13"],				0,	"Bitwise XOR		"),
+	(["5**2"],				["7"],				0,	0,		"Bitwise XOR		"),
+	(["8**-2"],				["-10"],			0,	0,		"Bitwise XOR		"),
+	(["15.1**2"],				["13"],				0,	0,		"Bitwise XOR		"),
 
-	(["(1+1)*2"],				["4"],				0,	"Parenthesis		"),
-	(["1+(-2)"],				["-1"],				0,	"Parenthesis		"),
-	(["(0.5+0.5)*(1.5+1.5)"],		["3"],				0,	"Parenthesis		"),
+	(["(1+1)*2"],				["4"],				0,	0,		"Parenthesis		"),
+	(["1+(-2)"],				["-1"],				0,	0,		"Parenthesis		"),
+	(["(0.5+0.5)*(1.5+1.5)"],		["3"],				0,	0,		"Parenthesis		"),
 
-	(["1(2)"],				["2"],				0,	"Implied Multiplication	"),
-	(["-3(6)"],				["-18"],			0,	"implied Multiplication	"),
-	(["4(-3)"],				["-12"],			0,	"implied Multiplication	"),
-	(["-1(-3)"],				["3"],				0,	"implied Multiplication	"),
-	(["(2)8"],				["16"],				0,	"Implied Multiplication	"),
-	(["-3(6)-2"],				["-20"],			0,	"implied Multiplication	"),
-	(["(-3)+2"],				["-1"],				0,	"implied Multiplication	"),
-	(["4(0.25)"],				["1"],				0,	"implied Multiplication	"),
-	(["-3.5(2)"],				["-7"],				0,	"Implied Multiplication	"),
-	(["7.2(-5)"],				["-36"],			0,	"Implied Multiplication	"),
-	(["-2.9(-2.4)"],			["6.96"],			0,	"Implied Multiplication	"),
+	(["1(2)"],				["2"],				0,	0,		"Implied Multiplication	"),
+	(["-3(6)"],				["-18"],			0,	0,		"implied Multiplication	"),
+	(["4(-3)"],				["-12"],			0,	0,		"implied Multiplication	"),
+	(["-1(-3)"],				["3"],				0,	0,		"implied Multiplication	"),
+	(["(2)8"],				["16"],				0,	0,		"Implied Multiplication	"),
+	(["-3(6)-2"],				["-20"],			0,	0,		"implied Multiplication	"),
+	(["(-3)+2"],				["-1"],				0,	0,		"implied Multiplication	"),
+	(["4(0.25)"],				["1"],				0,	0,		"implied Multiplication	"),
+	(["-3.5(2)"],				["-7"],				0,	0,		"Implied Multiplication	"),
+	(["7.2(-5)"],				["-36"],			0,	0,		"Implied Multiplication	"),
+	(["-2.9(-2.4)"],			["6.96"],			0,	0,		"Implied Multiplication	"),
 
-	(["2tan(45)"],				["2"],				deg,	"Implied Multiplication	"),
-	(["-3cos(0)"],				["-3"],				deg,	"Implied Multiplication	"),
-	(["0.3sin(90)"],			["0.3"],			deg,	"Implied Multiplication	"),
-	(["-2.1acos(0.5)"],			["-126"],			deg,	"Implied Multiplication	"),
+	(["2tan(45)"],				["2"],				deg,	0,		"Implied Multiplication	"),
+	(["-3cos(0)"],				["-3"],				deg,	0,		"Implied Multiplication	"),
+	(["0.3sin(90)"],			["0.3"],			deg,	0,		"Implied Multiplication	"),
+	(["-2.1acos(0.5)"],			["-126"],			deg,	0,		"Implied Multiplication	"),
 
-	(["10^2"],				["100"],			0,	"Indicies		"),
-	(["(-3)^2"],				["9"],				0,	"Indicies		"),
-	(["16^(1/4)"],				["2"],				0,	"Fractional Indicies	"),
-	(["16^(-1/4)"],				["0.5"],			0,	"Fractional Indicies	"),
+	(["10^2"],				["100"],			0,	0,		"Indicies		"),
+	(["(-3)^2"],				["9"],				0,	0,		"Indicies		"),
+	(["16^(1/4)"],				["2"],				0,	0,		"Fractional Indicies	"),
+	(["16^(-1/4)"],				["0.5"],			0,	0,		"Fractional Indicies	"),
 
-	(["pi-pi%1"],				["3"],				0,	"Magic Numbers		"),
-	(["e-e%1"],				["2"],				0,	"Magic Numbers		"),
+	(["pi-pi%1"],				["3"],				0,	0,		"Magic Numbers		"),
+	(["e-e%1"],				["2"],				0,	0,		"Magic Numbers		"),
 
-	(["-0"],				["0"],				0,	"Negative Zero		"),
+	(["-0"],				["0"],				0,	0,		"Negative Zero		"),
 
-	(["0xDEADBEEF + 0xA"],			["3735928569"],			0,	"Hex Addition		"),
-	(["0xDEADBEEF - 0xA"],			["3735928549"],			0,	"Hex Subtraction		"),
-	(["0xA0 * 0xA"],			["1600"],			0,	"Hex Multiplication	"),
-	(["0xA0 / 0xA"],			["16"],				0,	"Hex Division		"),
+	(["0xDEADBEEF + 0xA"],			["3735928569"],			0,	0,		"Hex Addition		"),
+	(["0xDEADBEEF - 0xA"],			["3735928549"],			0,	0,		"Hex Subtraction		"),
+	(["0xA0 * 0xA"],			["1600"],			0,	0,		"Hex Multiplication	"),
+	(["0xA0 / 0xA"],			["16"],				0,	0,		"Hex Division		"),
 
-	(["0b10 + 0b01"],			["3"],				0,	"Binary Addition		"),
-	(["0b10 - 0b01"],			["1"],				0,	"Binary Subtraction	"),
-	(["0b100 * 0b10"],			["8"],				0,	"Binary Multiplication	"),
-	(["0b01 / 0b10"],			["0.5"],			0,	"Binary Division		"),
+	(["0b10 + 0b01"],			["3"],				0,	0,		"Binary Addition		"),
+	(["0b10 - 0b01"],			["1"],				0,	0,		"Binary Subtraction	"),
+	(["0b100 * 0b10"],			["8"],				0,	0,		"Binary Multiplication	"),
+	(["0b01 / 0b10"],			["0.5"],			0,	0,		"Binary Division		"),
 
-	(["010 + 01"],				["9"],				0,	"Octal Addition		"),
-	(["0010 - 0o1"],			["7"],				0,	"Octal Subtraction	"),
-	(["0100 * 0010"],			["512"],			0,	"Octal Multiplication	"),
-	(["0o100 / 0o10"],			["8"],				0,	"Octal Division		"),
+	(["010 + 01"],				["9"],				0,	0,		"Octal Addition		"),
+	(["0010 - 0o1"],			["7"],				0,	0,		"Octal Subtraction	"),
+	(["0100 * 0010"],			["512"],			0,	0,		"Octal Multiplication	"),
+	(["0o100 / 0o10"],			["8"],				0,	0,		"Octal Division		"),
 
-	(["0xDEADBEEF + 10"],			["3735928569"],			0,	"Mixed Addition		"),
-	(["0xDEADBEEF - 10"],			["3735928549"],			0,	"Mixed Subtraction	"),
-	(["0xA0 / 10"],				["16"],				0,	"Mixed Division		"),
+	(["0xDEADBEEF + 10"],			["3735928569"],			0,	0,		"Mixed Addition		"),
+	(["0xDEADBEEF - 10"],			["3735928549"],			0,	0,		"Mixed Subtraction	"),
+	(["0xA0 / 10"],				["16"],				0,	0,		"Mixed Division		"),
 
-	(["3.0+2.1"],				["5.1"],			0,	"Decimal Notation	"),
-	(["5.3+2"],				["7.3"],			0,	"Decimal Notation	"),
-	(["0.1+2"],				["2.1"],			0,	"Decimal Notation	"),
-	(["1.0+3"],				["4"],				0,	"Decimal Notation	"),
-	([".1+2"],				["2.1"],			0,	"Decimal Notation	"),
-	(["1.+3"],				["4"],				0,	"Decimal Notation	"),
+	(["3.0+2.1"],				["5.1"],			0,	0,		"Decimal Notation	"),
+	(["5.3+2"],				["7.3"],			0,	0,		"Decimal Notation	"),
+	(["0.1+2"],				["2.1"],			0,	0,		"Decimal Notation	"),
+	(["1.0+3"],				["4"],				0,	0,		"Decimal Notation	"),
+	([".1+2"],				["2.1"],			0,	0,		"Decimal Notation	"),
+	(["1.+3"],				["4"],				0,	0,		"Decimal Notation	"),
 
-	(["abs(-123)"],				["123"],			0,	"Assorted Functions	"),
-	(["abs(123)"],				["123"],			0,	"Assorted Functions	"),
-	(["sqrt(4)"],				["2"],				0,	"Assorted Functions	"),
-	(["cbrt(8)"],				["2"],				0,	"Assorted Functions	"),
-	(["floor(0.5)"],			["0"],				0,	"Assorted Functions	"),
-	(["round(0.5)"],			["1"],				0,	"Assorted Functions	"),
-	(["ceil(0.5)"],				["1"],				0,	"Assorted Functions	"),
-	(["log10(1000)"],			["3"],				0,	"Assorted Functions	"),
-	(["log(1024)"],				["10"],				0,	"Assorted Functions	"),
-	(["ln(e^2)"],				["2"],				0,	"Assorted Functions	"),
-	(["fact(3)"],				["6"],				0,	"Assorted Functions	"),
-	(["fact(4)"],				["24"],				0,	"Assorted Functions	"),
+	(["abs(-123)"],				["123"],			0,	0,		"Assorted Functions	"),
+	(["abs(123)"],				["123"],			0,	0,		"Assorted Functions	"),
+	(["sqrt(4)"],				["2"],				0,	0,		"Assorted Functions	"),
+	(["cbrt(8)"],				["2"],				0,	0,		"Assorted Functions	"),
+	(["floor(0.5)"],			["0"],				0,	0,		"Assorted Functions	"),
+	(["round(0.5)"],			["1"],				0,	0,		"Assorted Functions	"),
+	(["ceil(0.5)"],				["1"],				0,	0,		"Assorted Functions	"),
+	(["log10(1000)"],			["3"],				0,	0,		"Assorted Functions	"),
+	(["log(1024)"],				["10"],				0,	0,		"Assorted Functions	"),
+	(["ln(e^2)"],				["2"],				0,	0,		"Assorted Functions	"),
+	(["fact(3)"],				["6"],				0,	0,		"Assorted Functions	"),
+	(["fact(4)"],				["24"],				0,	0,		"Assorted Functions	"),
 
-	(["log10(100)/2"],			["1"],				0,	"Function Division	"),
-	(["ln(100)/ln(10)"],			["2"],				0,	"Function Division	"),
-	(["ceil(11.01)/floor(12.01)"],		["1"],				0,	"Function Division	"),
+	(["log10(100)/2"],			["1"],				0,	0,		"Function Division	"),
+	(["ln(100)/ln(10)"],			["2"],				0,	0,		"Function Division	"),
+	(["ceil(11.01)/floor(12.01)"],		["1"],				0,	0,		"Function Division	"),
 
-	(["3+4*2/(1-5)^2^3"],			["3.0001220703125"],		0,	"Operator Precedence	"),
+	(["3+4*2/(1-5)^2^3"],			["3.0001220703125"],		0,	0,		"Operator Precedence	"),
 
-	(["(1+3)?2-5:23"],			["-3"],				0,	"Conditional Statement	"),
-	(["(-3<0)?43.3*(3-2):3.5"],		["43.3"],			0,	"Conditional Statement	"),
-	(["0?1.5-3/2:16-3.5"],			["12.5"],			0,	"Conditional Statement	"),
-	(["(5!=0)?5.2:5.5"],			["5.2"],			0,	"Conditional Statement	"),
-	(["0.001?19.2:4.2"],			["19.2"],			0,	"Conditional Statement	"),
-	(["true?1:1/0"],			["1"],				0,	"Conditional Statement	"),
-	(["false?1/0:1"],			["1"],				0,	"Conditional Statement	"),
+	(["(1+3)?2-5:23"],			["-3"],				0,	0,		"Conditional Statement	"),
+	(["(-3<0)?43.3*(3-2):3.5"],		["43.3"],			0,	0,		"Conditional Statement	"),
+	(["0?1.5-3/2:16-3.5"],			["12.5"],			0,	0,		"Conditional Statement	"),
+	(["(5!=0)?5.2:5.5"],			["5.2"],			0,	0,		"Conditional Statement	"),
+	(["0.001?19.2:4.2"],			["19.2"],			0,	0,		"Conditional Statement	"),
+	(["true?1:1/0"],			["1"],				0,	0,		"Conditional Statement	"),
+	(["false?1/0:1"],			["1"],				0,	0,		"Conditional Statement	"),
 	(["(true?a=3:a=0)+false?a=4:a=2", "a"],
-	 ["5",                            "2"],					0,	"Conditional Statement	"),
+	 ["5",                            "2"],					0,	0,		"Conditional Statement	"),
 	(["true?a=3:a=0", "a"],
-	 ["3",            "3"],							0,	"Conditional Statement	"),
+	 ["3",            "3"],							0,	0,		"Conditional Statement	"),
 	(["false?a=2:a=12", "a"],
-	 ["12",             "12"],						0,	"Conditional Statement	"),
+	 ["12",             "12"],						0,	0,		"Conditional Statement	"),
 	(["a=1+false?a=2:a=12", "a"],
-	 ["13",                 "13"],						0,	"Conditional Statement	"),
+	 ["13",                 "13"],						0,	0,		"Conditional Statement	"),
 
-	(["rand(100)"],				["32"],				0,	'"Random" Number		'),
-	(["rand(26)"],				["19"],				0,	'"Random" Number		'),
-	(["rand(146.7)"],			["71"],				0,	'"Random" Number		'),
-	(["rand(32)"],				["28"],				0,	'"Random" Number		'),
+	(["rand(100)"],				["32"],				0,	1,		'"Random" Number		'),
+	(["rand(26)"],				["19"],				0,	1,		'"Random" Number		'),
+	(["rand(146.7)"],			["71"],				0,	1,		'"Random" Number		'),
+	(["rand(32)"],				["28"],				0,	1,		'"Random" Number		'),
 
-	(["tan(45)+cos(60)+sin(30)"],		["2"],				deg,	"Degrees Trigonometry	"),
-	(["atan(1)+acos(0.5)+asin(0)"],		["105"],			deg,	"Degrees Trigonometry	"),
-	(["atan(sin(30)/cos(30))"],		["30"],				deg,	"Degrees Trigonometry	"),
+	(["tan(45)+cos(60)+sin(30)"],		["2"],				deg,	0,		"Degrees Trigonometry	"),
+	(["atan(1)+acos(0.5)+asin(0)"],		["105"],			deg,	0,		"Degrees Trigonometry	"),
+	(["atan(sin(30)/cos(30))"],		["30"],				deg,	0,		"Degrees Trigonometry	"),
 
 	(["tan(45)+cos(60)+sin(30)"],
-	["-0.3206694139641565326987689858924589712956105145341298199928108166"],rad,	"Radian Trigonometry	"),
+	["-0.3206694139641565326987689858924589712956105145341298199928108166"],rad,	0,		"Radian Trigonometry	"),
 	(["atan(1)+acos(0.5)+asin(0)"],
-	["1.8325957145940460557698753069130433491150154829688117289020510122"],	rad,	"Radian Trigonometry	"),
-	(["atan(sin(1.1)/cos(1.1))"],		["1.1"],			rad,	"Radian Trigonometry	"),
+	["1.8325957145940460557698753069130433491150154829688117289020510122"],	rad,	0,		"Radian Trigonometry	"),
+	(["atan(sin(1.1)/cos(1.1))"],		["1.1"],			rad,	0,		"Radian Trigonometry	"),
 
-	(["tanh(ln(2))"],			["0.6"],			0,	"Hyperbolic Trigonometry	"),
-	(["e^atanh(0.6)"],			["2"],				0,	"Hyperbolic Trigonometry	"),
-	(["cosh(ln(2))"],			["1.25"],			0,	"Hyperbolic Trigonometry	"),
-	(["e^acosh(1.25)"],			["2"],				0,	"Hyperbolic Trigonometry	"),
-	(["sinh(ln(2))"],			["0.75"],			0,	"Hyperbolic Trigonometry	"),
-	(["e^asinh(0.75)"],			["2"],				0,	"Hyperbolic Trigonometry	"),
+	(["tanh(ln(2))"],			["0.6"],			0,	0,		"Hyperbolic Trigonometry	"),
+	(["e^atanh(0.6)"],			["2"],				0,	0,		"Hyperbolic Trigonometry	"),
+	(["cosh(ln(2))"],			["1.25"],			0,	0,		"Hyperbolic Trigonometry	"),
+	(["e^acosh(1.25)"],			["2"],				0,	0,		"Hyperbolic Trigonometry	"),
+	(["sinh(ln(2))"],			["0.75"],			0,	0,		"Hyperbolic Trigonometry	"),
+	(["e^asinh(0.75)"],			["2"],				0,	0,		"Hyperbolic Trigonometry	"),
 
-	(["deg2rad(180/pi)+rad2deg(pi)"],	["181"],			0,	"Angle Conversion	"),
+	(["deg2rad(180/pi)+rad2deg(pi)"],	["181"],			0,	0,		"Angle Conversion	"),
 
-	(["2^2^2-15-14-12-11-10^5"],		["-100036"],			0,	"Long Expression		"),
-	(["57-(-2)^2-floor(log10(23))"],	["52"],				0,	"Long Expression		"),
-	(["2+floor(log10(23))/32"],		["2.03125"],			0,	"Long Expression		"),
-	(["ceil((e%2.5)*300)"],			["66"],				0,	"Long Expression		"),
+	(["2^2^2-15-14-12-11-10^5"],		["-100036"],			0,	0,		"Long Expression		"),
+	(["57-(-2)^2-floor(log10(23))"],	["52"],				0,	0,		"Long Expression		"),
+	(["2+floor(log10(23))/32"],		["2.03125"],			0,	0,		"Long Expression		"),
+	(["ceil((e%2.5)*300)"],			["66"],				0,	0,		"Long Expression		"),
 	(["(fact(4)+8)/4+(2+3*4)^2-3^4+(9+10)*(15-21)+7*(17-15)"],
-						["23"],                         0,      "Long Expression		"),
+						["23"],                         0,	0,	      "Long Expression		"),
 
-	(["987654321012/987654321012"],		["1"],				0,	"Big Numbers		"),
+	(["987654321012/987654321012"],		["1"],				0,	0,		"Big Numbers		"),
 
-	(["1 +1 "],				["2"],				0,	"Spaces			"),
-	(["  41 + 1"],				["42"],				0,	"Spaces			"),
-	([" 43.7+ 2.3  "],			["46"],				0,	"Spaces			"),
-	(["-3( 6)"],				["-18"],			0,	"Spaces			"),
-	(["4 ( -3 )"],				["-12"],			0,	"Spaces			"),
-	(["-1  (-3)"],				["3"],				0,	"Spaces			"),
-	([" 4( 0.25)"],				["1"],				0,	"Spaces			"),
-	(["  -3.5( 2)"],			["-7"],				0,	"Spaces			"),
-	(["1+  -1"],				["0"],				0,	"Spaces			"),
-	([" 5  -3"],				["2"],				0,	"Spaces			"),
-	(["( -3  )   ^ 2"],			["9"],				0,	"Spaces			"),
-	(["16  ^( 1 /  4 )"],			["2"],				0,	"Spaces			"),
-	(["3 +4  *2 / ( 1- 5)^ 2 ^ 3"],		["3.0001220703125"],		0,	"Spaces			"),
+	(["1 +1 "],				["2"],				0,	0,		"Spaces			"),
+	(["  41 + 1"],				["42"],				0,	0,		"Spaces			"),
+	([" 43.7+ 2.3  "],			["46"],				0,	0,		"Spaces			"),
+	(["-3( 6)"],				["-18"],			0,	0,		"Spaces			"),
+	(["4 ( -3 )"],				["-12"],			0,	0,		"Spaces			"),
+	(["-1  (-3)"],				["3"],				0,	0,		"Spaces			"),
+	([" 4( 0.25)"],				["1"],				0,	0,		"Spaces			"),
+	(["  -3.5( 2)"],			["-7"],				0,	0,		"Spaces			"),
+	(["1+  -1"],				["0"],				0,	0,		"Spaces			"),
+	([" 5  -3"],				["2"],				0,	0,		"Spaces			"),
+	(["( -3  )   ^ 2"],			["9"],				0,	0,		"Spaces			"),
+	(["16  ^( 1 /  4 )"],			["2"],				0,	0,		"Spaces			"),
+	(["3 +4  *2 / ( 1- 5)^ 2 ^ 3"],		["3.0001220703125"],		0,	0,		"Spaces			"),
 
-	(["a=2", "a", "a=3a+4", "a"],		["2", "2", "10", "10"],		0,	"Basic Variables		"),
+	(["a=2", "a", "a=3a+4", "a"],		["2", "2", "10", "10"],		0,	0,		"Basic Variables		"),
 
 	(["test=2", "test", "a=test^2-7", "a+2", "2test+1"],
-	 ["2",      "2",    "-3",         "-1",  "5"],				0,	"Basic Variables		"),
+	 ["2",      "2",    "-3",         "-1",  "5"],				0,	0,		"Basic Variables		"),
 
 	(["a=b=3", "2b+a", "b=c=5-a", "a+b-c"],
-	 ["3",     "9",    "2",       "3"],					0,	"Variable Chaining	"),
+	 ["3",     "9",    "2",       "3"],					0,	0,		"Variable Chaining	"),
 
 	(["c=(a=2(b=3))-1", "a", "2b", "0.2c", "c=(a=3)(b=4)+2", "a+2b"],
-	 ["5",              "6", "6",  "1",    "14",             "11"],		0,	"Variable Returns	"),
+	 ["5",              "6", "6",  "1",    "14",             "11"],		0,	0,		"Variable Returns	"),
 
 	(["3(x=3)", "x", "3(x=2)+1/0",	          "x"],
-	 ["9",      "3", error_get("zerodiv", 9), "3"],				0,	"Variable Rollback	"),
+	 ["9",      "3", error_get("zerodiv", 9), "3"],				0,	0,		"Variable Rollback	"),
 
 	(["a=-2", "y:=a+3", "y+3", "a=2", "2y-1"],
-	 ["-2",   "1",      "4",   "2",   "9"],					0,	"Basic Functions		"),
+	 ["-2",   "1",      "4",   "2",   "9"],					0,	0,		"Basic Functions		"),
 
 	(["x=2", "c:=(a:=2(b:=x+1))-1", "a+2b-0.2c", "x=1", "2a+3b-c"],
-	 ["2",   "5",                   "11",        "1",   "11"],		0,	"Function Returns	"),
+	 ["2",   "5",                   "11",        "1",   "11"],		0,	0,		"Function Returns	"),
 
 	(["a=1.5", "3(x:=2a)", "x", "3(x:=a)+1/0",	      "x", "a=1", "x"],
-	 ["1.5",   "9",        "3", error_get("zerodiv", 10), "3", "1",   "2"],	0,	"Function Rollback	"),
+	 ["1.5",   "9",        "3", error_get("zerodiv", 10), "3", "1",   "2"],	0,	0,		"Function Rollback	"),
 
 	(["a=3", "y:=3+a", "a", "y", "y+a", "a+y"],
-	 ["3",   "6",      "3", "6", "9",   "9"],				0,	"Functions and Variables	"),
+	 ["3",   "6",      "3", "6", "9",   "9"],				0,	0,		"Functions and Variables	"),
 
 	(["a=3", "x=y:=3+a", "y+2x", "a=0", "2y+x"],
-	 ["3",   "6",        "18",   "0",   "12"],				0,	"Mixed Chaining		"),
+	 ["3",   "6",        "18",   "0",   "12"],				0,	0,		"Mixed Chaining		"),
 
 	(["a=3", "::a", "a"],
-	 ["3",   "3",   error_get("token", 1)],					0,	"Variable Deletion	"),
+	 ["3",   "3",   error_get("token", 1)],					0,	0,		"Variable Deletion	"),
 
 	(["a=2", "y:=1/a", "a=5", "::y", "y"],
-	 ["2",   "0.5",    "5",   "0.2", error_get("token", 1)],		0,	"Function Deletion	"),
+	 ["2",   "0.5",    "5",   "0.2", error_get("token", 1)],		0,	0,		"Function Deletion	"),
 
-	(["a=2", "a++", "a", "++a"],		["2", "2", "3", "4"],		0,	"Increment Variable	"),
-	(["a=3", "a--", "a", "--a"],		["3", "3", "2", "1"],		0,	"Decrement Variable	"),
+	(["a=2", "a++", "a", "++a"],		["2", "2", "3", "4"],		0,	0,		"Increment Variable	"),
+	(["a=3", "a--", "a", "--a"],		["3", "3", "2", "1"],		0,	0,		"Decrement Variable	"),
 
-	(["a=5", "a+=2", "a", "a+=0.5", "a"],	["5", "7", "7", "7.5", "7.5"],	0,	"Compound Assignment	"),
-	(["a=1", "a-=2", "a", "a-=0.5", "a"],	["1","-1","-1","-1.5","-1.5"],	0,	"Compound Assignment	"),
-	(["a=3", "a*=2", "a", "a*=0.5", "a"],	["3", "6", "6", "3", "3"],	0,	"Compound Assignment	"),
-	(["a=3", "a/=2", "a", "a/=0.5", "a"],	["3", "1.5", "1.5", "3", "3"],	0,	"Compound Assignment	"),
-	(["a=3", "a//=2", "a", "a//=0.5", "a"],	["3", "1", "1", "2", "2"],	0,	"Compound Assignment	"),
-	(["a=8", "a%=5", "a", "a%=3", "a"],	["8", "3", "3", "0", "0"],	0,	"Compound Assignment	"),
-	(["a=3", "a^=2", "a", "a^=0.5", "a"],	["3", "9", "9", "3", "3"],	0,	"Compound Assignment	"),
-	(["a=3", "a@=2", "a", "a@=2", "a"],	["3", "1", "1", "3", "3"],	0,	"Compound Assignment	"),
-	(["a=3", "a|=2", "a", "a|=8", "a"],	["3", "3", "3", "11", "11"],	0,	"Compound Assignment	"),
-	(["a=3", "a&=2", "a", "a&=1", "a"],	["3", "2", "2", "0", "0"],	0,	"Compound Assignment	"),
+	(["a=5", "a+=2", "a", "a+=0.5", "a"],	["5", "7", "7", "7.5", "7.5"],	0,	0,		"Compound Assignment	"),
+	(["a=1", "a-=2", "a", "a-=0.5", "a"],	["1","-1","-1","-1.5","-1.5"],	0,	0,		"Compound Assignment	"),
+	(["a=3", "a*=2", "a", "a*=0.5", "a"],	["3", "6", "6", "3", "3"],	0,	0,		"Compound Assignment	"),
+	(["a=3", "a/=2", "a", "a/=0.5", "a"],	["3", "1.5", "1.5", "3", "3"],	0,	0,		"Compound Assignment	"),
+	(["a=3", "a//=2", "a", "a//=0.5", "a"],	["3", "1", "1", "2", "2"],	0,	0,		"Compound Assignment	"),
+	(["a=8", "a%=5", "a", "a%=3", "a"],	["8", "3", "3", "0", "0"],	0,	0,		"Compound Assignment	"),
+	(["a=3", "a^=2", "a", "a^=0.5", "a"],	["3", "9", "9", "3", "3"],	0,	0,		"Compound Assignment	"),
+	(["a=3", "a@=2", "a", "a@=2", "a"],	["3", "1", "1", "3", "3"],	0,	0,		"Compound Assignment	"),
+	(["a=3", "a|=2", "a", "a|=8", "a"],	["3", "3", "3", "11", "11"],	0,	0,		"Compound Assignment	"),
+	(["a=3", "a&=2", "a", "a&=1", "a"],	["3", "2", "2", "0", "0"],	0,	0,		"Compound Assignment	"),
 
 	# expected errors
-	([""],					[error_get("empty")],		0,	"Empty Expression Error	"),
-	([" "],					[error_get("empty")],		0,	"Empty Expression Error	"),
+	([""],					[error_get("empty")],		0,	0,		"Empty Expression Error	"),
+	([" "],					[error_get("empty")],		0,	0,		"Empty Expression Error	"),
 
-	(["does_not_exist"],			[error_get("token", 1)],	0,	"Unknown Token Error	"),
-	(["fake_function()"],			[error_get("token", 1)],	0,	"Unknown Token Error	"),
-	(["fake_function()+23"],		[error_get("token", 1)],	0,	"Unknown Token Error	"),
-	(["1_5"],				[error_get("token", 2)],	0,	"Unknown Token Error	"),
+	(["does_not_exist"],			[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),
+	(["fake_function()"],			[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),
+	(["fake_function()+23"],		[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),
+	(["1_5"],				[error_get("token", 2)],	0,	0,		"Unknown Token Error	"),
 
-	(["1/0"],				[error_get("zerodiv", 2)],	0,	"Zero Division Error	"),
-	(["1//0"],				[error_get("zerodiv", 2)],	0,	"Zero Division Error	"),
+	(["1/0"],				[error_get("zerodiv", 2)],	0,	0,		"Zero Division Error	"),
+	(["1//0"],				[error_get("zerodiv", 2)],	0,	0,		"Zero Division Error	"),
 
-	(["1/cos(90)"],				[error_get("zerodiv", 2)],	deg,	"Zero Division Error	"),
-	(["1//sin(0)"],				[error_get("zerodiv", 2)],	deg,	"Zero Division Error	"),
+	(["1/cos(90)"],				[error_get("zerodiv", 2)],	deg,	0,		"Zero Division Error	"),
+	(["1//sin(0)"],				[error_get("zerodiv", 2)],	deg,	0,		"Zero Division Error	"),
 
-	(["1%(2-(2^2/2))"],			[error_get("zeromod", 2)],	0,	"Modulo by Zero Error	"),
-	(["1%(cos(45) - sin(45))"],		[error_get("zeromod", 2)],	deg,	"Modulo by Zero Error	"),
+	(["1%(2-(2^2/2))"],			[error_get("zeromod", 2)],	0,	0,		"Modulo by Zero Error	"),
+	(["1%(cos(45) - sin(45))"],		[error_get("zeromod", 2)],	deg,	0,		"Modulo by Zero Error	"),
 
-	(["1+(1"],				[error_get("lparen", 3)],	0,	"Parenthesis Error	"),
-	(["1+((1"],				[error_get("lparen", 4)],	0,	"Parenthesis Error	"),
+	(["1+(1"],				[error_get("lparen", 3)],	0,	0,		"Parenthesis Error	"),
+	(["1+((1"],				[error_get("lparen", 4)],	0,	0,		"Parenthesis Error	"),
 
-	(["1+4)"],				[error_get("rparen", 4)],	0,	"Parenthesis Error	"),
-	(["1+(4))"],				[error_get("rparen", 6)],	0,	"Parenthesis Error	"),
+	(["1+4)"],				[error_get("rparen", 4)],	0,	0,		"Parenthesis Error	"),
+	(["1+(4))"],				[error_get("rparen", 6)],	0,	0,		"Parenthesis Error	"),
 
-	(["1+-+4"],				[error_get("opvals", 2)],	0,	"Token Number Error	"),
-	(["2+1-"],				[error_get("opvals", 4)],	0,	"Token Number Error	"),
-	(["abs()"],				[error_get("funcvals", 1)],	0,	"Token Number Error	"),
+	(["1+-+4"],				[error_get("opvals", 2)],	0,	0,		"Token Number Error	"),
+	(["2+1-"],				[error_get("opvals", 4)],	0,	0,		"Token Number Error	"),
+	(["abs()"],				[error_get("funcvals", 1)],	0,	0,		"Token Number Error	"),
 
-	(["3?3"],				[error_get("elseop", 2)],	0,	"Conditional Error	"),
-	(["3?:3"],				[error_get("ifblock", 2)],	0,	"Conditional Error	"),
-	(["3?3:"],				[error_get("elseblock", 4)],	0,	"Conditional Error	"),
+	(["3?3"],				[error_get("elseop", 2)],	0,	0,		"Conditional Error	"),
+	(["3?:3"],				[error_get("ifblock", 2)],	0,	0,		"Conditional Error	"),
+	(["3?3:"],				[error_get("elseblock", 4)],	0,	0,		"Conditional Error	"),
 
-	(["2--"],				[error_get("assign", 2)],	0,	"Assign Error		"),
-	(["--2"],				[error_get("assign", 1)],	0,	"Assign Error		"),
+	(["2--"],				[error_get("assign", 2)],	0,	0,		"Assign Error		"),
+	(["--2"],				[error_get("assign", 1)],	0,	0,		"Assign Error		"),
 ]
 
-def test_calc(program, test, expected, mode, description):
+def test_calc(program, test, expected, mode, change, description):
 	command = '%s -m "%s" %s' % (program, mode, '"' + '" "'.join(test) + '"')
 
 	pipe = popen(command, 'r')
@@ -344,6 +345,9 @@ def test_calc(program, test, expected, mode, description):
 
 	if output == expected:
 		print "%s ... %sOK%s" % (description, ansi_good, ansi_reset)
+		return True
+	elif change:
+		print "%s ... %sWARN%s" % (description, ansi_warn, ansi_reset)
 		return True
 	else:
 		print "%s ... %sFAIL%s" % (description, ansi_error, ansi_reset)
@@ -376,7 +380,7 @@ def run_tests(program):
 	counter = 0
 	for case in CASES:
 		counter += 1
-		if not test_calc(program, case[0], case[1], case[2], case[3]):
+		if not test_calc(program, case[0], case[1], case[2], case[3], case[4]):
 			failures += 1
 	print "--- Test Summary ---"
 	print "Cases run: %d" % (counter)
