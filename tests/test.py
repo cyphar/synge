@@ -138,13 +138,24 @@ CASES = [
 
 	(["-0"],				["0"],				0,	"Negative Zero		"),
 
-#	(["0xDEADBEEF + 0xA"],			["3735928569"],			0,	"Hexadecimal Addition	"),
-#	(["0xDEADBEEF - 0xA"],			["3735928549"],			0,	"Hexadecimal Subtraction	"),
-#	(["0xA0 / 0xA"],			["16"],				0,	"Hexadecimal Division	"),
+	(["0xDEADBEEF + 0xA"],			["3735928569"],			0,	"Hex Addition		"),
+	(["0xDEADBEEF - 0xA"],			["3735928549"],			0,	"Hex Subtraction		"),
+	(["0xA0 * 0xA"],			["1600"],			0,	"Hex Multiplication	"),
+	(["0xA0 / 0xA"],			["16"],				0,	"Hex Division		"),
 
-#	(["0xDEADBEEF + 10"],			["3735928569"],			0,	"Mixed Addition		"),
-#	(["0xDEADBEEF - 10"],			["3735928549"],			0,	"Mixed Subtraction	"),
-#	(["0xA0 / 10"],				["16"],				0,	"Mixed Division		"),
+	(["0b10 + 0b01"],			["3"],				0,	"Binary Addition		"),
+	(["0b10 - 0b01"],			["1"],				0,	"Binary Subtraction	"),
+	(["0b100 * 0b10"],			["8"],				0,	"Binary Multiplication	"),
+	(["0b01 / 0b10"],			["0.5"],			0,	"Binary Division		"),
+
+	(["010 + 01"],				["9"],				0,	"Octal Addition		"),
+	(["0010 - 0o1"],			["7"],				0,	"Octal Subtraction	"),
+	(["0100 * 0010"],			["512"],			0,	"Octal Multiplication	"),
+	(["0o100 / 0o10"],			["8"],				0,	"Octal Division		"),
+
+	(["0xDEADBEEF + 10"],			["3735928569"],			0,	"Mixed Addition		"),
+	(["0xDEADBEEF - 10"],			["3735928549"],			0,	"Mixed Subtraction	"),
+	(["0xA0 / 10"],				["16"],				0,	"Mixed Division		"),
 
 	(["3.0+2.1"],				["5.1"],			0,	"Decimal Notation	"),
 	(["5.3+2"],				["7.3"],			0,	"Decimal Notation	"),
