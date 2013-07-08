@@ -99,7 +99,7 @@ int iszero(synge_t num) {
 
 	/* generate "epsilon" */
 	mpfr_init2(epsilon, SYNGE_PRECISION);
-	mpfr_set_str(epsilon, "0.00000000000000000000000000000000000000000000000000000000000000001", 10, SYNGE_ROUND);
+	mpfr_set_str(epsilon, "1e-65", 10, SYNGE_ROUND);
 
 	/* if abs(num) < epsilon then it is zero */
 	int cmp = mpfr_cmpabs(num, epsilon);
@@ -1198,6 +1198,12 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case premod:
 				i++;
 				tmpstackp = &(*infix_stack)->content[i];
+
+				/* ensure that you are pushing a setword */
+				if(tmpstackp->tp != setword) {
+					free_stackm(infix_stack, &op_stack, rpn_stack);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
+				}
 
 				push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
 				/* pass-through */
