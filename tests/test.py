@@ -326,6 +326,9 @@ CASES = [
 	(["3?3"],				[error_get("elseop", 2)],	0,	"Conditional Error	"),
 	(["3?:3"],				[error_get("ifblock", 2)],	0,	"Conditional Error	"),
 	(["3?3:"],				[error_get("elseblock", 4)],	0,	"Conditional Error	"),
+
+	(["2--"],				[error_get("assign", 2)],	0,	"Assign Error		"),
+	(["--2"],				[error_get("assign", 1)],	0,	"Assign Error		"),
 ]
 
 def test_calc(program, test, expected, mode, description):
