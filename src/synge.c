@@ -587,6 +587,38 @@ function *get_func(char *val) {
 
 /* end linear search functions */
 
+void synge_strtofr(synge_t *num, char *str, char **endptr) {
+	/* all special bases begin with 0_ */
+	if(*str != '0' || *(str + 1) == '.') {
+		/* default to decimal */
+		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
+		return;
+	}
+
+	str++;
+	switch(*str) {
+		case 'x':
+			/* Hexadecimal */
+			mpfr_strtofr(*num, str + 1, endptr, 16, SYNGE_ROUND);
+			break;
+		case 'd':
+			/* Decimal */
+			mpfr_strtofr(*num, str + 1, endptr, 10, SYNGE_ROUND);
+			break;
+		case 'b':
+			/* Binary */
+			mpfr_strtofr(*num, str + 1, endptr, 2, SYNGE_ROUND);
+			break;
+		case 'o':
+			/* Octal */
+			str++;
+		default:
+			/* Just a leading zero -> Octal */
+			mpfr_strtofr(*num, str, endptr, 8, SYNGE_ROUND);
+			break;
+	}
+} /* synge_strtofr() */
+
 bool isnum(char *string) {
 	int ret = false;
 	char *endptr = NULL;
@@ -596,7 +628,7 @@ bool isnum(char *string) {
 
 	synge_t tmp;
 	mpfr_init2(tmp, SYNGE_PRECISION);
-	mpfr_strtofr(tmp, string, &endptr, 10, SYNGE_ROUND);
+	synge_strtofr(&tmp, string, &endptr);
 	mpfr_clears(tmp, NULL);
 
 	/* all cases where word is a number */
@@ -808,7 +840,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				char *endptr;
 
 				/* set value */
-				mpfr_strtofr(*num, s+i, &endptr, 10, SYNGE_ROUND);
+				synge_strtofr(num, s+i, &endptr);
 				tmpoffset = endptr - (s + i); /* update iterator to correct offset */
 			}
 			push_valstack(num, number, true, pos, *infix_stack); /* push given value */
