@@ -588,8 +588,29 @@ function *get_func(char *val) {
 /* end linear search functions */
 
 void synge_strtofr(synge_t *num, char *str, char **endptr) {
+	int sign = 0;
+
+	/* deal with operators */
+	if(isaddop(str)) {
+		switch(get_op(str).tp) {
+			case op_add:
+				sign = 1;
+				break;
+			case op_subtract:
+				sign = -1;
+				break;
+			default:
+				break;
+		}
+		str++;
+	}
+
 	/* all special bases begin with 0_ */
 	if(*str != '0' || *(str + 1) == '.') {
+		/* go back to sign */
+		if(sign)
+			str--;
+
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
 		return;
@@ -617,6 +638,10 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 			mpfr_strtofr(*num, str, endptr, 8, SYNGE_ROUND);
 			break;
 	}
+
+	/* negate number, if sign is negative */
+	if(sign < 0)
+		mpfr_neg(*num, *num, SYNGE_ROUND);
 } /* synge_strtofr() */
 
 bool isnum(char *string) {
