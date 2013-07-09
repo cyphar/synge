@@ -2,12 +2,17 @@ Synge
 -----
 Master: [![Build Status](https://travis-ci.org/cyphar/synge.png?branch=master)](https://travis-ci.org/cyphar/synge)
 
-Stable: [![Build Status](https://travis-ci.org/cyphar/synge.png?branch=stable)](https://travis-ci.org/cyphar/synge)
+A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
 
-A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers
+## Features ##
+* Multiple Precision Arithmetic (using MPFR)
+* Scientific Functions
+* Recursive User Functions
+* Variables
+* Simple Programming API
 
 ## License ##
-([MIT Licence](http://opensource.org/licenses/mit-license))
+Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in any project (as long as the license text is retained in all versions of the code).
 ```
 Copyright (c) 2013 Cyphar
 
