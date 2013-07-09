@@ -36,7 +36,7 @@ FILETYPE	VFT_APP
     {
       VALUE "Comments",		"http://code.cyphar.com/synge"
       VALUE "CompanyName",	"Cyphar"
-      VALUE "FileDescription",	"Synge Calculator (Graphical)"
+      VALUE "FileDescription",	"Synge GUI Calculator"
       VALUE "FileVersion",	__SYNGE_VERSION__
       VALUE "LegalCopyright",	"(C) 2013 Cyphar (MIT Licensed)"
       VALUE "ProductName",	"Synge-GTK"
