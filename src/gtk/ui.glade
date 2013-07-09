@@ -76,7 +76,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
               <object class="GtkMenuItem" id="synge_menu">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Synge</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -85,12 +84,12 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="quit_option">
-                        <property name="label">gtk-quit</property>
+                        <property name="label">_Quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image3</property>
+                        <property name="use_stock">False</property>
                         <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                         <signal name="activate" handler="kill_window" swapped="no"/>
                       </object>
@@ -103,7 +102,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
               <object class="GtkMenuItem" id="function_menu">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Functions</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -115,7 +113,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                         <property name="label" translatable="yes">_Function Description</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image1</property>
                         <property name="use_stock">False</property>
@@ -131,7 +128,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
               <object class="GtkMenuItem" id="help_menu">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -140,12 +136,12 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="about_option">
-                        <property name="label">gtk-about</property>
+                        <property name="label">_About</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image4</property>
+                        <property name="use_stock">False</property>
                         <accelerator key="h" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                         <signal name="activate" handler="gui_about_popup" swapped="no"/>
                       </object>
@@ -201,7 +197,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="xalign">0</property>
                         <property name="image_position">top</property>
                         <property name="active">True</property>
@@ -221,7 +216,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="xalign">0</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">degrees</property>
@@ -277,7 +271,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -292,7 +285,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -306,7 +298,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -320,7 +311,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -334,7 +324,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                 </child>
@@ -344,7 +333,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -360,7 +348,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -376,7 +363,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -392,7 +378,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_compute_string" swapped="no"/>
                   </object>
                   <packing>
@@ -408,7 +393,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -424,7 +408,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -440,7 +423,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -456,7 +438,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -472,7 +453,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -488,7 +468,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -504,7 +483,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -520,7 +498,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -534,7 +511,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -548,7 +524,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -562,7 +537,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_backspace_string" swapped="no"/>
                   </object>
                   <packing>
@@ -576,7 +550,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_clear_string" swapped="no"/>
                   </object>
                   <packing>
@@ -592,7 +565,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <signal name="clicked" handler="gui_append_key" swapped="no"/>
                   </object>
                   <packing>
@@ -660,7 +632,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
               <object class="GtkMenuItem" id="synge_function_menu">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Synge</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu4">
@@ -671,7 +642,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -686,7 +656,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
               <object class="GtkMenuItem" id="help_function_menu">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Help</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu6">
@@ -697,7 +666,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="h" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -753,7 +721,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <accelerator key="a" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="gui_add_function_to_expression" swapped="no"/>
               </object>
@@ -769,7 +736,6 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <accelerator key="q" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
                 <signal name="clicked" handler="gui_close_function_list" swapped="no"/>
               </object>
@@ -792,11 +758,16 @@ Cyphar (Proof of Concept GTK Wrapper)</property>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-sort-ascending</property>
+    <property name="stock">gtk-discard</property>
   </object>
-  <object class="GtkImage" id="image2">
+  <object class="GtkImage" id="image3">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-sort-ascending</property>
+    <property name="stock">gtk-discard</property>
+  </object>
+  <object class="GtkImage" id="image4">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-discard</property>
   </object>
 </interface>
