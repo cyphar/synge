@@ -860,6 +860,49 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				special_number stnum = get_special_num(word);
 				stnum.value(*num, SYNGE_ROUND);
 				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
+
+				/* implied multiplications, etc just like variables */
+				if(top_stack(*infix_stack)) {
+					s_content *tmppop, *tmpp;
+					synge_t implied;
+					/* make special numbers act more like numbers (and more like variables) */
+					switch(top_stack(*infix_stack)->tp) {
+						case addop:
+							/* if there is a +/- in front of a number, it should set the sign of that variable (i.e. 1--pi is 1+pi) */
+							tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
+							tmpp = top_stack(*infix_stack);
+							if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
+								if(get_op(tmppop->val).tp == op_subtract) {
+									mpfr_init2(implied, SYNGE_PRECISION);
+									mpfr_set_si(implied, 0, SYNGE_ROUND);
+
+									/* negate the variable? +0-pi negates it */
+									if(tmpp && tmpp->tp != lparen)
+										push_valstack("+", addop, false, pos, *infix_stack);
+
+									push_valstack(num_dup(implied), number, true, pos, *infix_stack);
+									push_valstack("-", addop, false, pos, *infix_stack);
+
+									mpfr_clears(implied, NULL);
+								}
+								else if(tmpp && tmpp->tp != lparen) {
+									/* otherwise, add the number */
+									push_valstack("+", addop, false, pos, *infix_stack);
+								}
+							}
+							else {
+								/* whoops! didn't match criteria. push sign back. */
+								push_ststack(*tmppop, *infix_stack);
+							}
+							break;
+						case number:
+							/* two numbers together have an impiled * (i.e 2x is 2*x) */
+							push_valstack("*", multop, false, pos, *infix_stack);
+							break;
+						default:
+							break;
+					}
+				}
 			}
 			else {
 				char *endptr;
@@ -1079,19 +1122,23 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 								mpfr_set_si(implied, 0, SYNGE_ROUND);
 
 								/* negate the variable? +0-x negates it */
-								push_valstack("+", addop, false, pos, *infix_stack);
+								if(tmpp && tmpp->tp != lparen)
+									push_valstack("+", addop, false, pos, *infix_stack);
+
 								push_valstack(num_dup(implied), number, true, pos, *infix_stack);
 								push_valstack("-", addop, false, pos, *infix_stack);
 
 								mpfr_clears(implied, NULL);
-							} else {
+							}
+							else if(tmpp && tmpp->tp != lparen) {
 								/* otherwise, add the variable */
 								push_valstack("+", addop, false, pos, *infix_stack);
 							}
 						}
-						else
+						else {
 							/* whoops! didn't match criteria. push sign back. */
 							push_ststack(*tmppop, *infix_stack);
+						}
 						break;
 					case number:
 						/* two numbers together have an impiled * (i.e 2x is 2*x) */
