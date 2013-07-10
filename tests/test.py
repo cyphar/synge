@@ -311,6 +311,18 @@ CASES = [
 	(["a=3", "a|=2", "a", "a|=8", "a"],	["3", "3", "3", "11", "11"],	0,	0,		"Compound Assignment	"),
 	(["a=3", "a&=2", "a", "a&=1", "a"],	["3", "2", "2", "0", "0"],	0,	0,		"Compound Assignment	"),
 
+	(["a=3", "-a", "+a", "(-a)", "(+a)", "4+a", "-a+4"],
+	 ["3",   "-3", "3",  "-3",   "3",    "7",   "1"],			0,	0,		"Variable Signing	"),
+
+	(["a=8", "-a", "+a", "(-a)", "(+a)", "4-a", "+a+4"],
+	 ["8",   "-8", "8",  "-8",   "8",    "-4",  "12"],			0,	0,		"Variable Signing	"),
+
+	(["life", "-life", "+life", "(-life)", "(+life)"],
+	 ["42",   "-42",   "42",    "-42",     "42"],				0,	0,		"Constant Signing	"),
+
+	(["life", "8-life", "8+life", "-life+8", "+life+8"],
+	 ["42",   "-34",    "50",     "-34",     "50"],				0,	0,		"Constant Signing	"),
+
 	# expected errors
 	([""],					[error_get("empty")],		0,	0,		"Empty Expression Error	"),
 	([" "],					[error_get("empty")],		0,	0,		"Empty Expression Error	"),
