@@ -42,6 +42,9 @@
  */
 
 #define SYNGE_MAIN		"<main>"
+#define SYNGE_IF_BLOCK		"<if>"
+#define SYNGE_ELSE_BLOCK	"<else>"
+
 #define SYNGE_MAX_PRECISION	64
 #define SYNGE_MAX_DEPTH		2048
 
@@ -1595,6 +1598,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_ca_int_divide:
 						/* division, but the result ignores the decimals */
 						tmp = 1;
+						/* fall-through */
 					case op_ca_divide:
 						if(iszero(arg[1])) {
 							/* the 11th commandment -- thoust shalt not divide by zero */
@@ -1604,7 +1608,10 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 							free_stackm(&tmpstack, rpn);
 							return to_error_code(DIVIDE_BY_ZERO, pos);
 						}
+
 						mpfr_div(*result, arg[0], arg[1], SYNGE_ROUND);
+
+						/* integer division? */
 						if(tmp)
 							mpfr_trunc(*result, *result);
 						break;
@@ -1617,6 +1624,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 							free_stackm(&tmpstack, rpn);
 							return to_error_code(MODULO_BY_ZERO, pos);
 						}
+
 						mpfr_fmod(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_ca_index:
@@ -1624,49 +1632,61 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						break;
 					case op_ca_band:
 						{
+							/* initialise gmp integer types */
 							mpz_t final, op1, op2;
 							mpz_init2(final, SYNGE_PRECISION);
 							mpz_init2(op1, SYNGE_PRECISION);
 							mpz_init2(op2, SYNGE_PRECISION);
 
+							/* copy over operators to gmp integers */
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
+							/* do binary and, and set result */
 							mpz_and(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
+							/* clean up */
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
 					case op_ca_bor:
 						{
+							/* initialise gmp integer types */
 							mpz_t final, op1, op2;
 							mpz_init2(final, SYNGE_PRECISION);
 							mpz_init2(op1, SYNGE_PRECISION);
 							mpz_init2(op2, SYNGE_PRECISION);
 
+							/* copy over operators to gmp integers */
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
+							/* do binary or, and set result */
 							mpz_ior(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
+							/* clean up */
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
 					case op_ca_bxor:
 						{
+							/* initialise gmp integer types */
 							mpz_t final, op1, op2;
 							mpz_init2(final, SYNGE_PRECISION);
 							mpz_init2(op1, SYNGE_PRECISION);
 							mpz_init2(op2, SYNGE_PRECISION);
 
+							/* copy over operators to gmp integers */
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
+							/* do binary xor, and set result */
 							mpz_xor(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
+							/* clean up */
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
@@ -1909,10 +1929,10 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				/* set correct value */
 				if(!iszero(arg[0]))
 					/* if expression */
-					tmpecode = eval_expression(tmpif, "<if>", (*rpn)->content[i].position, result);
+					tmpecode = eval_expression(tmpif, SYNGE_IF_BLOCK, (*rpn)->content[i].position, result);
 				else
 					/* else expression */
-					tmpecode = eval_expression(tmpelse, "<else>", (*rpn)->content[i-1].position, result);
+					tmpecode = eval_expression(tmpelse, SYNGE_ELSE_BLOCK, (*rpn)->content[i-1].position, result);
 
 				free(tmpif);
 				free(tmpelse);
@@ -1927,7 +1947,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				push_valstack(result, number, true, pos, tmpstack);
 				break;
 			case ifop:
-				/* ifop should never be found */
+				/* ifop should never be found -- elseop always comes first in rpn stack */
 				free_stackm(&tmpstack, rpn);
 				mpfr_clears(arg[0], arg[1], arg[2], NULL);
 				return to_error_code(MISSING_ELSE, pos);
@@ -2034,49 +2054,61 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						break;
 					case op_band:
 						{
+							/* initialise gmp integer types */
 							mpz_t final, op1, op2;
 							mpz_init2(final, SYNGE_PRECISION);
 							mpz_init2(op1, SYNGE_PRECISION);
 							mpz_init2(op2, SYNGE_PRECISION);
 
+							/* copy over operators to gmp integers */
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
+							/* do binary and, and set result */
 							mpz_and(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
+							/* clean up */
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
 					case op_bor:
 						{
+							/* initialise gmp integer types */
 							mpz_t final, op1, op2;
 							mpz_init2(final, SYNGE_PRECISION);
 							mpz_init2(op1, SYNGE_PRECISION);
 							mpz_init2(op2, SYNGE_PRECISION);
 
+							/* copy over operators to gmp integers */
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
+							/* do binary or, and set result */
 							mpz_ior(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
+							/* clean up */
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
 					case op_bxor:
 						{
+							/* initialise gmp integer types */
 							mpz_t final, op1, op2;
 							mpz_init2(final, SYNGE_PRECISION);
 							mpz_init2(op1, SYNGE_PRECISION);
 							mpz_init2(op2, SYNGE_PRECISION);
 
+							/* copy over operators to gmp integers */
 							mpfr_get_z(op1, arg[0], SYNGE_ROUND);
 							mpfr_get_z(op2, arg[1], SYNGE_ROUND);
 
+							/* do binary xor, and set result */
 							mpz_xor(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
+							/* clean up */
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
