@@ -1667,33 +1667,35 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 							mpz_xor(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
-							debug("1: %Zd\n", op1);
-							debug("2: %Zd\n", op2);
-							debug("f: %Zd\n", final);
-
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
 					case op_ca_bshiftl:
 						{
-							long final, op1, op2;
+							/* bitshifting is an integer operation */
+							mpfr_trunc(arg[1], arg[1]);
+							mpfr_trunc(arg[0], arg[0]);
 
-							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
-							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
-							final = op1 << op2;
+							/* x << y === x * 2^y */
+							mpfr_ui_pow(arg[1], 2, arg[1], SYNGE_ROUND);
+							mpfr_mul(*result, arg[0], arg[1], SYNGE_ROUND);
 
-							mpfr_set_si(*result, final, SYNGE_ROUND);
+							/* again, integer operation */
+							mpfr_trunc(*result, *result);
 						}
 						break;
 					case op_ca_bshiftr:
 						{
-							long final, op1, op2;
+							/* bitshifting is an integer operation */
+							mpfr_trunc(arg[1], arg[1]);
+							mpfr_trunc(arg[0], arg[0]);
 
-							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
-							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
-							final = op1 >> op2;
+							/* x >> y === x / 2^y */
+							mpfr_ui_pow(arg[1], 2, arg[1], SYNGE_ROUND);
+							mpfr_div(*result, arg[0], arg[1], SYNGE_ROUND);
 
-							mpfr_set_si(*result, final, SYNGE_ROUND);
+							/* again, integer operation */
+							mpfr_trunc(*result, *result);
 						}
 						break;
 					default:
@@ -2075,33 +2077,35 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 							mpz_xor(final, op1, op2);
 							mpfr_set_z(*result, final, SYNGE_ROUND);
 
-							debug("1: %Zd\n", op1);
-							debug("2: %Zd\n", op2);
-							debug("f: %Zd\n", final);
-
 							mpz_clears(final, op1, op2, NULL);
 						}
 						break;
 					case op_bshiftl:
 						{
-							long final, op1, op2;
+							/* bitshifting is an integer operation */
+							mpfr_trunc(arg[1], arg[1]);
+							mpfr_trunc(arg[0], arg[0]);
 
-							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
-							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
-							final = op1 << op2;
+							/* x << y === x * 2^y */
+							mpfr_ui_pow(arg[1], 2, arg[1], SYNGE_ROUND);
+							mpfr_mul(*result, arg[0], arg[1], SYNGE_ROUND);
 
-							mpfr_set_si(*result, final, SYNGE_ROUND);
+							/* again, integer operation */
+							mpfr_trunc(*result, *result);
 						}
 						break;
 					case op_bshiftr:
 						{
-							long final, op1, op2;
+							/* bitshifting is an integer operation */
+							mpfr_trunc(arg[1], arg[1]);
+							mpfr_trunc(arg[0], arg[0]);
 
-							op1 = mpfr_get_si(arg[0], SYNGE_ROUND);
-							op2 = mpfr_get_si(arg[1], SYNGE_ROUND);
-							final = op1 >> op2;
+							/* x >> y === x / 2^y */
+							mpfr_ui_pow(arg[1], 2, arg[1], SYNGE_ROUND);
+							mpfr_div(*result, arg[0], arg[1], SYNGE_ROUND);
 
-							mpfr_set_si(*result, final, SYNGE_ROUND);
+							/* again, integer operation */
+							mpfr_trunc(*result, *result);
 						}
 						break;
 					default:
