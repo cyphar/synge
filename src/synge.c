@@ -330,7 +330,7 @@ static operator op_list[] = {
 	/* bitwise operators */
 	{"&",	op_band},
 	{"|",	op_bor},
-	{"**",	op_bxor},
+	{"#",	op_bxor},
 
 	{"<<",	op_bshiftl},
 	{">>",	op_bshiftr},
@@ -354,7 +354,7 @@ static operator op_list[] = {
 	{"^=",	op_ca_index},
 	{"&=",	op_ca_band},
 	{"|=",	op_ca_bor},
-	{"@=",	op_ca_bxor},
+	{"#=",	op_ca_bxor},
 	{"<<=",	op_ca_bshiftl},
 	{">>=",	op_ca_bshiftr},
 
