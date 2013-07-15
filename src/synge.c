@@ -67,7 +67,7 @@
 #define sy_fmod(...) fmodl(__VA_ARGS__)
 
 /* my own assert() implementation */
-#define assert(x) do { if(!x) { printf("synge: assertion '%s' failed -- aborting!\n", #x); exit(254); }} while(0)
+#define assert(x) do { if(!x) { puts("synge: assertion '" #x "' failed -- aborting!"); exit(1); }} while(0)
 
 /* -- useful macros -- */
 #define isaddop(str) (get_op(str).tp == op_add || get_op(str).tp == op_subtract)
@@ -591,7 +591,7 @@ function *get_func(char *val) {
 /* end linear search functions */
 
 void synge_strtofr(synge_t *num, char *str, char **endptr) {
-	int sign = 0;
+	int sign = 0, sign_len = 0;
 
 	/* deal with operators */
 	if(isaddop(str)) {
@@ -605,20 +605,23 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 			default:
 				break;
 		}
-		str++;
+
+		/* update iterator to after sign */
+		sign_len = strlen(get_op(str).str);
+		str += sign_len;
 	}
 
 	/* all special bases begin with 0_ */
 	if(*str != '0' || *(str + 1) == '.') {
 		/* go back to sign */
-		if(sign)
-			str--;
+		str -= sign_len;
 
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
 		return;
 	}
 
+	/* go past the first 0 */
 	str++;
 	switch(*str) {
 		case 'x':
