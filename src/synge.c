@@ -611,7 +611,8 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 		str += sign_len;
 	}
 
-	/* all special bases begin with 0_ */
+	/* all special bases begin with 0_
+	 * but 0. doesn't count */
 	if(*str != '0' || *(str + 1) == '.') {
 		/* go back to sign */
 		str -= sign_len;
@@ -645,9 +646,21 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 			break;
 	}
 
-	/* negate number, if sign is negative */
-	if(sign < 0)
-		mpfr_neg(*num, *num, SYNGE_ROUND);
+	/* deal with signs */
+	if(sign) {
+		switch(sign) {
+			case 1:
+				/* positive sign */
+				mpfr_abs(*num, *num, SYNGE_ROUND);
+				break;
+			case -1:
+				/* negative sign */
+				mpfr_neg(*num, *num, SYNGE_ROUND);
+				break;
+			default:
+				break;
+		}
+	}
 } /* synge_strtofr() */
 
 bool isnum(char *string) {
