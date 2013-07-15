@@ -1,12 +1,13 @@
 Synge
 -----
-Master: [![Build Status](https://travis-ci.org/cyphar/synge.png?branch=master)](https://travis-ci.org/cyphar/synge)
+[![Build Status](https://travis-ci.org/cyphar/synge.png?branch=master)](https://travis-ci.org/cyphar/synge)
 
 A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
 
 ## Features ##
-* Multiple Precision Arithmetic (using MPFR)
+* Multiple Precision Numbers (using MPFR)
 * Scientific Functions
+* Mathematical Constants
 * Recursive User Functions
 * Variables
 * Simple Programming API
