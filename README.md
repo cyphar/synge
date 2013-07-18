@@ -12,6 +12,19 @@ A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
 * Variables
 * Simple Programming API
 
+## Examples ##
+Fibonacci Sequence:
+* `a = b = 1` (set up variables)
+* `(a < b) ? (a = a + b) : (b = a + b)` (generate next number in sequence)
+
+Series:
+* `x = <input>` (input)
+* `f := (x > 0) ? x-- + f : 0` (recursively generate result)
+
+Factorial:
+* `x = <input>` (input)
+* `f := (x > 0) ? x-- * f : 1` (recursively generate result)
+
 ## License ##
 Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in any project (as long as the license text is retained in all versions of the code).
 ```
