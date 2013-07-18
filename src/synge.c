@@ -810,10 +810,11 @@ int next_offset(char *str, int offset) {
 	return -1;
 } /* next_offset() */
 
-char *get_expression_level(char *p, char end) {
-	int num_paren = 0, len = 0;
+char *get_expression_level(char *p, char end, int *len) {
+	int num_paren = 0;
 	char *ret = NULL;
 
+	*len = 0;
 	while(*p && ((*p != ')') || (num_paren && (*p == ')')))) {
 		switch(get_op(p).tp) {
 			case op_rparen:
@@ -830,13 +831,13 @@ char *get_expression_level(char *p, char end) {
 			break;
 		}
 
-		ret = realloc(ret, ++len);
-		ret[len - 1] = *p;
+		ret = realloc(ret, ++(*len));
+		ret[*len - 1] = *p;
 
 		p++;
 	}
-	ret = realloc(ret, len + 1);
-	ret[len] = '\0';
+	ret = realloc(ret, *len + 1);
+	ret[*len] = '\0';
 
 	char *stripped = trim_spaces(ret);
 
@@ -1032,38 +1033,46 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					type = bitop;
 					break;
 				case op_if:
-					type = ifop;
+					{
+						type = ifop;
 
-					/* get expression and position of it */
-					tmp = next_offset(s, i + oplen);
-					expr = get_expression_level(s + i + oplen, ':');
+						/* get expression and position of it */
+						int len = 0;
 
-					if(!expr) {
-						free(s);
-						free(word);
-						return to_error_code(EMPTY_IF, pos);
+						tmp = next_offset(s, i + oplen);
+						expr = get_expression_level(s + i + oplen, ':', &len);
+
+						if(!expr) {
+							free(s);
+							free(word);
+							return to_error_code(EMPTY_IF, pos);
+						}
+
+						/* push expression */
+						push_valstack(expr, expression, true, tmp, *infix_stack);
+						tmpoffset = len;
 					}
-
-					/* push expression */
-					push_valstack(expr, expression, true, tmp, *infix_stack);
-					tmpoffset = strlen(expr);
 					break;
 				case op_else:
-					type = elseop;
+					{
+						type = elseop;
 
-					/* get expression and position of it */
-					tmp = next_offset(s, i + oplen);
-					expr = get_expression_level(s + i + oplen, '\0');
+						/* get expression and position of it */
+						int len = 0;
 
-					if(!expr) {
-						free(s);
-						free(word);
-						return to_error_code(EMPTY_ELSE, pos);
+						tmp = next_offset(s, i + oplen);
+						expr = get_expression_level(s + i + oplen, '\0', &len);
+
+						if(!expr) {
+							free(s);
+							free(word);
+							return to_error_code(EMPTY_ELSE, pos);
+						}
+
+						/* push expression */
+						push_valstack(expr, expression, true, tmp, *infix_stack);
+						tmpoffset = len;
 					}
-
-					/* push expression */
-					push_valstack(expr, expression, true, tmp, *infix_stack);
-					tmpoffset = strlen(expr);
 					break;
 				case op_var_set:
 				case op_func_set:
@@ -1106,10 +1115,11 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				push_valstack("*", multop, false, pos, *infix_stack);
 
 			if(get_op(s+i).tp == op_func_set) {
-				char *func_expr = get_expression_level(s + i + oplen, '\0');
+				int len = 0;
+				char *func_expr = get_expression_level(s + i + oplen, '\0', &len);
 
 				push_valstack(func_expr, expression, true, next_offset(s, i + oplen), *infix_stack);
-				tmpoffset = strlen(func_expr);
+				tmpoffset = len;
 			}
 
 			/* update iterator */
