@@ -1193,7 +1193,12 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			if(top_stack(*infix_stack) && (isdelop(top_stack(*infix_stack)->val) || iscreop(top_stack(*infix_stack)->val)))
 				type = setword;
 
-			push_valstack(str_dup(word), type, true, pos, *infix_stack);
+			char *stripped = trim_spaces(word);
+
+			if(!stripped)
+				stripped = str_dup("");
+
+			push_valstack(stripped, type, true, pos, *infix_stack);
 			tmpoffset = strlen(word); /* update iterator to correct offset */
 		}
 		else {
