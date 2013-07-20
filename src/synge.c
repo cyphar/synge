@@ -511,11 +511,12 @@ operator get_op(char *ch) {
 	for(i = 0; op_list[i].str != NULL; i++)
 		/* checks against part or entire string against the given list */
 		if(!strncmp(op_list[i].str, ch, strlen(op_list[i].str)))
+			/* get longest match */
 			if(!ret.str || strlen(ret.str) < strlen(op_list[i].str))
 				ret = op_list[i];
 
 	return ret;
-}
+} /* get_op() */
 
 synge_t *num_dup(synge_t num) {
 	synge_t *ret = malloc(sizeof(synge_t));
@@ -537,14 +538,23 @@ int synge_get_precision(synge_t num) {
 	if(active_settings.precision >= 0)
 		return active_settings.precision;
 
-	/* printf knows how to fix rounding errors -- WARNING: here be dragons! */
-	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* get the amount of memory needed to store this printf*/
-	char *tmp = malloc(tmpsize);
-	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num); /* sprintf it */
+	/* +---------------------------+ *
+	 * | WARNING: here be dragons! | *
+	 * +---------------------------+ */
 
+	/* printf knows how to fix rounding errors */
+	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num);
+	char *tmp = malloc(tmpsize);
+
+	/* get the string representation of the number */
+	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num);
+
+	/* move pointer to end and set precision to maximum */
 	char *p = tmp + tmpsize - 2;
 	int precision = SYNGE_MAX_PRECISION;
-	while(*p == '0') { /* find all trailing zeros */
+
+	/* find all trailing zeros */
+	while(*p == '0') {
 		precision--;
 		p--;
 	}
@@ -562,7 +572,7 @@ error_code to_error_code(int error, int position) {
 	return ret;
 } /* to_error_code() */
 
-/* linear search functions -- cuz honeybadger don't give a f*** */
+/* linear search functions */
 
 special_number get_special_num(char *s) {
 	int i;
@@ -724,10 +734,9 @@ error_code del_word(char *s, int pos) {
 
 	if(ohm_search(variable_list, s, strlen(s) + 1))
 		type = tp_var;
-	if(ohm_search(function_list, s, strlen(s) + 1))
+	else if(ohm_search(function_list, s, strlen(s) + 1))
 		type = tp_func;
-
-	if(type == tp_none)
+	else
 		return to_error_code(UNKNOWN_WORD, pos);
 
 	switch(type) {
@@ -853,9 +862,9 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	debug("Input: %s\nProcessed: %s\n", string, s);
 
 	init_stack(*infix_stack);
-	int i, pos, len = strlen(s), nextpos = 0, tmpoffset = 0;
-	char *word = NULL, *endptr = NULL;
+	int i, pos, nextpos, tmpoffset;
 
+	int len = strlen(s);
 	for(i = 0; i < len; i++) {
 		pos = i - recalc_padding(s, (i ? i : 1) - 1) + 1;
 		nextpos = next_offset(s, i + 1);
@@ -865,7 +874,8 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 		if(s[i] == ' ')
 			continue;
 
-		word = get_word(s + i, SYNGE_VARIABLE_CHARS, &endptr);
+		char *endptr = NULL;
+		char *word = get_word(s + i, SYNGE_VARIABLE_CHARS, &endptr);
 
 		if(isnum(s+i) && !false_number(s+i, *infix_stack)) {
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
@@ -923,9 +933,8 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				}
 			}
 			else {
-				char *endptr;
-
 				/* set value */
+				char *endptr = NULL;
 				synge_strtofr(num, s+i, &endptr);
 				tmpoffset = endptr - (s + i); /* update iterator to correct offset */
 			}
@@ -1207,6 +1216,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			free(s);
 			return to_error_code(UNKNOWN_TOKEN, pos);
 		}
+
 		/* debugging */
 		print_stack(*infix_stack);
 		free(word);
@@ -1225,13 +1235,14 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 } /* synge_tokenise_string() */
 
 bool op_precedes(s_type op1, s_type op2) {
-	/* returns true if:
-	 * 	op1 > op2 (or op1 > op2 - 0)
-	 * 	op2 is left associative and op1 >= op2 (or op1 > op2 - 1)
-	 * returns false otherwise
-	 */
-	int lassoc;
-	/* here be dragons! obscure integer hacks follow. */
+	/* +---------------------------+ *
+	 * | WARNING: here be dragons! | *
+	 * +---------------------------+ */
+
+	/* obscure integer hacks follow. */
+
+	int lassoc = 0;
+
 	switch(op2) {
 		case delop:
 		case ifop:
@@ -1252,12 +1263,12 @@ bool op_precedes(s_type op1, s_type op2) {
 			return false; /* what the hell are you doing? */
 			break;
 	}
+
 	return op1 > (op2 - lassoc);
 } /* op_precedes() */
 
 /* my implementation of Dijkstra's really cool shunting-yard algorithm */
 error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
-	s_content stackp, *tmpstackp;
 	stack *op_stack = malloc(sizeof(stack));
 
 	debug("--\nParse\n--\n");
@@ -1265,12 +1276,13 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 	init_stack(op_stack);
 	init_stack(*rpn_stack);
 
-	int i, pos, size = stack_size(*infix_stack);
+	int i, size = stack_size(*infix_stack);
 
 	/* reorder stack, in reverse (since we are poping from a full stack and pushing to an empty one) */
 	for(i = 0; i < size; i++) {
-		stackp = (*infix_stack)->content[i]; /* pointer to current stack item (to make the code more readable) */
-		pos = stackp.position; /* shorthand for the position of errors */
+
+		s_content stackp = (*infix_stack)->content[i]; /* pointer to current stack item (to make the code more readable) */
+		int pos = stackp.position; /* shorthand for the position of errors */
 
 		switch(stackp.tp) {
 			case number:
@@ -1293,7 +1305,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 					/* keep popping and pushing until you find an lparen, which isn't to be pushed  */
 					int found = false;
 					while(stack_size(op_stack)) {
-						tmpstackp = pop_stack(op_stack);
+						s_content *tmpstackp = pop_stack(op_stack);
 						if(tmpstackp->tp == lparen) {
 							found = true;
 							break;
@@ -1309,19 +1321,21 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 				}
 				break;
 			case premod:
-				i++;
-				tmpstackp = &(*infix_stack)->content[i];
+				{
+					i++;
+					s_content *tmpstackp = &(*infix_stack)->content[i];
 
-				/* ensure that you are pushing a setword */
-				if(tmpstackp->tp != setword) {
-					free_stackm(infix_stack, &op_stack, rpn_stack);
-					return to_error_code(INVALID_LEFT_OPERAND, pos);
-				}
+					/* ensure that you are pushing a setword */
+					if(tmpstackp->tp != setword) {
+						free_stackm(infix_stack, &op_stack, rpn_stack);
+						return to_error_code(INVALID_LEFT_OPERAND, pos);
+					}
 
-				push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
-				/* pass-through */
+					push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
+					/* pass-through */
 			case postmod:
-				push_ststack(stackp, *rpn_stack);
+					push_ststack(stackp, *rpn_stack);
+				}
 				break;
 			case setop:
 			case modop:
@@ -1335,7 +1349,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case delop:
 				/* reorder operators to be in the correct order of precedence */
 				while(stack_size(op_stack)) {
-					tmpstackp = top_stack(op_stack);
+					s_content *tmpstackp = top_stack(op_stack);
 					/* if the temporary item is an operator that precedes the current item, pop and push the temporary item onto the stack */
 					if(isop(tmpstackp->tp) && op_precedes(tmpstackp->tp, stackp.tp))
 						push_ststack(*pop_stack(op_stack), *rpn_stack);
@@ -1353,8 +1367,9 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 
 	/* re-reverse the stack again (so it's in the correct order) */
 	while(stack_size(op_stack)) {
-		stackp = *pop_stack(op_stack);
-		pos = stackp.position;
+		s_content stackp = *pop_stack(op_stack);
+		int pos = stackp.position;
+
 		if(stackp.tp == lparen ||
 		   stackp.tp == rparen) {
 			/* if there is a left or right bracket, there is an unmatched left bracket */
@@ -1364,11 +1379,13 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			}
 			else continue;
 		}
+
 		push_ststack(stackp, *rpn_stack);
 	}
 
 	/* debugging */
 	print_stack(*rpn_stack);
+
 	free_stackm(infix_stack, &op_stack);
 	return to_error_code(SUCCESS, -1);
 } /* infix_to_rpnstack() */
@@ -1419,6 +1436,7 @@ error_code eval_word(char *str, int pos, synge_t *result) {
 		/* variable */
 		mpfr_set(*result, SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1)), SYNGE_ROUND);
 	}
+
 	else if(ohm_search(function_list, str, strlen(str) + 1)) {
 
 		/* function */
@@ -1436,6 +1454,7 @@ error_code eval_word(char *str, int pos, synge_t *result) {
 				return to_error_code(tmpecode.code, pos);
 		}
 	}
+
 	else {
 		/* unknown variable or function */
 		return to_error_code(UNKNOWN_TOKEN, pos);
@@ -1471,9 +1490,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 	debug("--\nEvaluate\n--\n");
 
-	s_content stackp;
-
-	int i, pos = 0, tmp = 0, size = stack_size(*rpn);
+	int i, tmp = 0, size = stack_size(*rpn);
 	synge_t *result = NULL, arg[3];
 	error_code ecode[2];
 
@@ -1481,8 +1498,9 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 	mpfr_inits2(SYNGE_PRECISION, arg[0], arg[1], arg[2], NULL);
 
 	for(i = 0; i < size; i++) {
-		stackp = (*rpn)->content[i]; /* shorthand for current stack item */
-		pos = stackp.position; /* shorthand for current error position */
+		/* shorthand variables */
+		s_content stackp = (*rpn)->content[i];
+		int pos = stackp.position;
 
 		/* debugging */
 		if(stackp.tp == number)
@@ -1635,6 +1653,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						case op_ca_int_divide:
 							/* division, but the result ignores the decimals */
 							tmp = 1;
+
 							/* fall-through */
 						case op_ca_divide:
 							if(iszero(arg[1])) {
