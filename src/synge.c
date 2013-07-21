@@ -58,8 +58,8 @@
 
 #define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
 
-#define strlower(x) do { char *p = x; for(; *p; ++p) *p = tolower(*p); } while(0)
-#define strupper(x) do { char *p = x; for(; *p; ++p) *p = toupper(*p); } while(0)
+#define strlower(x) do { char *p = x; for(; *p; ++p) { *p = tolower(*p); } } while(0)
+#define strupper(x) do { char *p = x; for(; *p; ++p) { *p = toupper(*p); } } while(0)
 
 /* to make changes in engine types smoother */
 #define sy_fabs(...) fabsl(__VA_ARGS__)
@@ -95,7 +95,7 @@
 #define SYNGE_T(x) (*(synge_t *) x)
 #define FUNCTION(x) ((function *) x)
 
-static int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
+int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
 
 int iszero(synge_t num) {
 	synge_t epsilon;
@@ -188,7 +188,7 @@ int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
 	return mpfr_set_si(to, iszero(check) ? 0 : 1, round);
 } /* sy_assert */
 
-static function func_list[] = {
+function func_list[] = {
 	{"abs",		mpfr_abs,	"abs(x)",	"Absolute value of x"},
 	{"sqrt",	mpfr_sqrt,	"sqrt(x)",	"Square root of x"},
 	{"cbrt",	mpfr_cbrt,	"cbrt(x)",	"Cubic root of x"},
@@ -225,7 +225,7 @@ static function func_list[] = {
 	{NULL,		NULL,		NULL,		NULL}
 };
 
-static function_alias alias_list[] = {
+function_alias alias_list[] = {
 	{"asinh",	"sinhi"},
 	{"acosh",	"coshi"},
 	{"atanh",	"tanhi"},
@@ -235,10 +235,10 @@ static function_alias alias_list[] = {
 	{NULL,		   NULL},
 };
 
-static ohm_t *variable_list = NULL;
-static ohm_t *function_list = NULL;
+ohm_t *variable_list = NULL;
+ohm_t *function_list = NULL;
 
-static synge_t prev_answer;
+synge_t prev_answer;
 
 int synge_pi(synge_t num, mpfr_rnd_t round) {
 	mpfr_const_pi(num, round);
@@ -292,7 +292,7 @@ int synge_ans(synge_t num, mpfr_rnd_t round) {
 	return 0;
 } /* synge_ans() */
 
-static special_number constant_list[] = {
+special_number constant_list[] = {
 	{"pi",			synge_pi},
 	{"phi",			synge_phi},
 	{"e",			synge_euler},
@@ -305,7 +305,7 @@ static special_number constant_list[] = {
 	{NULL,			NULL},
 };
 /* used for when a (char *) is needed, but needn't be freed */
-static operator op_list[] = {
+operator op_list[] = {
 	{"+",	op_add},
 	{"-",	op_subtract},
 	{"*",	op_multiply},
@@ -367,15 +367,15 @@ static operator op_list[] = {
 };
 
 /* default settings */
-static synge_settings active_settings = {
+synge_settings active_settings = {
 	degrees, /* mode */
 	position, /* error level */
 	strict, /* strictness */
 	dynamic /* precision */
 };
 
-static char *error_msg_container = NULL;
-static link_t *traceback_list = NULL;
+char *error_msg_container = NULL;
+link_t *traceback_list = NULL;
 
 /* __DEBUG__ FUNCTIONS */
 
@@ -2431,8 +2431,8 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	static int depth = -1;
 	assert(synge_started);
 
+	/* "dynamically" resize hashmap to keep efficiency up */
 	if(ohm_count(variable_list) > ohm_size(variable_list))
-		/* "dynamically" resize hashmap to keep efficiency up */
 		variable_list = ohm_resize(variable_list, ohm_size(variable_list) * 2);
 
 	ohm_t *backup_var = ohm_dup(variable_list);
