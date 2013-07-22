@@ -11,6 +11,7 @@ A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
 * Recursive User Functions
 * Variables
 * Simple Programming API
+* Highly detailed traceback errors
 
 ## Examples ##
 Fibonacci Sequence:
