@@ -56,6 +56,7 @@ PYTHON		= python
 ##################
 
 SAFE		= 0
+CHEEKY		= 0
 
 #####################
 # CONSTANTS SECTION #
@@ -153,6 +154,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
 	strip $(EXEC_CLI)
 	make -B $(OS_POST)
@@ -166,6 +168,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
 	strip $(EXEC_GTK)
 	make -B $(OS_POST)
@@ -178,6 +181,7 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
 	strip $(EXEC_EVAL)
 	make -B $(OS_POST)

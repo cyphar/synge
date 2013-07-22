@@ -97,6 +97,46 @@
 
 int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
 
+/* __DEBUG__ FUNCTIONS */
+
+void print_stack(stack *s) {
+#ifdef __SYNGE_DEBUG__
+	int i, size = stack_size(s);
+	for(i = 0; i < size; i++) {
+		s_content tmp = s->content[i];
+		if(!tmp.val) continue;
+
+		if(tmp.tp == number)
+			synge_printf("%.*" SYNGE_FORMAT " ", synge_get_precision(SYNGE_T(tmp.val)), SYNGE_T(tmp.val));
+		else if(tmp.tp == func)
+			printf("%s ", FUNCTION(tmp.val)->name);
+		else
+			printf("'%s' ", (char *) tmp.val);
+	}
+	printf("\n");
+#endif
+} /* print_stack() */
+
+void debug(char *format, ...) {
+#ifdef __SYNGE_DEBUG__
+	va_list ap;
+	va_start(ap, format);
+	synge_vprintf(format, ap);
+	va_end(ap);
+#endif
+} /* debug() */
+
+void cheeky(char *format, ...) {
+#if defined(__SYNGE_CHEEKY__) && __SYNGE_CHEEKY__ > 0
+	va_list ap;
+	va_start(ap, format);
+	synge_vprintf(format, ap);
+	va_end(ap);
+#endif
+} /* cheeky() */
+
+/* END __DEBUG__ FUNCTIONS */
+
 int iszero(synge_t num) {
 	synge_t epsilon;
 
@@ -273,6 +313,7 @@ int synge_euler(synge_t num, mpfr_rnd_t round) {
 } /* synge_euler() */
 
 int synge_life(synge_t num, mpfr_rnd_t round) {
+	cheeky("What do you get if you multiply six by nine? Fourty two.\n");
 	mpfr_set_si(num, 42, round);
 	return 0;
 } /* synge_life() */
@@ -376,37 +417,6 @@ synge_settings active_settings = {
 
 char *error_msg_container = NULL;
 link_t *traceback_list = NULL;
-
-/* __DEBUG__ FUNCTIONS */
-
-void print_stack(stack *s) {
-#ifdef __SYNGE_DEBUG__
-	int i, size = stack_size(s);
-	for(i = 0; i < size; i++) {
-		s_content tmp = s->content[i];
-		if(!tmp.val) continue;
-
-		if(tmp.tp == number)
-			synge_printf("%.*" SYNGE_FORMAT " ", synge_get_precision(SYNGE_T(tmp.val)), SYNGE_T(tmp.val));
-		else if(tmp.tp == func)
-			printf("%s ", FUNCTION(tmp.val)->name);
-		else
-			printf("'%s' ", (char *) tmp.val);
-	}
-	printf("\n");
-#endif
-} /* print_stack() */
-
-void debug(char *format, ...) {
-#ifdef __SYNGE_DEBUG__
-	va_list ap;
-	va_start(ap, format);
-	synge_vprintf(format, ap);
-	va_end(ap);
-#endif
-} /* debug() */
-
-/* END __DEBUG__ FUNCTIONS */
 
 char *replace(char *str, char *old, char *new) {
 	char *ret, *s = str;
@@ -2462,11 +2472,10 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	if(++depth >= SYNGE_MAX_DEPTH)
 		return to_error_code(TOO_DEEP, -1);
 
+	/* reset traceback */
 	if(!strcmp(caller, SYNGE_MAIN)) {
-		/* reset traceback */
 		link_free(traceback_list);
 		traceback_list = link_init();
-
 		depth = -1;
 	}
 
@@ -2475,7 +2484,6 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	sprintf(to_add, SYNGE_TRACEBACK_TEMPLATE, caller, position);
 
 	link_append(traceback_list, to_add, strlen(to_add) + 1);
-
 	free(to_add);
 
 	debug("depth %d with caller %s\n", depth, caller);
