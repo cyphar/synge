@@ -970,8 +970,8 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				case op_lparen:
 					type = lparen;
 					pos--;  /* "hack" to ensure error position is correct */
-					/* every open paren with no operators before it has an implied * */
 
+					/* every open paren with no operator (and number) before it has an implied * */
 					if(top_stack(*infix_stack)) {
 						synge_t implied;
 						switch(top_stack(*infix_stack)->tp) {
@@ -980,17 +980,21 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 									int tmp = false;
 									s_content top = *pop_stack(*infix_stack);
 
+									/* nothing before the paren */
 									if(!top_stack(*infix_stack))
 										tmp = true;
 
 									else {
 										s_content pop = *pop_stack(*infix_stack);
+
+										/* no implied multiplication for these */
 										if(pop.tp != number && pop.tp != rparen && pop.tp != userword)
 											tmp = true;
 
 										push_ststack(pop, *infix_stack);
 									}
 
+									/* no implied multiplication, gtfo */
 									if(!tmp) {
 										push_ststack(top, *infix_stack);
 										break;
@@ -998,12 +1002,19 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 									mpfr_init2(implied, SYNGE_PRECISION);
 
-									if(get_op(top.val).tp == op_add)
-										mpfr_set_si(implied, 1, SYNGE_ROUND);
+									/* is the implied multiplication positve or negative (+/- before paren) */
+									switch(get_op(top.val).tp) {
+										case op_add:
+											mpfr_set_si(implied, 1, SYNGE_ROUND);
+											break;
+										case op_subtract:
+											mpfr_set_si(implied, -1, SYNGE_ROUND);
+											break;
+										default:
+											break;
+									}
 
-									if(get_op(top.val).tp == op_subtract)
-										mpfr_set_si(implied, -1, SYNGE_ROUND);
-
+									/* push implied multiplier */
 									push_valstack(num_dup(implied), number, true, pos, *infix_stack);
 									mpfr_clears(implied, NULL);
 								}
