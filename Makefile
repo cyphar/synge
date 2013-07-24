@@ -104,8 +104,8 @@ EVAL_IDIR	= $(INCLUDE_DIR)/eval
 # Test directories
 TEST_DIR	= tests
 
-WARNINGS	= -Wall -Wextra -pedantic -Wno-overlength-strings -Wno-unused-parameter
-SHR_CFLAGS	+= -std=c99 -I$(INCLUDE_DIR)/
+WARNINGS	= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
+SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
 CLI_CFLAGS	+=
 GTK_CFLAGS	+= `pkg-config --cflags gtk+-2.0`
 EVAL_CFLAGS	+=
