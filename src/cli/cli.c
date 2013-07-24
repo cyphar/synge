@@ -377,7 +377,7 @@ int cli_str_empty(char *str) {
 
 int main(int argc, char **argv) {
 	synge_start();
-	srand(time(NULL) ^ getpid());
+	synge_seed(time(NULL) ^ getpid());
 
 	char *cur_str = NULL;
 	int count;

@@ -215,11 +215,6 @@ CASES = [
 	(["a=1+false?a=2:a=12", "a"],
 	 ["13",                 "13"],						0,	0,		"Conditional Statement	"),
 
-	(["rand(100)"],				["32"],				0,	1,		'"Random" Number		'),
-	(["rand(26)"],				["19"],				0,	1,		'"Random" Number		'),
-	(["rand(146.7)"],			["71"],				0,	1,		'"Random" Number		'),
-	(["rand(32)"],				["28"],				0,	1,		'"Random" Number		'),
-
 	(["tan(45)+cos(60)+sin(30)"],		["2"],				deg,	0,		"Degrees Trigonometry	"),
 	(["atan(1)+acos(0.5)+asin(0)"],		["105"],			deg,	0,		"Degrees Trigonometry	"),
 	(["atan(sin(30)/cos(30))"],		["30"],				deg,	0,		"Degrees Trigonometry	"),

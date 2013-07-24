@@ -124,6 +124,7 @@ error_code synge_compute_string(char *, synge_t *); /* takes an infix-style stri
 int synge_is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
 int synge_is_ignore_code(int); /* returns true if the return code and result should be ignored, otherwise false */
 
+void synge_seed(unsigned int seed); /* seed synge's pseudorandom number generator */
 void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
 void synge_end(void); /* run at program termination -- memory WILL leak if not run at end */
 
