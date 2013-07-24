@@ -96,6 +96,7 @@
 #define FUNCTION(x) ((function *) x)
 
 int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
+gmp_randstate_t synge_state;
 
 /* __DEBUG__ FUNCTIONS */
 
@@ -191,35 +192,66 @@ int rad2deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
 
 int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
-	mpfr_round(number, number);
-	int max = mpfr_get_si(number, round);
-	int min = 0;
+	mpfr_floor(number, number);
 
-	/* better than the standard skewed (rand() % max + min + 1) range */
-	int random = (rand() % (max + 1 - min)) + min;
+	/* A = rand() */
+	synge_t random;
+	mpfr_init2(random, SYNGE_PRECISION);
+	mpfr_urandom(random, synge_state, round);
 
-	/* set input */
-	mpfr_set_si(to, random, round);
+	/* get size of input in 10^x */
+	synge_t size;
+	mpfr_init2(size, SYNGE_PRECISION);
+	mpfr_abs(size, number, round);
+	mpfr_log10(size, size, round);
+
+	/* multiply random by power */
+	mpfr_ui_pow(size, 10, size, round);
+	mpfr_mul(random, random, size, round);
+
+	/* B = max + 1 - min */
+	mpfr_add_si(to, number, 1, round);
+	mpfr_sub_si(to, to, 0, round);
+
+	/* C = A % B */
+	mpfr_fmod(to, random, to, round);
+
+	/* D = C + min */
+	mpfr_add_si(to, to, 0, round);
+
+	/* free memory */
+	mpfr_clears(random, size, NULL);
+
+	/* round output -- remove to allow decimal random numbers */
+	mpfr_round(to, to);
 	return 0;
 } /* sy_rand() */
 
-int sy_factorial(synge_t to, synge_t number, mpfr_rnd_t round) {
+int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	/* round input */
-	mpfr_round(number, number);
-	unsigned int num = mpfr_get_ui(number, round);
+	synge_t number;
+	mpfr_init2(number, SYNGE_PRECISION);
+	mpfr_abs(number, num, round);
+	mpfr_floor(number, number);
 
-	/* get factorial */
-	mpfr_fac_ui(to, num, round);
+	mpfr_set_si(to, 1, round);
+	while(!iszero(number)) {
+		mpfr_mul(to, to, number, round);
+		mpfr_sub_si(number, number, 1, round);
+	}
+
+	mpfr_copysign(to, to, num, round);
 	return 0;
 } /* sy_factorial() */
 
 int sy_series(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
-	mpfr_round(number, number);
-	int num = mpfr_get_si(number, round);
+	mpfr_floor(number, number);
 
 	/* (x * (x + 1)) / 2 */
-	mpfr_mul_si(to, number, num + 1, round);
+	mpfr_set(to, number, round);
+	mpfr_add_si(number, number, 1, round);
+	mpfr_mul(to, to, number, round);
 	mpfr_div_si(to, to, 2, round);
 	return 0;
 } /* sy_series() */
@@ -2558,6 +2590,10 @@ function *synge_get_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
+void synge_seed(unsigned int seed) {
+	gmp_randseed_ui(synge_state, seed);
+} /* synge_seed() */
+
 void synge_start(void) {
 	variable_list = ohm_init(2, NULL);
 	function_list = ohm_init(2, NULL);
@@ -2565,6 +2601,8 @@ void synge_start(void) {
 
 	mpfr_init2(prev_answer, SYNGE_PRECISION);
 	mpfr_set_si(prev_answer, 0, SYNGE_ROUND);
+
+	gmp_randinit_default(synge_state);
 
 	synge_started = true;
 } /* synge_end() */
@@ -2584,6 +2622,8 @@ void synge_end(void) {
 
 	mpfr_clears(prev_answer, NULL);
 	mpfr_free_cache();
+
+	gmp_randclear(synge_state);
 
 	synge_started = false;
 } /* synge_end() */

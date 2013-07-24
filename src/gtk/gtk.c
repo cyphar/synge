@@ -222,7 +222,7 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 
 int main(int argc, char **argv) {
 	synge_start();
-	srand(time(NULL) ^ getpid());
+	synge_seed(time(NULL) ^ getpid());
 
 	gtk_init(&argc, &argv);
 
