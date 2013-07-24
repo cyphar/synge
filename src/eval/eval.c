@@ -72,7 +72,7 @@ void bake_args(int argc, char ***argv) {
 				(*argv)[i] = NULL;
 		}
 		else if(!strcmp((*argv)[i], "-R") || !strcmp((*argv)[i], "-no-random") || !strcmp((*argv)[i], "--no-random")) {
-			srand(0); /* seed random number generator, to make it predicatable for testing */
+			synge_seed(0); /* seed random number generator, to make it predicatable for testing */
 			(*argv)[i] = NULL;
 		}
 		else if(!strcmp((*argv)[i], "-S") || !strcmp((*argv)[i], "-no-skip") || !strcmp((*argv)[i], "--no-skip")) {

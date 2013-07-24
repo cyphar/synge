@@ -193,6 +193,12 @@ CASES = [
 	(["fact(3)"],				["6"],				0,	0,		"Assorted Functions	"),
 	(["fact(4)"],				["24"],				0,	0,		"Assorted Functions	"),
 
+	(["rand(100)"],				["37"],				0,	0,		"'Random' Function	"),
+	(["rand(13)"],				["5"],				0,	0,		"'Random' Function	"),
+	(["rand(14.7)"],			["5"],				0,	0,		"'Random' Function	"),
+	(["rand(42)"],				["16"],				0,	0,		"'Random' Function	"),
+	(["rand(52)"],				["19"],				0,	0,		"'Random' Function	"),
+
 	(["log10(100)/2"],			["1"],				0,	0,		"Function Division	"),
 	(["ln(100)/ln(10)"],			["2"],				0,	0,		"Function Division	"),
 	(["ceil(11.01)/floor(12.01)"],		["1"],				0,	0,		"Function Division	"),
