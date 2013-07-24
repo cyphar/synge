@@ -197,7 +197,7 @@ int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* A = rand() */
 	synge_t random;
 	mpfr_init2(random, SYNGE_PRECISION);
-	mpfr_urandom(random, synge_state, round);
+	mpfr_urandomb(random, synge_state);
 
 	/* get size of input in 10^x */
 	synge_t size;
