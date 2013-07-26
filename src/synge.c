@@ -945,13 +945,11 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 										mpfr_init2(implied, SYNGE_PRECISION);
 										mpfr_set_si(implied, 0, SYNGE_ROUND);
 
-										/* negate the variable? +0-pi negates it */
-										if(tmpp && tmpp->tp != lparen)
-											push_valstack("+", addop, false, pos, *infix_stack);
+										/* 0 - pi */
+										if(!tmpp || tmpp->tp == lparen)
+											push_valstack(num_dup(implied), number, true, pos, *infix_stack);
 
-										push_valstack(num_dup(implied), number, true, pos, *infix_stack);
 										push_valstack("-", addop, false, pos, *infix_stack);
-
 										mpfr_clears(implied, NULL);
 									}
 									else if(tmpp && tmpp->tp != lparen) {
@@ -1216,13 +1214,11 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 									mpfr_init2(implied, SYNGE_PRECISION);
 									mpfr_set_si(implied, 0, SYNGE_ROUND);
 
-									/* negate the variable? +0-x negates it */
-									if(tmpp && tmpp->tp != lparen)
-										push_valstack("+", addop, false, pos, *infix_stack);
+									/* 0 - x */
+									if(!tmpp || tmpp->tp == lparen)
+										push_valstack(num_dup(implied), number, true, pos, *infix_stack);
 
-									push_valstack(num_dup(implied), number, true, pos, *infix_stack);
 									push_valstack("-", addop, false, pos, *infix_stack);
-
 									mpfr_clears(implied, NULL);
 								}
 								else if(tmpp && tmpp->tp != lparen) {
