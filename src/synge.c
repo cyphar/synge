@@ -41,12 +41,16 @@
  * 1 Addition, Subtraction (left associative)
  */
 
+#define xstr(x)			str(x)
+#define str(x)			#x
+
 #define SYNGE_MAIN		"<main>"
 #define SYNGE_IF_BLOCK		"<if>"
 #define SYNGE_ELSE_BLOCK	"<else>"
 
 #define SYNGE_MAX_PRECISION	64
 #define SYNGE_MAX_DEPTH		2048
+#define SYNGE_EPSILON		"1e-" xstr(SYNGE_MAX_PRECISION + 1)
 
 #define SYNGE_PREV_ANSWER	"ans"
 #define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
@@ -143,13 +147,13 @@ int iszero(synge_t num) {
 
 	/* generate "epsilon" */
 	mpfr_init2(epsilon, SYNGE_PRECISION);
-	mpfr_set_str(epsilon, "1e-65", 10, SYNGE_ROUND);
+	mpfr_set_str(epsilon, SYNGE_EPSILON, 10, SYNGE_ROUND);
 
 	/* if abs(num) < epsilon then it is zero */
 	int cmp = mpfr_cmpabs(num, epsilon);
 	mpfr_clears(epsilon, NULL);
 
-	return cmp < 0 || mpfr_zero_p(num);
+	return (cmp < 0 || mpfr_zero_p(num));
 } /* iszero() */
 
 int deg2rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
