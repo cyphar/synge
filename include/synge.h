@@ -80,7 +80,7 @@ enum {
 	dynamic = -1
 };
 
-typedef struct __synge_settings__ {
+typedef struct {
 	enum {
 		degrees,
 		radians
@@ -100,13 +100,14 @@ typedef struct __synge_settings__ {
 	int precision;
 } synge_settings;
 
-typedef struct __function__ {
+typedef struct {
+	/* hard-coded name and description strings */
 	char *name;
-	/* a function pointer with the same format as the mpfr_* functions */
-	int (*get)();
-	/* to hard-code explanations and name strings */
 	char *prototype;
 	char *description;
+
+	/* a function pointer with the same format as the mpfr_* functions */
+	int (*get)();
 } function;
 
 int synge_get_precision(synge_t); /* returns minimum decimal precision needed to print number */
