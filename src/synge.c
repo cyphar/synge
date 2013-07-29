@@ -2434,13 +2434,14 @@ char *synge_error_msg(error_code error) {
 			msg = "Too many values in expression";
 			break;
 		case EMPTY_STACK:
+			cheeky("There's an expression missing here...\n");
 			msg = "Expression was empty";
 			break;
 		case UNDEFINED:
 			msg = "Result is undefined";
 			break;
 		case TOO_DEEP:
-			cheeky("We have delved too deep and too greedily\n");
+			cheeky("We have delved too deep and too greedily and have awoken a being of shadow, flame and infinite loops.\n");
 			msg = "Delved too deep";
 			break;
 		default:
