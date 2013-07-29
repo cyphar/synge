@@ -41,33 +41,28 @@
  * 1 Addition, Subtraction (left associative)
  */
 
-#define mstr(x)			str(x)
-#define str(x)			#x
+#define str(x)				#x
+#define mstr(x)				str(x)
 
-#define SYNGE_MAIN		"<main>"
-#define SYNGE_IF_BLOCK		"<if>"
-#define SYNGE_ELSE_BLOCK	"<else>"
+#define SYNGE_MAIN			"<main>"
+#define SYNGE_IF			"<if>"
+#define SYNGE_ELSE			"<else>"
 
-#define SYNGE_MAX_PRECISION	64
-#define SYNGE_MAX_DEPTH		2048
-#define SYNGE_EPSILON		"1e-" mstr(SYNGE_MAX_PRECISION + 1)
+#define SYNGE_MAX_PRECISION		64
+#define SYNGE_MAX_DEPTH			2048
+#define SYNGE_EPSILON			"1e-" mstr(SYNGE_MAX_PRECISION + 1)
 
-#define SYNGE_PREV_ANSWER	"ans"
-#define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
-#define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
+#define SYNGE_PREV_ANSWER		"ans"
+#define SYNGE_VARIABLE_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
+#define SYNGE_FUNCTION_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
 
-#define SYNGE_TRACEBACK_FORMAT	"Synge Traceback (most recent call last):\n" \
-				"%s" \
-				"%s: %s"
+#define SYNGE_TRACEBACK_FORMAT		"Synge Traceback (most recent call last):\n" \
+					"%s" \
+					"%s: %s"
 
 #define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
 
 #define strlower(x) do { char *p = x; for(; *p; ++p) { *p = tolower(*p); } } while(0)
-
-/* to make changes in engine types smoother */
-#define sy_fabs(...) fabsl(__VA_ARGS__)
-#define sy_modf(...) modfl(__VA_ARGS__)
-#define sy_fmod(...) fmodl(__VA_ARGS__)
 
 /* my own assert() implementation */
 #define assert(x) do { if(!x) { puts("synge: assertion '" #x "' failed -- aborting!"); exit(1); }} while(0)
@@ -87,9 +82,6 @@
 
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
 #define isnumword(type) (type == number || type == userword || type == setword)
-
-/* when a floating point number has a rounding error, weird stuff starts to happen -- reliable bug */
-#define has_rounding_error(number) ((number + 1) == number || (number - 1) == number)
 
 /* hack to get amount of memory needed to store a sprintf() */
 #define lenprintf(...) (synge_snprintf(NULL, 0, __VA_ARGS__) + 1)
@@ -2080,10 +2072,10 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					/* set correct value */
 					if(!iszero(arg[0]))
 						/* if expression */
-						tmpecode = eval_expression(tmpif, SYNGE_IF_BLOCK, (*rpn)->content[i].position, result);
+						tmpecode = eval_expression(tmpif, SYNGE_IF, (*rpn)->content[i].position, result);
 					else
 						/* else expression */
-						tmpecode = eval_expression(tmpelse, SYNGE_ELSE_BLOCK, (*rpn)->content[i-1].position, result);
+						tmpecode = eval_expression(tmpelse, SYNGE_ELSE, (*rpn)->content[i-1].position, result);
 
 					free(tmpif);
 					free(tmpelse);
