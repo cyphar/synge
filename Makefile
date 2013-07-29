@@ -134,19 +134,19 @@ INSTALL_DIR	= $(PREFIX)/bin
 # PRODUCTION SECTION #
 ######################
 
-# Compile "production" engine and wrappers (w/ git-version)
+# Compile "production" core and wrappers (w/ git-version)
 all:
 	make $(NAME_CLI)
 	make $(NAME_GTK)
 	make $(NAME_EVAL)
 
-# Compile "final" engine and wrappers (w/o git-version)
+# Compile "final" core and wrappers (w/o git-version)
 final:
 	make $(NAME_CLI) GIT_VERSION=
 	make $(NAME_GTK) GIT_VERSION=
 	make $(NAME_EVAL) GIT_VERSION=
 
-# Compile "production" engine and command-line wrapper
+# Compile "production" core and command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
@@ -159,7 +159,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	strip $(EXEC_CLI)
 	make -B $(OS_POST)
 
-# Compile "production" engine and gui wrapper
+# Compile "production" core and gui wrapper
 $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
@@ -173,7 +173,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	strip $(EXEC_GTK)
 	make -B $(OS_POST)
 
-# Compile "production" engine and simple eval wrapper
+# Compile "production" core and simple eval wrapper
 $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
@@ -190,7 +190,7 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 # TEST SECTION #
 ################
 
-# Compile "production" engine and test suite wrapper + execute test suite
+# Compile "production" core and test suite wrapper + execute test suite
 test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found - required for test suite"; \
@@ -203,13 +203,13 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 # DEBUG SECTION #
 #################
 
-# Compile "debug" engine and wrappers
+# Compile "debug" core and wrappers
 debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 	make debug-cli
 	make debug-gtk
 	make debug-eval
 
-# Compile "debug" engine and command-line wrapper
+# Compile "debug" core and command-line wrapper
 debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
@@ -222,7 +222,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(WARNINGS)
 	make -B $(OS_POST)
 
-# Compile "debug" engine and gui wrapper
+# Compile "debug" core and gui wrapper
 debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
@@ -236,7 +236,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		$(WARNINGS)
 	make -B $(OS_POST)
 
-# Compile "debug" engine and simple eval wrapper
+# Compile "debug" core and simple eval wrapper
 debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \

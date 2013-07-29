@@ -255,7 +255,7 @@ void cli_exec(char *str) {
 		str++;
 	} while(isspace(*str));
 
-#if __SYNGE_SAFE__ > 0
+#if defined(__SYNGE_SAFE__) && __SYNGE_SAFE__ > 0
 	int ch;
 	do {
 		/* print warning */
