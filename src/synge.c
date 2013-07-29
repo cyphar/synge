@@ -41,7 +41,7 @@
  * 1 Addition, Subtraction (left associative)
  */
 
-#define xstr(x)			str(x)
+#define mstr(x)			str(x)
 #define str(x)			#x
 
 #define SYNGE_MAIN		"<main>"
@@ -50,7 +50,7 @@
 
 #define SYNGE_MAX_PRECISION	64
 #define SYNGE_MAX_DEPTH		2048
-#define SYNGE_EPSILON		"1e-" xstr(SYNGE_MAX_PRECISION + 1)
+#define SYNGE_EPSILON		"1e-" mstr(SYNGE_MAX_PRECISION + 1)
 
 #define SYNGE_PREV_ANSWER	"ans"
 #define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
@@ -63,7 +63,6 @@
 #define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
 
 #define strlower(x) do { char *p = x; for(; *p; ++p) { *p = tolower(*p); } } while(0)
-#define strupper(x) do { char *p = x; for(; *p; ++p) { *p = toupper(*p); } } while(0)
 
 /* to make changes in engine types smoother */
 #define sy_fabs(...) fabsl(__VA_ARGS__)
@@ -109,14 +108,21 @@ void print_stack(stack *s) {
 	int i, size = stack_size(s);
 	for(i = 0; i < size; i++) {
 		s_content tmp = s->content[i];
-		if(!tmp.val) continue;
 
-		if(tmp.tp == number)
-			synge_printf("%.*" SYNGE_FORMAT " ", synge_get_precision(SYNGE_T(tmp.val)), SYNGE_T(tmp.val));
-		else if(tmp.tp == func)
-			printf("%s ", FUNCTION(tmp.val)->name);
-		else
-			printf("'%s' ", (char *) tmp.val);
+		if(!tmp.val)
+			continue;
+
+		switch(tmp.tp) {
+			case number:
+				synge_printf("%.*" SYNGE_FORMAT " ", synge_get_precision(SYNGE_T(tmp.val)), SYNGE_T(tmp.val));
+				break;
+			case func:
+				printf("%s ", FUNCTION(tmp.val)->name);
+				break;
+			default:
+				printf("'%s' ", (char *) tmp.val);
+				break;
+		}
 	}
 	printf("\n");
 #endif
@@ -265,40 +271,40 @@ int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
 } /* sy_assert */
 
 function func_list[] = {
-	{"abs",		mpfr_abs,	"abs(x)",	"Absolute value of x"},
-	{"sqrt",	mpfr_sqrt,	"sqrt(x)",	"Square root of x"},
-	{"cbrt",	mpfr_cbrt,	"cbrt(x)",	"Cubic root of x"},
+	{"abs",		"abs(x)",	"Absolute value of x",						mpfr_abs},
+	{"sqrt",	"sqrt(x)",	"Square root of x",						mpfr_sqrt},
+	{"cbrt",	"cbrt(x)",	"Cubic root of x",						mpfr_cbrt},
 
-	{"floor",	mpfr_floor,	"floor(x)",	"Largest integer not greater than x"},
-	{"round",	mpfr_round,	"round(x)",	"Closest integer to x"},
-	{"ceil",	mpfr_ceil,	"ceil(x)",	"Smallest integer not smaller than x"},
+	{"floor",	"floor(x)",	"Largest integer not greater than x",				mpfr_floor},
+	{"round",	"round(x)",	"Closest integer to x",						mpfr_round},
+	{"ceil",	"ceil(x)",	"Smallest integer not smaller than x",				mpfr_ceil},
 
-	{"log10",	mpfr_log10,	"log10(x)",	"Base 10 logarithm of x"},
-	{"log",		mpfr_log2,	"log(x)",	"Base 2 logarithm of x"},
-	{"ln",		mpfr_log,	"ln(x)",	"Base e logarithm of x"},
+	{"log10",	"log10(x)",	"Base 10 logarithm of x",					mpfr_log10},
+	{"log",		"log(x)",	"Base 2 logarithm of x",					mpfr_log2},
+	{"ln",		"ln(x)",	"Base e logarithm of x",					mpfr_log},
 
-	{"rand",	sy_rand,	"rand(x)",	"Generate a psedu-random integer between 0 and round(x)"},
-	{"fact",	sy_factorial,	"fact(x)",	"Factorial of round(x)"},
-	{"series",	sy_series,	"series(x)",	"Gives addition of all integers up to round(x)"},
-	{"assert",	sy_assert,	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise"},
+	{"rand",	"rand(x)",	"Generate a psedu-random integer between 0 and round(x)",	sy_rand},
+	{"fact",	"fact(x)",	"Factorial of round(x)",					sy_factorial},
+	{"series",	"series(x)",	"Gives addition of all integers up to round(x)",		sy_series},
+	{"assert",	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise",			sy_assert},
 
-	{"deg2rad",   	deg2rad,	"deg2rad(x)",	"Convert x degrees to radians"},
-	{"rad2deg",   	rad2deg,	"rad2deg(x)",	"Convert x radians to degrees"},
+	{"deg2rad",	"deg2rad(x)",	"Convert x degrees to radians",   				deg2rad},
+	{"rad2deg",	"rad2deg(x)",	"Convert x radians to degrees",   				rad2deg},
 
-	{"sinhi",	mpfr_asinh,	"asinh(x)",	"Inverse hyperbolic sine of x"},
-	{"coshi",	mpfr_acosh,	"acosh(x)",	"Inverse hyperbolic cosine of x"},
-	{"tanhi",	mpfr_atanh,	"atanh(x)",	"Inverse hyperbolic tangent of x"},
-	{"sinh",	mpfr_sinh,	"sinh(x)",	"Hyperbolic sine of x"},
-	{"cosh",	mpfr_cosh,	"cosh(x)",	"Hyperbolic cosine of x"},
-	{"tanh",	mpfr_tanh,	"tanh(x)",	"Hyperbolic tangent of x"},
+	{"sinhi",	"asinh(x)",	"Inverse hyperbolic sine of x",					mpfr_asinh},
+	{"coshi",	"acosh(x)",	"Inverse hyperbolic cosine of x",				mpfr_acosh},
+	{"tanhi",	"atanh(x)",	"Inverse hyperbolic tangent of x",				mpfr_atanh},
+	{"sinh",	"sinh(x)",	"Hyperbolic sine of x",						mpfr_sinh},
+	{"cosh",	"cosh(x)",	"Hyperbolic cosine of x",					mpfr_cosh},
+	{"tanh",	"tanh(x)",	"Hyperbolic tangent of x",					mpfr_tanh},
 
-	{"sini",	mpfr_asin,	"asin(x)",	"Inverse sine of x"},
-	{"cosi",	mpfr_acos,	"acos(x)",	"Inverse cosine of x"},
-	{"tani",	mpfr_atan,	"atan(x)",	"Inverse tangent of x"},
-	{"sin",		mpfr_sin,	"sin(x)",	"Sine of x"},
-	{"cos",		mpfr_cos,	"cos(x)",	"Cosine of x"},
-	{"tan",		mpfr_tan,	"tan(x)",	"Tangent of x"},
-	{NULL,		NULL,		NULL,		NULL}
+	{"sini",	"asin(x)",	"Inverse sine of x",						mpfr_asin},
+	{"cosi",	"acos(x)",	"Inverse cosine of x",						mpfr_acos},
+	{"tani",	"atan(x)",	"Inverse tangent of x",						mpfr_atan},
+	{"sin",		"sin(x)",	"Sine of x",							mpfr_sin},
+	{"cos",		"cos(x)",	"Cosine of x",							mpfr_cos},
+	{"tan",		"tan(x)",	"Tangent of x",							mpfr_tan},
+	{NULL,		NULL,		NULL,								NULL}
 };
 
 function_alias alias_list[] = {
@@ -1195,11 +1201,11 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 		else if(get_func(s+i)) {
 			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
 
-			function *funcname = get_func(funcword); /* get the function pointer, name, etc. */
-			push_valstack(funcname, func, false, pos - 1, *infix_stack);
-			free(funcword);
+			function *functionp = get_func(funcword); /* get the function pointer, name, etc. */
+			push_valstack(functionp, func, false, pos - 1, *infix_stack);
 
-			tmpoffset = strlen(funcname->name); /* update iterator to correct offset */
+			tmpoffset = strlen(functionp->name); /* update iterator to correct offset */
+			free(funcword);
 		}
 		else if(strlen(word) > 0) {
 			/* is it a variable or user function? */
@@ -1556,10 +1562,17 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 		int pos = stackp.position;
 
 		/* debugging */
-		if(stackp.tp == number)
-			debug("%" SYNGE_FORMAT "\n", SYNGE_T(stackp.val));
-		else
-			debug("%s\n", stackp.val);
+		switch(stackp.tp) {
+			case number:
+				debug("%" SYNGE_FORMAT "\n", SYNGE_T(stackp.val));
+				break;
+			case func:
+				debug("%s\n", FUNCTION(stackp.val)->name);
+				break;
+			default:
+				debug("%s\n", stackp.val);
+				break;
+		}
 
 		print_stack(evalstack);
 
@@ -2379,9 +2392,11 @@ char *synge_error_msg(error_code error) {
 	/* get correct printf string */
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
+			cheeky("The 11th Commandment: Thou shalt not divide by zero.\n");
 			msg = "Cannot divide by zero";
 			break;
 		case MODULO_BY_ZERO:
+			cheeky("The 11th Commandment: Thou shalt not modulo by zero.\n");
 			msg = "Cannot modulo by zero";
 			break;
 		case UNMATCHED_LEFT_PARENTHESIS:
@@ -2429,16 +2444,15 @@ char *synge_error_msg(error_code error) {
 		case EMPTY_STACK:
 			msg = "Expression was empty";
 			break;
-		case NUM_OVERFLOW:
-			msg = "Number caused overflow";
-			break;
 		case UNDEFINED:
 			msg = "Result is undefined";
 			break;
 		case TOO_DEEP:
+			cheeky("We have delved too deep and too greedily\n");
 			msg = "Delved too deep";
 			break;
 		default:
+			cheeky("We dun goofed... :(\n");
 			msg = "An unknown error has occured";
 			break;
 	}
@@ -2481,7 +2495,6 @@ char *synge_error_msg_pos(int code, int pos) {
 } /* get_error_msg_pos() */
 
 error_code synge_internal_compute_string(char *original_str, synge_t *result, char *caller, int position) {
-	static int depth = -1;
 	assert(synge_started);
 
 	/* "dynamically" resize hashmap to keep efficiency up */
@@ -2501,6 +2514,7 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	 * YOU SHALL NOT PASS!
 	 */
 
+	static int depth = -1;
 	if(++depth >= SYNGE_MAX_DEPTH)
 		return to_error_code(TOO_DEEP, -1);
 

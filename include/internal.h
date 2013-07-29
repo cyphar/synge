@@ -25,12 +25,12 @@
 
 #include "synge.h"
 
-typedef struct __function_alias__ {
+typedef struct {
 	char *alias;
 	char *function;
 } function_alias;
 
-typedef struct __special_number__ {
+typedef struct {
 	char *name;
 	/* an mpfr_* like function to set the value of the special number */
 	int (*value)();
