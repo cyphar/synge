@@ -218,6 +218,7 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
 	make -B $(OS_POST)
 
@@ -231,6 +232,7 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
 	make -B $(OS_POST)
 
@@ -243,6 +245,7 @@ debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
 	make -B $(OS_POST)
 
