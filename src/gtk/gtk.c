@@ -235,7 +235,6 @@ int main(int argc, char **argv) {
 		printf("Couldn't open synge-gtk.glade\n");
 		exit(0);
 	}
-
 #endif
 
 	input = gtk_builder_get_object(builder, "input");
@@ -256,11 +255,11 @@ int main(int argc, char **argv) {
 
 	char *comments = NULL;
 
-	/* git commit information is always 40 chars long*/
+	/* git commit information is always 40 chars long */
 	if(strlen(__SYNGE_GIT_VERSION__) != 40)
-		comments = "Version " __SYNGE_GTK_VERSION__;
+		comments = "Core: " __SYNGE_VERSION__ "\n" "GUI: " __SYNGE_GTK_VERSION__;
 	else
-		comments = "Version " __SYNGE_GTK_VERSION__ "\n" __SYNGE_GIT_VERSION__;
+		comments = "Core: " __SYNGE_VERSION__ "\n" "GUI: " __SYNGE_GTK_VERSION__ "\n" "Revision: " __SYNGE_GIT_VERSION__;
 
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), comments);
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n" SYNGE_WARRANTY);

@@ -120,7 +120,7 @@ function *synge_get_function_list(void); /* returns list of available functions 
 char *synge_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
 char *synge_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
 
-error_code synge_compute_string(char *, synge_t *); /* takes an infix-style string and runs it through the "engine" */
+error_code synge_compute_string(char *, synge_t *); /* takes an infix-style string and runs it through the synge core */
 
 int synge_is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
 int synge_is_ignore_code(int); /* returns true if the return code and result should be ignored, otherwise false */

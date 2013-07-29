@@ -23,7 +23,7 @@
 #ifndef __SYNGE_VERSION_H__
 #define __SYNGE_VERSION_H__
 
-/* engine version */
+/* core version */
 #define __SYNGE_VERSION__ 		"1.4.1"  /* ANSI string */
 #define B__SYNGE_VERSION__ 		 1,4,1,0 /* binary (for resources) */
 
@@ -38,9 +38,5 @@
 /* eval version */
 #define __SYNGE_EVAL_VERSION__ 		"1.0.2"	 /* ANSI string */
 #define B__SYNGE_EVAL_VERSION__ 	 1,0,2,0 /* binary (for resources) */
-
-#ifndef __SYNGE_SAFE__
-#	define __SYNGE_SAFE__ 1
-#endif
 
 #endif /* __SYNGE_VERSION_H__ */
