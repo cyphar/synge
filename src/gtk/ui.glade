@@ -8,9 +8,9 @@
     <property name="modal">True</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">toolbar</property>
-    <property name="program_name">Synge-GTK</property>
+    <property name="program_name">Synge</property>
     <property name="copyright">Copyright (C) 2013 Cyphar</property>
-    <property name="website_label" translatable="yes">https://github.com/cyphar/synge</property>
+    <property name="website_label" translatable="yes">https://code.cyphar.com/synge</property>
     <property name="license">The MIT License (MIT)
 
 Copyright (C) 2013 Cyphar
