@@ -253,6 +253,10 @@ int main(int argc, char **argv) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
 	gtk_builder_connect_signals(builder, NULL);
 
+	/* hint that the gui should be floating */
+	gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_UTILITY);
+	gtk_window_set_type_hint(GTK_WINDOW(func_window), GDK_WINDOW_TYPE_HINT_UTILITY);
+
 	char *comments = NULL;
 
 	/* git commit information is always 40 chars long */
