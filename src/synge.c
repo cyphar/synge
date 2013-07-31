@@ -223,11 +223,17 @@ int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 
 	/* free memory */
 	mpfr_clears(random, size, NULL);
-
-	/* round output -- remove to allow decimal random numbers */
-	mpfr_round(to, to);
 	return 0;
 } /* sy_rand() */
+
+int sy_int_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
+	/* get random number */
+	sy_rand(to, number, round);
+
+	/* round output */
+	mpfr_round(to, to);
+	return 0;
+} /* sy_int_rand() */
 
 int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	/* round input */
@@ -275,9 +281,11 @@ function func_list[] = {
 	{"log",		"log(x)",	"Base 2 logarithm of x",					mpfr_log2},
 	{"ln",		"ln(x)",	"Base e logarithm of x",					mpfr_log},
 
-	{"rand",	"rand(x)",	"Generate a psedu-random integer between 0 and round(x)",	sy_rand},
+	{"rand",	"rand(x)",	"Generate a pseudo-random number between 0 and x",		sy_rand},
+	{"randi",	"randi(x)",	"Generate a pseudo-random integer between 0 and x",		sy_int_rand},
+
 	{"fact",	"fact(x)",	"Factorial of round(x)",					sy_factorial},
-	{"series",	"series(x)",	"Gives addition of all integers up to round(x)",		sy_series},
+	{"series",	"series(x)",	"Gives addition of all integers up to x",			sy_series},
 	{"assert",	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise",			sy_assert},
 
 	{"deg2rad",	"deg2rad(x)",	"Convert x degrees to radians",   				deg2rad},

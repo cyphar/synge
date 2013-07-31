@@ -193,11 +193,11 @@ CASES = [
 	(["fact(3)"],				["6"],				0,	0,		"Assorted Functions	"),
 	(["fact(4)"],				["24"],				0,	0,		"Assorted Functions	"),
 
-	(["rand(100)"],				["52"],				0,	0,		"'Random' Function	"),
-	(["rand(13)"],				["7"],				0,	0,		"'Random' Function	"),
-	(["rand(14.7)"],			["7"],				0,	0,		"'Random' Function	"),
-	(["rand(42)"],				["22"],				0,	0,		"'Random' Function	"),
-	(["rand(52)"],				["27"],				0,	0,		"'Random' Function	"),
+	(["randi(100)"],			["52"],				0,	0,		"'Random' Function	"),
+	(["randi(13)"],				["7"],				0,	0,		"'Random' Function	"),
+	(["randi(14.7)"],			["7"],				0,	0,		"'Random' Function	"),
+	(["randi(42)"],				["22"],				0,	0,		"'Random' Function	"),
+	(["randi(52)"],				["27"],				0,	0,		"'Random' Function	"),
 
 	(["log10(100)/2"],			["1"],				0,	0,		"Function Division	"),
 	(["ln(100)/ln(10)"],			["2"],				0,	0,		"Function Division	"),
@@ -245,7 +245,7 @@ CASES = [
 	(["2+floor(log10(23))/32"],		["2.03125"],			0,	0,		"Long Expression		"),
 	(["ceil((e%2.5)*300)"],			["66"],				0,	0,		"Long Expression		"),
 	(["(fact(4)+8)/4+(2+3*4)^2-3^4+(9+10)*(15-21)+7*(17-15)"],
-						["23"],                         0,	0,	      "Long Expression		"),
+						["23"],				0,	0,		"Long Expression		"),
 
 	(["987654321012/987654321012"],		["1"],				0,	0,		"Big Numbers		"),
 
