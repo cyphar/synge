@@ -250,10 +250,15 @@ void cli_set_settings(char *s) {
 } /* cli_set_settings() */
 
 void cli_exec(char *str) {
-	/* get rid of leading spaces */
-	do {
+	/* jump in front of first word */
+	while(!isspace(*str)) {
 		str++;
-	} while(isspace(*str));
+	}
+
+	/* get rid of leading spaces */
+	while(isspace(*str)) {
+		str++;
+	}
 
 #if defined(__SYNGE_SAFE__) && __SYNGE_SAFE__ > 0
 	int ch;
@@ -299,7 +304,7 @@ cli_command cli_command_list[] = {
 	{"warranty",	cli_warranty,		true},
 	{"banner",	cli_banner,		true},
 
-	{"!",		cli_exec,		false},
+	{"exec ",	cli_exec,		false},
 
 	{"list ",	cli_print_list,		false},
 	{"set ",	cli_set_settings,	false},

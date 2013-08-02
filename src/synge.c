@@ -398,6 +398,9 @@ operator op_list[] = {
 	{"|",	op_bor},
 	{"#",	op_bxor},
 
+	{"~",	op_binv},
+	{"!",	op_bnot},
+
 	{"<<",	op_bshiftl},
 	{">>",	op_bshiftr},
 
@@ -1157,6 +1160,10 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					else
 						type = premod;
 					break;
+				case op_binv:
+				case op_bnot:
+					type = preop;
+					break;
 				case op_none:
 				default:
 					free(s);
@@ -1360,6 +1367,33 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 						free_stackm(infix_stack, &op_stack, rpn_stack);
 						return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
 					}
+				}
+				break;
+			case preop:
+				{
+					i++;
+					s_content *tmpstackp = &(*infix_stack)->content[i];
+
+					/* push the top value */
+					switch(tmpstackp->tp) {
+						case number:
+							push_valstack(num_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
+							break;
+						case userword:
+							push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
+							break;
+						case setword:
+						case expression:
+							/* expressions and setwords can't be inverted */
+							free_stackm(infix_stack, &op_stack, rpn_stack);
+							return to_error_code(INVALID_LEFT_OPERAND, pos);
+							break;
+						default:
+							push_valstack(tmpstackp->val, tmpstackp->tp, false, tmpstackp->position, *rpn_stack);
+							break;
+					}
+
+					push_ststack(stackp, *rpn_stack);
 				}
 				break;
 			case premod:
@@ -1905,6 +1939,48 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						free(result);
 					}
 					free(tmpstr);
+				}
+				break;
+			case preop:
+				{
+					if(stack_size(evalstack) < 1) {
+						free_stackm(&evalstack, rpn);
+						mpfr_clears(arg[0], arg[1], arg[2], NULL);
+						return to_error_code(OPERATOR_WRONG_ARGC, pos);
+					}
+
+					if(top_stack(evalstack)->tp != number) {
+						free_stackm(&evalstack, rpn);
+						mpfr_clears(arg[0], arg[1], arg[2], NULL);
+						return to_error_code(INVALID_LEFT_OPERAND, pos);
+					}
+
+					result = malloc(sizeof(synge_t));
+					mpfr_init2(*result, SYNGE_PRECISION);
+
+					mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
+					free_scontent(pop_stack(evalstack));
+
+					switch(get_op(stackp.val).tp) {
+						case op_bnot:
+							{
+								/* !a => a == 0 */
+								mpfr_set_ui(*result, iszero(arg[0]), SYNGE_ROUND);
+							}
+							break;
+						case op_binv:
+							{
+								/* ~a => -(a+1) */
+								mpfr_add_si(*result, arg[0], 1, SYNGE_ROUND);
+								mpfr_neg(*result, *result, SYNGE_ROUND);
+							}
+							break;
+						default:
+							break;
+					}
+
+					/* push result of evaluation onto the stack */
+					push_valstack(result, number, true, pos, evalstack);
 				}
 				break;
 			case delop:
