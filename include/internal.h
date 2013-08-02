@@ -52,6 +52,7 @@ typedef enum __stack_type__ {
 	delop	= 10,
 
 	/* not treated as operator in parsing */
+	preop,
 	premod,
 	postmod,
 
@@ -88,6 +89,8 @@ typedef struct operator {
 		op_band,
 		op_bor,
 		op_bxor,
+		op_binv,
+		op_bnot,
 		op_bshiftl,
 		op_bshiftr,
 
