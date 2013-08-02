@@ -196,33 +196,16 @@ int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
 	mpfr_floor(number, number);
 
-	/* A = rand() */
+	/* A = rand() -- 0 <= rand() < 1 */
 	synge_t random;
 	mpfr_init2(random, SYNGE_PRECISION);
 	mpfr_urandomb(random, synge_state);
 
-	/* get size of input in 10^x */
-	synge_t size;
-	mpfr_init2(size, SYNGE_PRECISION);
-	mpfr_abs(size, number, round);
-	mpfr_log10(size, size, round);
-
-	/* multiply random by power */
-	mpfr_ui_pow(size, 10, size, round);
-	mpfr_mul(random, random, size, round);
-
-	/* B = max + 1 - min */
-	mpfr_add_si(to, number, 1, round);
-	mpfr_sub_si(to, to, 0, round);
-
-	/* C = A % B */
-	mpfr_fmod(to, random, to, round);
-
-	/* D = C + min */
-	mpfr_add_si(to, to, 0, round);
+	/* rand(B) = rand() * B -- where 0 <= rand() < 1 */
+	mpfr_mul(to, random, number, round);
 
 	/* free memory */
-	mpfr_clears(random, size, NULL);
+	mpfr_clears(random, NULL);
 	return 0;
 } /* sy_rand() */
 
