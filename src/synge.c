@@ -1965,13 +1965,15 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						case op_bnot:
 							{
 								/* !a => a == 0 */
-								mpfr_set_ui(*result, iszero(arg[0]), SYNGE_ROUND);
+								mpfr_set_si(*result, iszero(arg[0]), SYNGE_ROUND);
 							}
 							break;
 						case op_binv:
 							{
+								mpfr_round(*result, arg[0]);
+
 								/* ~a => -(a+1) */
-								mpfr_add_si(*result, arg[0], 1, SYNGE_ROUND);
+								mpfr_add_si(*result, *result, 1, SYNGE_ROUND);
 								mpfr_neg(*result, *result, SYNGE_ROUND);
 							}
 							break;
