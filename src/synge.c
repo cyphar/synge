@@ -739,6 +739,12 @@ error_code set_variable(char *str, synge_t val) {
 	mpfr_init2(tosave, SYNGE_PRECISION);
 	mpfr_set(tosave, val, SYNGE_ROUND);
 
+	/* delete old value (if there is one)  */
+	if(ohm_search(variable_list, s, strlen(s) + 1)) {
+		synge_t *tmp = ohm_search(variable_list, s, strlen(s) + 1);
+		mpfr_clear(*tmp);
+	}
+
 	ohm_remove(function_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
 	ohm_insert(variable_list, s, strlen(s) + 1, tosave, sizeof(synge_t));
 
