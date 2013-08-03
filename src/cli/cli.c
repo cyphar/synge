@@ -43,8 +43,16 @@
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
+/* detect windows or unix */
+
+#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#	define WINDOWS
+#else
+#	define UNIX
+#endif
+
 #ifndef __SYNGE_COLOUR__
-#	ifndef __WIN32
+#	ifndef WINDOWS
 #		define __SYNGE_COLOUR__ true
 #	else
 #		define __SYNGE_COLOUR__ false
@@ -284,7 +292,7 @@ void cli_exec(char *str) {
 	/* run the command */
 	int ret = system(str);
 
-#ifndef __WIN32
+#ifdef UNIX
 	ret /= 256; /* system in *nix seems to multiply the real return value by 256 */
 #endif
 
@@ -390,7 +398,7 @@ int main(int argc, char **argv) {
 	mpfr_init2(result, SYNGE_PRECISION);
 
 	error_code ecode;
-#ifndef __WIN32
+#ifdef UNIX
 	/* Local stuff for libedit */
 	EditLine *cli_el;
 	History *cli_history;
@@ -409,7 +417,7 @@ int main(int argc, char **argv) {
 	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 
 	while(true) {
-#ifndef __WIN32
+#ifdef UNIX
 		cur_str = (char *) el_gets(cli_el, &count); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 #else
@@ -442,17 +450,17 @@ int main(int argc, char **argv) {
 				synge_printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
 			}
 
-#ifndef __WIN32
+#ifdef UNIX
 			/* add input to history */
 			history(cli_history, &cli_ev, H_ENTER, cur_str);
 #endif
 		}
-#ifdef __WIN32
+#ifdef WINDOWS
 		free(cur_str);
 #endif
 	}
 
-#ifndef __WIN32
+#ifdef UNIX
 	/* free up memory */
 	history_end(cli_history);
 	el_end(cli_el);
