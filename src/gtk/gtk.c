@@ -20,6 +20,13 @@
  * SOFTWARE.
  */
 
+/* detect windows or unix */
+#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#	define WINDOWS
+#else
+#	define UNIX
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -253,9 +260,11 @@ int main(int argc, char **argv) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
 	gtk_builder_connect_signals(builder, NULL);
 
-	/* hint that the gui should be floating */
-	gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_UTILITY);
-	gtk_window_set_type_hint(GTK_WINDOW(func_window), GDK_WINDOW_TYPE_HINT_UTILITY);
+#ifdef UNIX
+	/* hint that the gui should be floating -- windows does stupid things with this hint */
+	gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DIALOG);
+	gtk_window_set_type_hint(GTK_WINDOW(func_window), GDK_WINDOW_TYPE_HINT_DIALOG);
+#endif
 
 	char *comments = NULL;
 
