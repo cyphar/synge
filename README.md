@@ -27,7 +27,7 @@ Factorial:
 * `f := (x > 0) ? x-- * f : 1` (recursively generate result)
 
 ## License ##
-Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in any project (as long as the license text is retained in all versions of the code).
+Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in both open source and propretary projects (provided the license conditions are met).
 ```
 Copyright (c) 2013 Cyphar
 
