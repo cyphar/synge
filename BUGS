@@ -1,6 +1,6 @@
 List of known bugs and limitations:
 
-  -
+  - When using the backup variable list, the copying and use of the numbers cause warnings in valgrind
 
 List of "bugs" which are not to be fixed:
 
