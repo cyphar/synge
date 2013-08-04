@@ -32,9 +32,11 @@
 #define SYNGE_ROUND		GMP_RNDN
 
 #define synge_printf(...)	mpfr_printf(__VA_ARGS__)
+#define synge_fprintf(...)	mpfr_fprintf(__VA_ARGS__)
 #define synge_sprintf(...)	mpfr_sprintf(__VA_ARGS__)
 #define synge_snprintf(...)	mpfr_snprintf(__VA_ARGS__)
 #define synge_vprintf(...)	mpfr_vprintf(__VA_ARGS__)
+#define synge_vfprintf(...)	mpfr_vfprintf(__VA_ARGS__)
 #define synge_vnprintf(...)	mpfr_vnprintf(__VA_ARGS__)
 
 #if !defined(true) || !defined(false) || !defined(bool)
