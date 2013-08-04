@@ -2585,6 +2585,17 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	ohm_t *backup_var = ohm_dup(variable_list);
 	ohm_t *backup_func = ohm_dup(function_list);
 
+	/* duplicate all variables */
+	ohm_iter i = ohm_iter_init(variable_list);
+	for(; i.key; ohm_iter_inc(&i)) {
+		synge_t new, *old = i.value;
+
+		mpfr_init2(new, SYNGE_PRECISION);
+		mpfr_set(new, *old, SYNGE_ROUND);
+
+		ohm_insert(backup_var, i.key, i.keylen, new, sizeof(synge_t));
+	}
+
 	/* intiialise result to zero */
 	mpfr_set_si(*result, 0, SYNGE_ROUND);
 
@@ -2643,20 +2654,20 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	if(mpfr_nan_p(*result))
 		ecode = to_error_code(UNDEFINED, -1);
 
-	/* if some error occured, revert variables and functions back to a previous state */
+	/* if some error occured, revert variables and functions back to previous good state */
 	if(!synge_is_success_code(ecode.code) && !synge_is_ignore_code(ecode.code)) {
-
-		/* mpfr_free variables which are not in the backup variable list */
+		/* mpfr_clear variable list */
 		ohm_iter i = ohm_iter_init(variable_list);
-		for(; i.key != NULL; ohm_iter_inc(&i)) {
-			synge_t *back = ohm_search(backup_var, i.key, i.keylen);
-
-			if(!back || mpfr_cmp(SYNGE_T(i.value), *back))
-				mpfr_clear(i.value);
-		}
+		for(; i.key != NULL; ohm_iter_inc(&i))
+			mpfr_clear(i.value);
 
 		ohm_cpy(variable_list, backup_var);
 		ohm_cpy(function_list, backup_func);
+	} else {
+		/* mpfr_clear backup variable list */
+		ohm_iter j = ohm_iter_init(backup_var);
+		for(; j.key; ohm_iter_inc(&j))
+			mpfr_clear(j.value);
 	}
 
 	/* if everythin went well, set the answer variable (and remove current depth from traceback) */
