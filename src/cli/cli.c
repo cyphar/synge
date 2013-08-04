@@ -20,6 +20,13 @@
  * SOFTWARE.
  */
 
+/* detect windows or unix */
+#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#	define WINDOWS
+#else
+#	define UNIX
+#endif
+
 #define _BSD_SOURCE
 #define _XOPEN_SOURCE
 
@@ -29,8 +36,8 @@
 #include <strings.h>
 #include <math.h>
 
-#ifndef __WIN32
-#	include <histedit.h> /* readline drop-in replacement */
+#ifdef UNIX
+#	include <histedit.h> /* readline replacement */
 #endif
 
 #include <time.h>
@@ -42,14 +49,6 @@
 #include <definitions.h>
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
-
-/* detect windows or unix */
-
-#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
-#	define WINDOWS
-#else
-#	define UNIX
-#endif
 
 #ifndef __SYNGE_COLOUR__
 #	ifndef WINDOWS

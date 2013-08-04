@@ -80,6 +80,7 @@
 		      get_op(str).tp == op_ca_band || get_op(str).tp == op_ca_bor || get_op(str).tp == op_ca_bxor || \
 		      get_op(str).tp == op_ca_bshiftl || get_op(str).tp == op_ca_bshiftr)
 
+#define isparen(type) (type == lparen || type == rparen)
 #define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
 #define isnumword(type) (type == number || type == userword || type == setword)
 
@@ -232,6 +233,8 @@ int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	}
 
 	mpfr_copysign(to, to, num, round);
+
+	mpfr_clears(number, NULL);
 	return 0;
 } /* sy_factorial() */
 
@@ -739,7 +742,7 @@ error_code set_variable(char *str, synge_t val) {
 	mpfr_init2(tosave, SYNGE_PRECISION);
 	mpfr_set(tosave, val, SYNGE_ROUND);
 
-	/* delete old value (if there is one)  */
+	/* delete old value (if there is one) */
 	if(ohm_search(variable_list, s, strlen(s) + 1)) {
 		synge_t *tmp = ohm_search(variable_list, s, strlen(s) + 1);
 		mpfr_clear(*tmp);
@@ -785,10 +788,20 @@ error_code del_word(char *s, int pos) {
 
 	switch(type) {
 		case tp_var:
-			ohm_remove(variable_list, s, strlen(s) + 1);
+			{
+				/* free mpfr_t */
+				synge_t *tmp = ohm_search(variable_list, s, strlen(s) + 1);
+				mpfr_clear(*tmp);
+
+				/* free entry */
+				ohm_remove(variable_list, s, strlen(s) + 1);
+			}
 			break;
 		case tp_func:
-			ohm_remove(function_list, s, strlen(s) + 1);
+			{
+				/* free entry */
+				ohm_remove(function_list, s, strlen(s) + 1);
+			}
 			break;
 		default:
 			return to_error_code(UNKNOWN_WORD, pos);
@@ -1160,8 +1173,8 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_ca_increment:
 				case op_ca_decrement:
-					/* a+++b === a++ + b (same as in C) */
-					if(top_stack(*infix_stack) && top_stack(*infix_stack)->tp == setword)
+					/* a+++b === a++ + b (same as in C) and operators are left-weighted (always assume left) */
+					if(top_stack(*infix_stack) && !isop(top_stack(*infix_stack)->tp) && !isparen(top_stack(*infix_stack)->tp))
 						type = postmod;
 					else
 						type = premod;
@@ -1408,7 +1421,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 					s_content *tmpstackp = &(*infix_stack)->content[i];
 
 					/* ensure that you are pushing a setword */
-					if(tmpstackp->tp != setword) {
+					if(i >= size || tmpstackp->tp != setword) {
 						free_stackm(infix_stack, &op_stack, rpn_stack);
 						return to_error_code(INVALID_LEFT_OPERAND, pos);
 					}
@@ -2632,6 +2645,16 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 
 	/* if some error occured, revert variables and functions back to a previous state */
 	if(!synge_is_success_code(ecode.code) && !synge_is_ignore_code(ecode.code)) {
+
+		/* mpfr_free variables which are not in the backup variable list */
+		ohm_iter i = ohm_iter_init(variable_list);
+		for(; i.key != NULL; ohm_iter_inc(&i)) {
+			synge_t *back = ohm_search(backup_var, i.key, i.keylen);
+
+			if(!back || mpfr_cmp(SYNGE_T(i.value), *back))
+				mpfr_clear(i.value);
+		}
+
 		ohm_cpy(variable_list, backup_var);
 		ohm_cpy(function_list, backup_func);
 	}
@@ -2699,6 +2722,7 @@ void synge_end(void) {
 
 	ohm_free(variable_list);
 	ohm_free(function_list);
+
 	link_free(traceback_list);
 	free(error_msg_container);
 
