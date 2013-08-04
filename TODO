@@ -2,7 +2,6 @@ Things to fix/implement:
 
 ALL:
 + Documentation
-* Replace as many hardcoded comparisons with structs
 * General code clean-up (especially tokenisation & evaluation code)
 
 SYNGE:
