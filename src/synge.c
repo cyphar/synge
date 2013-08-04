@@ -107,17 +107,17 @@ void print_stack(stack *s) {
 
 		switch(tmp.tp) {
 			case number:
-				synge_printf("%.*" SYNGE_FORMAT " ", synge_get_precision(SYNGE_T(tmp.val)), SYNGE_T(tmp.val));
+				synge_fprintf(stderr, "%.*" SYNGE_FORMAT " ", synge_get_precision(SYNGE_T(tmp.val)), SYNGE_T(tmp.val));
 				break;
 			case func:
-				printf("%s ", FUNCTION(tmp.val)->name);
+				fprintf(stderr, "%s ", FUNCTION(tmp.val)->name);
 				break;
 			default:
-				printf("'%s' ", (char *) tmp.val);
+				fprintf(stderr, "'%s' ", (char *) tmp.val);
 				break;
 		}
 	}
-	printf("\n");
+	fprintf(stderr, "\n");
 #endif
 } /* print_stack() */
 
@@ -125,7 +125,7 @@ void debug(char *format, ...) {
 #ifdef __SYNGE_DEBUG__
 	va_list ap;
 	va_start(ap, format);
-	synge_vprintf(format, ap);
+	synge_vfprintf(stderr, format, ap);
 	va_end(ap);
 #endif
 } /* debug() */
@@ -134,7 +134,7 @@ void cheeky(char *format, ...) {
 #if defined(__SYNGE_CHEEKY__) && __SYNGE_CHEEKY__ > 0
 	va_list ap;
 	va_start(ap, format);
-	synge_vprintf(format, ap);
+	synge_vfprintf(stderr, format, ap);
 	va_end(ap);
 #endif
 } /* cheeky() */
