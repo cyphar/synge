@@ -1105,8 +1105,8 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					type = bitop;
 					break;
 				case op_if:
+					type = ifop;
 					{
-						type = ifop;
 
 						/* get expression and position of it */
 						int tmp = next_offset(s, i + oplen);
@@ -1128,8 +1128,8 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					}
 					break;
 				case op_else:
+					type = elseop;
 					{
-						type = elseop;
 
 						/* get expression and position of it */
 						int tmp = next_offset(s, i + oplen);
@@ -1181,6 +1181,47 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_binv:
 				case op_bnot:
+					if(top_stack(*infix_stack)) {
+						/* make pre-operators act just like normal numbers */
+						switch(top_stack(*infix_stack)->tp) {
+							case addop:
+								{
+									/* if there is a +/- in front of a pre-opped number, it should set the sign of that variable (i.e. 1--pi is 1+pi) */
+									s_content *tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
+									s_content *tmpp = top_stack(*infix_stack);
+
+									if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
+										if(get_op(tmppop->val).tp == op_subtract) {
+											synge_t implied;
+											mpfr_init2(implied, SYNGE_PRECISION);
+											mpfr_set_si(implied, 0, SYNGE_ROUND);
+
+											/* 0 - pi */
+											if(!tmpp || tmpp->tp == lparen)
+												push_valstack(num_dup(implied), number, true, pos, *infix_stack);
+
+											push_valstack("-", addop, false, pos, *infix_stack);
+											mpfr_clears(implied, NULL);
+										}
+										else if(tmpp && tmpp->tp != lparen) {
+											/* otherwise, add the pre-op */
+											push_valstack("+", addop, false, pos, *infix_stack);
+										}
+									}
+									else {
+										/* whoops! didn't match criteria. push sign back. */
+										push_ststack(*tmppop, *infix_stack);
+									}
+								}
+								break;
+							case number:
+								/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
+								push_valstack("*", multop, false, pos, *infix_stack);
+								break;
+							default:
+								break;
+						}
+					}
 					type = preop;
 					break;
 				case op_none:
