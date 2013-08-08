@@ -1365,6 +1365,7 @@ bool op_precedes(s_type op1, s_type op2) {
 		case setop:
 		case modop:
 		case expop:
+		case preop:
 			lassoc = 0;
 			break;
 		default:
@@ -1429,33 +1430,6 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 					}
 				}
 				break;
-			case preop:
-				{
-					i++;
-					s_content *tmpstackp = &(*infix_stack)->content[i];
-
-					/* push the top value */
-					switch(tmpstackp->tp) {
-						case number:
-							push_valstack(num_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
-							break;
-						case userword:
-							push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
-							break;
-						case setword:
-						case expression:
-							/* expressions and setwords can't be inverted */
-							free_stackm(infix_stack, &op_stack, rpn_stack);
-							return to_error_code(INVALID_LEFT_OPERAND, pos);
-							break;
-						default:
-							push_valstack(tmpstackp->val, tmpstackp->tp, false, tmpstackp->position, *rpn_stack);
-							break;
-					}
-
-					push_ststack(stackp, *rpn_stack);
-				}
-				break;
 			case premod:
 				{
 					i++;
@@ -1473,6 +1447,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 					push_ststack(stackp, *rpn_stack);
 				}
 				break;
+			case preop:
 			case setop:
 			case modop:
 			case elseop:
