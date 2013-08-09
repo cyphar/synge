@@ -127,6 +127,7 @@ EVAL_DEPS	+=
 
 TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
 
+VALGRIND	= valgrind --leak-check=full
 PREFIX		?= /usr
 INSTALL_DIR	= $(PREFIX)/bin
 
@@ -197,6 +198,15 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 		false; \
 	else \
 		$(PYTHON) $(TEST_DIR)/test.py "$(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
+	fi
+
+# Compile "production" core and test suite wrapper + execute test suite (in valgrind)
+mtest: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
+	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
+		echo "$(PYTHON) not found - required for test suite"; \
+		false; \
+	else \
+		$(PYTHON) $(TEST_DIR)/test.py "$(VALGRIND) $(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
 	fi
 
 #################
