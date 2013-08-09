@@ -120,11 +120,16 @@ CASES = [
 	(["-~2"],				["3"],				0,	0,		"Bitwise NOT Sign	"),
 	(["~12.3"],				["-13"],			0,	0,		"Bitwise NOT Sign	"),
 	(["-~15.3"],				["16"],				0,	0,		"Bitwise NOT Sign	"),
+	(["~(-3)"],				["2"],				0,	0,		"Bitwise NOT Sign	"),
+	(["~(3)"],				["-4"],				0,	0,		"Bitwise NOT Sign	"),
 
 	(["!2"],				["0"],				0,	0,		"Unary NOT		"),
 	(["!34"],				["0"],				0,	0,		"Unary NOT		"),
 	(["!0"],				["1"],				0,	0,		"Unary NOT		"),
 	(["!0.1"],				["0"],				0,	0,		"Unary NOT		"),
+	(["!(56)"],				["0"],				0,	0,		"Unary NOT Sign		"),
+	(["!(1-1)"],				["1"],				0,	0,		"Unary NOT Sign		"),
+	(["-!(3-3)"],				["-1"],				0,	0,		"Unary NOT Sign		"),
 
 	(["(1+1)*2"],				["4"],				0,	0,		"Parenthesis		"),
 	(["1+(-2)"],				["-1"],				0,	0,		"Parenthesis		"),
