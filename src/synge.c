@@ -456,8 +456,9 @@ char *replace(char *str, char *old, char *new) {
 
 	for(i = 0; s[i] != '\0'; i++) {
 		if(strstr(&s[i], old) == &s[i]) {
-			count++; /* found occurrence of old string */
-			i += oldlen - 1; /* jump forward in string */
+			/* update count and jump forward in string */
+			count++;
+			i += oldlen - 1;
 		}
 	}
 
@@ -466,14 +467,21 @@ char *replace(char *str, char *old, char *new) {
 
 	i = 0;
 	while(*s != '\0') {
-		if(strstr(s, old) == s) { /* is *s position at occurrence of old? */
-			strcpy(&ret[i], new); /* copy over new to replace this occurrence */
-			i += newlen; /* update iterator ... */
-			s += oldlen; /* ... to new offsets  */
-		} else ret[i++] = *s++; /* otherwise, copy over current character */
-	}
-	ret[i] = '\0'; /* null terminate ret */
+		/* overwrite every occurence of old */
+		if(strstr(s, old) == s) {
+			strcpy(&ret[i], new);
 
+			/* update iterators */
+			i += newlen;
+			s += oldlen;
+		} else {
+			/* otherwise, copy over offset character from original string */
+			ret[i++] = *s++;
+		}
+	}
+
+	/* null terminate */
+	ret[i] = '\0';
 	return ret;
 } /* replace() */
 
@@ -487,7 +495,10 @@ char *get_word(char *s, char *list, char **endptr) {
 				found = true; /* found a match! */
 				break; /* gtfo. */
 			}
-		if(!found) break; /* current character not in string -- end of word */
+
+		/* current character not in string -- end of word */
+		if(!found)
+			break;
 	}
 
 	/* copy over the word */
@@ -495,7 +506,8 @@ char *get_word(char *s, char *list, char **endptr) {
 	memcpy(ret, s, i);
 	ret[i] = '\0';
 
-	strlower(ret); /* make the word lowercase -- since everything is case insensitive */
+	/* make the word lowercase -- since everything is case insensitive */
+	strlower(ret);
 
 	*endptr = s+i;
 	return ret;
@@ -514,22 +526,26 @@ int strnchr(char *str, char ch, int len) {
 } /* strnchr() */
 
 char *trim_spaces(char *str) {
+	/* move starting pointer to first non-space character */
 	while(isspace(*str))
-		str++; /* move starting pointer to first non-space character */
+		str++;
 
+	/* return null if entire string was spaces */
 	if(*str == '\0')
-		return NULL; /* return null if entire string was spaces */
+		return NULL;
 
+	/* move end pointer back to last non-space character */
 	char *end = str + strlen(str) - 1;
 	while(end > str && isspace(*end))
-		end--; /* move end pointer back to last non-space character */
+		end--;
 
 	/* get the length and allocate memory */
 	int len = ++end - str;
 	char *ret = malloc(len + 1);
 
-	strncpy(ret, str, len); /* copy stripped section */
-	ret[len] = '\0'; /* ensure null termination */
+	/* copy stripped section and null terminate */
+	strncpy(ret, str, len);
+	ret[len] = '\0';
 
 	return ret;
 } /* trim_spaces() */
@@ -815,9 +831,9 @@ error_code del_word(char *s, int pos) {
 char *function_process_replace(char *string) {
 	char *firstpass = NULL;
 
+	/* replace all aliased functions first */
 	int i;
 	for(i = 0; alias_list[i].alias != NULL; i++) {
-		/* replace all aliases*/
 		char *tmppass = replace(firstpass ? firstpass : string, alias_list[i].alias, alias_list[i].function);
 		free(firstpass);
 		firstpass = tmppass;
