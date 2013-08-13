@@ -41,33 +41,36 @@
  * 1 Addition, Subtraction (left associative)
  */
 
+/* value macros */
 #define str(x)				#x
 #define mstr(x)				str(x)
 
+/* function names */
 #define SYNGE_MAIN			"<main>"
 #define SYNGE_IF			"<if>"
 #define SYNGE_ELSE			"<else>"
 
+/* internal "magic numbers" */
 #define SYNGE_MAX_PRECISION		64
 #define SYNGE_MAX_DEPTH			2048
 #define SYNGE_EPSILON			"1e-" mstr(SYNGE_MAX_PRECISION + 1)
 
+/* word-related things */
 #define SYNGE_PREV_ANSWER		"ans"
 #define SYNGE_VARIABLE_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
 #define SYNGE_FUNCTION_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
 
+/* traceback format macros */
+#define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
 #define SYNGE_TRACEBACK_FORMAT		"Synge Traceback (most recent call last):\n" \
 					"%s" \
 					"%s: %s"
 
-#define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
+/* in-place macros */
+#define strlower(str)		do { char *p = str; for(; *p; ++p) { *p = tolower(*p); } } while(0)
+#define assert(cond, reason)	do { if(!(cond)) { fprintf(stderr, "synge: assertion '%s' (%s) failed\n", reason, #cond); exit(1); }} while(0)
 
-#define strlower(x) do { char *p = x; for(; *p; ++p) { *p = tolower(*p); } } while(0)
-
-/* my own assert() implementation */
-#define assert(x) do { if(!x) { puts("synge: assertion '" #x "' failed -- aborting!"); exit(1); }} while(0)
-
-/* -- useful macros -- */
+/* useful macros */
 #define isaddop(str) (get_op(str).tp == op_add || get_op(str).tp == op_subtract)
 #define issetop(str) (get_op(str).tp == op_var_set || get_op(str).tp == op_func_set)
 #define isdelop(str) (get_op(str).tp == op_del)
@@ -749,7 +752,7 @@ bool isnum(char *string) {
 } /* isnum() */
 
 error_code set_variable(char *str, synge_t val) {
-	assert(synge_started);
+	assert(synge_started == true, "synge must be initialised");
 
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
@@ -772,7 +775,7 @@ error_code set_variable(char *str, synge_t val) {
 } /* set_variable() */
 
 error_code set_function(char *str, char *exp) {
-	assert(synge_started);
+	assert(synge_started == true, "synge must be initialised");
 
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
@@ -785,7 +788,7 @@ error_code set_function(char *str, char *exp) {
 } /* set_function() */
 
 error_code del_word(char *s, int pos) {
-	assert(synge_started);
+	assert(synge_started == true, "synge must be initialised");
 
 	enum {
 		tp_var,
@@ -928,7 +931,7 @@ char *get_expression_level(char *p, char end) {
 	 			 (top_stack(stack)->tp != rparen || (!isaddop(str) && !iscreop(top_stack(stack)->val)))))) /* a +/- number preceeded by a ')' is not a number */
 
 error_code synge_tokenise_string(char *string, stack **infix_stack) {
-	assert(synge_started);
+	assert(synge_started == true, "synge must be initialised");
 	char *s = function_process_replace(string);
 
 	debug("--\nTokenise\n--\n");
@@ -2608,7 +2611,7 @@ char *synge_error_msg_pos(int code, int pos) {
 } /* get_error_msg_pos() */
 
 error_code synge_internal_compute_string(char *original_str, synge_t *result, char *caller, int position) {
-	assert(synge_started);
+	assert(synge_started == true, "synge must be initialised");
 
 	/* "dynamically" resize hashmap to keep efficiency up */
 	if(ohm_count(variable_list) > ohm_size(variable_list))
@@ -2739,6 +2742,7 @@ function *synge_get_function_list(void) {
 } /* get_synge_function_list() */
 
 void synge_seed(unsigned int seed) {
+	assert(synge_started == true, "synge must be initialised");
 	gmp_randseed_ui(synge_state, seed);
 } /* synge_seed() */
 
@@ -2756,7 +2760,7 @@ void synge_start(void) {
 } /* synge_end() */
 
 void synge_end(void) {
-	assert(synge_started);
+	assert(synge_started == true, "synge must be initialised");
 
 	/* mpfr_free variables */
 	ohm_iter i = ohm_iter_init(variable_list);
@@ -2778,7 +2782,7 @@ void synge_end(void) {
 } /* synge_end() */
 
 void synge_reset_traceback(void) {
-	assert(synge_started);
+	assert(synge_started == true, "synge must be initialised");
 
 	/* free previous traceback and allocate new one */
 	if(traceback_list)
