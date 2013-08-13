@@ -150,6 +150,11 @@ void cheeky(char *format, ...) {
 #endif
 } /* cheeky() */
 
+void synge_clear(void *tofree) {
+	synge_t *item = tofree;
+	mpfr_clear(SYNGE_T(item));
+} /* synge_clear() */
+
 int iszero(synge_t num) {
 	synge_t epsilon;
 
@@ -1001,14 +1006,14 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 										/* 0 - pi */
 										if(!tmpp || tmpp->tp == lparen)
-											push_valstack(num_dup(implied), number, true, pos, *infix_stack);
+											push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
 
-										push_valstack("-", addop, false, pos, *infix_stack);
+										push_valstack("-", addop, false, NULL, pos, *infix_stack);
 										mpfr_clears(implied, NULL);
 									}
 									else if(tmpp && tmpp->tp != lparen) {
 										/* otherwise, add the number */
-										push_valstack("+", addop, false, pos, *infix_stack);
+										push_valstack("+", addop, false, NULL, pos, *infix_stack);
 									}
 								}
 								else {
@@ -1019,7 +1024,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 							break;
 						case number:
 							/* two numbers together have an impiled * (i.e 2x is 2*x) */
-							push_valstack("*", multop, false, pos, *infix_stack);
+							push_valstack("*", multop, false, NULL, pos, *infix_stack);
 							break;
 						default:
 							break;
@@ -1032,7 +1037,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				synge_strtofr(num, s+i, &endptr);
 				tmpoffset = endptr - (s + i); /* update iterator to correct offset */
 			}
-			push_valstack(num, number, true, pos, *infix_stack); /* push given value */
+			push_valstack(num, number, true, synge_clear, pos, *infix_stack); /* push given value */
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
 			if(mpfr_nan_p(*num)) {
@@ -1109,13 +1114,13 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 									}
 
 									/* push implied multiplier */
-									push_valstack(num_dup(implied), number, true, pos, *infix_stack);
+									push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
 									mpfr_clears(implied, NULL);
 								}
 								/* pass-through */
 							case number:
 							case rparen:
-								push_valstack("*", multop, false, pos + 1, *infix_stack);
+								push_valstack("*", multop, false, NULL, pos + 1, *infix_stack);
 								break;
 							default:
 								break;
@@ -1161,7 +1166,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						}
 
 						/* push expression */
-						push_valstack(stripped, expression, true, tmp, *infix_stack);
+						push_valstack(stripped, expression, true, NULL, tmp, *infix_stack);
 						tmpoffset = strlen(expr);
 						free(expr);
 					}
@@ -1184,7 +1189,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						}
 
 						/* push expression */
-						push_valstack(stripped, expression, true, tmp, *infix_stack);
+						push_valstack(stripped, expression, true, NULL, tmp, *infix_stack);
 						tmpoffset = strlen(expr);
 						free(expr);
 					}
@@ -1237,14 +1242,14 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 											/* 0 - pi */
 											if(!tmpp || tmpp->tp == lparen)
-												push_valstack(num_dup(implied), number, true, pos, *infix_stack);
+												push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
 
-											push_valstack("-", addop, false, pos, *infix_stack);
+											push_valstack("-", addop, false, NULL, pos, *infix_stack);
 											mpfr_clears(implied, NULL);
 										}
 										else if(tmpp && tmpp->tp != lparen) {
 											/* otherwise, add the pre-op */
-											push_valstack("+", addop, false, pos, *infix_stack);
+											push_valstack("+", addop, false, NULL, pos, *infix_stack);
 										}
 									}
 									else {
@@ -1255,7 +1260,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 								break;
 							case number:
 								/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
-								push_valstack("*", multop, false, pos, *infix_stack);
+								push_valstack("*", multop, false, NULL, pos, *infix_stack);
 								break;
 							default:
 								break;
@@ -1269,16 +1274,16 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					free(word);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
-			push_valstack(get_op(s+i).str, type, false, pos, *infix_stack); /* push operator onto stack */
+			push_valstack(get_op(s+i).str, type, false, NULL, pos, *infix_stack); /* push operator onto stack */
 
 			if(postpush)
-				push_valstack("*", multop, false, pos, *infix_stack);
+				push_valstack("*", multop, false, NULL, pos, *infix_stack);
 
 			if(get_op(s+i).tp == op_func_set) {
 				char *func_expr = get_expression_level(s + i + oplen, '\0');
 				char *stripped = trim_spaces(func_expr);
 
-				push_valstack(stripped, expression, true, next_offset(s, i + oplen), *infix_stack);
+				push_valstack(stripped, expression, true, NULL, next_offset(s, i + oplen), *infix_stack);
 
 				tmpoffset = strlen(func_expr);
 				free(func_expr);
@@ -1291,7 +1296,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
 
 			function *functionp = get_func(funcword); /* get the function pointer, name, etc. */
-			push_valstack(functionp, func, false, pos - 1, *infix_stack);
+			push_valstack(functionp, func, false, NULL, pos - 1, *infix_stack);
 
 			tmpoffset = strlen(functionp->name); /* update iterator to correct offset */
 			free(funcword);
@@ -1315,14 +1320,14 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 									/* 0 - x */
 									if(!tmpp || tmpp->tp == lparen)
-										push_valstack(num_dup(implied), number, true, pos, *infix_stack);
+										push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
 
-									push_valstack("-", addop, false, pos, *infix_stack);
+									push_valstack("-", addop, false, NULL, pos, *infix_stack);
 									mpfr_clears(implied, NULL);
 								}
 								else if(tmpp && tmpp->tp != lparen) {
 									/* otherwise, add the variable */
-									push_valstack("+", addop, false, pos, *infix_stack);
+									push_valstack("+", addop, false, NULL, pos, *infix_stack);
 								}
 							}
 							else {
@@ -1333,7 +1338,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						break;
 					case number:
 						/* two numbers together have an impiled * (i.e 2x is 2*x) */
-						push_valstack("*", multop, false, pos, *infix_stack);
+						push_valstack("*", multop, false, NULL, pos, *infix_stack);
 						break;
 					default:
 						break;
@@ -1355,7 +1360,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			if(!stripped)
 				stripped = str_dup("");
 
-			push_valstack(stripped, type, true, pos, *infix_stack);
+			push_valstack(stripped, type, true, NULL, pos, *infix_stack);
 			tmpoffset = strlen(word); /* update iterator to correct offset */
 		}
 		else {
@@ -1436,13 +1441,13 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 		switch(stackp.tp) {
 			case number:
 				/* nothing to do, just push it onto the temporary stack */
-				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, *rpn_stack);
+				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, synge_clear, pos, *rpn_stack);
 				break;
 			case expression:
 			case userword:
 			case setword:
 				/* do nothing, just push it onto the stack */
-				push_valstack(str_dup(stackp.val), stackp.tp, true, pos, *rpn_stack);
+				push_valstack(str_dup(stackp.val), stackp.tp, true, NULL, pos, *rpn_stack);
 				break;
 			case lparen:
 			case func:
@@ -1480,7 +1485,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 						return to_error_code(INVALID_LEFT_OPERAND, pos);
 					}
 
-					push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, tmpstackp->position, *rpn_stack);
+					push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, NULL, tmpstackp->position, *rpn_stack);
 					/* pass-through */
 			case postmod:
 					push_ststack(stackp, *rpn_stack);
@@ -1670,12 +1675,12 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 		switch(stackp.tp) {
 			case number:
 				/* just push it onto the final stack */
-				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, pos, evalstack);
+				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, synge_clear, pos, evalstack);
 				break;
 			case expression:
 			case setword:
 				/* just push it onto the final stack */
-				push_valstack(str_dup(stackp.val), stackp.tp, true, pos, evalstack);
+				push_valstack(str_dup(stackp.val), stackp.tp, true, NULL, pos, evalstack);
 				break;
 			case setop:
 				{
@@ -1749,7 +1754,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						 ... a variable would have already been reported) */
 						return to_error_code(ERROR_FUNC_ASSIGNMENT, pos);
 					}
-					push_valstack(result, number, true, pos, evalstack);
+					push_valstack(result, number, true, synge_clear, pos, evalstack);
 					free(tmpstr);
 				}
 				break;
@@ -1945,7 +1950,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					set_variable(tmpstr, *result);
 
 					/* push new value of variable */
-					push_valstack(result, number, true, pos, evalstack);
+					push_valstack(result, number, true, synge_clear, pos, evalstack);
 					free(tmpstr);
 				}
 				break;
@@ -2006,7 +2011,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					set_variable(tmpstr, *result);
 
 					/* push value of variable (depending on pre/post) */
-					push_valstack(tmp ? result : num_dup(arg[0]), number, true, pos, evalstack);
+					push_valstack(tmp ? result : num_dup(arg[0]), number, true, synge_clear, pos, evalstack);
 
 					if(!tmp) {
 						mpfr_clear(*result);
@@ -2056,7 +2061,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					/* push result of evaluation onto the stack */
-					push_valstack(result, number, true, pos, evalstack);
+					push_valstack(result, number, true, synge_clear, pos, evalstack);
 				}
 				break;
 			case delop:
@@ -2104,7 +2109,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						return to_error_code(ERROR_DELETE, pos);
 					}
 
-					push_valstack(result, number, true, pos, evalstack);
+					push_valstack(result, number, true, synge_clear, pos, evalstack);
 					free(tmpstr);
 				}
 				break;
@@ -2126,7 +2131,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					/* push result of evaluation onto the stack */
-					push_valstack(result, number, true, pos, evalstack);
+					push_valstack(result, number, true, synge_clear, pos, evalstack);
 				}
 				break;
 			case func:
@@ -2156,7 +2161,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					rad_to_settings(*result, *result);
 
 				/* push result of evaluation onto the stack */
-				push_valstack(result, number, true, pos, evalstack);
+				push_valstack(result, number, true, synge_clear, pos, evalstack);
 				break;
 			case elseop:
 				{
@@ -2230,7 +2235,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						return tmpecode;
 					}
 
-					push_valstack(result, number, true, pos, evalstack);
+					push_valstack(result, number, true, synge_clear, pos, evalstack);
 				}
 				break;
 			case ifop:
@@ -2437,7 +2442,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				}
 
 				/* push result onto stack */
-				push_valstack(result, number, true, pos, evalstack);
+				push_valstack(result, number, true, synge_clear, pos, evalstack);
 				break;
 			default:
 				/* catch-all -- unknown token */

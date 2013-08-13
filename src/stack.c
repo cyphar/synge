@@ -1,7 +1,7 @@
 /* Synge: A shunting-yard calculation "engine"
  * Copyright (C) 2013 Cyphar
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * Permission is hereby granted, tofree of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
@@ -38,17 +38,19 @@ void push_ststack(s_content con, stack *s) {
 	s->top++;
 	s->content[s->top].val = con.val;
 	s->content[s->top].tp = con.tp;
-	s->content[s->top].free = con.free;
+	s->content[s->top].tofree = con.tofree;
+	s->content[s->top].freefunc = con.freefunc;
 	s->content[s->top].position = con.position;
 } /* push_ststack() */
 
-void push_valstack(void *val, int tp, int free, int pos, stack *s) {
+void push_valstack(void *val, int tp, int tofree, void (*freefunc)(void *), int pos, stack *s) {
 	if(s->top + 1 >= s->size) /* if stack is full */
 		s->content = realloc(s->content, ++s->size * sizeof(s_content));
 	s->top++;
 	s->content[s->top].val = val;
 	s->content[s->top].tp = tp;
-	s->content[s->top].free = free;
+	s->content[s->top].tofree = tofree;
+	s->content[s->top].freefunc = freefunc;
 	s->content[s->top].position = pos;
 } /* push_valstack() */
 
@@ -68,9 +70,9 @@ s_content *top_stack(stack *s) {
 
 void free_scontent(s_content *s) {
 	if(!s) return;
-	if(s->free) {
-		if(s->tp == number && s->val)
-			mpfr_clear(*(mpfr_t *) s->val);
+	if(s->tofree) {
+		if(s->freefunc && s->val)
+			s->freefunc(*(mpfr_t *) s->val);
 
 		free(s->val);
 		s->val = NULL;
@@ -82,7 +84,7 @@ void free_stack(stack *s) {
 	if(!s || !s->content) return;
 	int i;
 	for(i = 0; i < s->size; i++)
-		if(s->content[i].free)
+		if(s->content[i].tofree)
 			free_scontent(&s->content[i]);
 	free(s->content);
 	s->content = NULL;
