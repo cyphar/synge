@@ -94,10 +94,18 @@
 #define SYNGE_T(x) (*(synge_t *) x)
 #define FUNCTION(x) ((function *) x)
 
-int synge_started = false; /* I REALLY recommend you leave this false, as this is used to ensure that synge_start has been run */
-gmp_randstate_t synge_state;
+/* global state variables */
+static int synge_started = false;
+static gmp_randstate_t synge_state;
 
-/* __DEBUG__ FUNCTIONS */
+/* variables and functions */
+static ohm_t *variable_list = NULL;
+static ohm_t *function_list = NULL;
+static synge_t prev_answer;
+
+/* traceback */
+static char *error_msg_container = NULL;
+static link_t *traceback_list = NULL;
 
 void print_stack(stack *s) {
 #ifdef __SYNGE_DEBUG__
@@ -141,8 +149,6 @@ void cheeky(char *format, ...) {
 	va_end(ap);
 #endif
 } /* cheeky() */
-
-/* END __DEBUG__ FUNCTIONS */
 
 int iszero(synge_t num) {
 	synge_t epsilon;
@@ -229,6 +235,7 @@ int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	mpfr_abs(number, num, round);
 	mpfr_floor(number, number);
 
+	/* multilply original number by reverse iterator */
 	mpfr_set_si(to, 1, round);
 	while(!iszero(number)) {
 		mpfr_mul(to, to, number, round);
@@ -257,6 +264,7 @@ int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
 	return mpfr_set_si(to, iszero(check) ? 0 : 1, round);
 } /* sy_assert */
 
+/* builtin function names, prototypes, descriptions and function pointers */
 function func_list[] = {
 	{"abs",		"abs(x)",	"Absolute value of x",						mpfr_abs},
 	{"sqrt",	"sqrt(x)",	"Square root of x",						mpfr_sqrt},
@@ -296,6 +304,7 @@ function func_list[] = {
 	{NULL,		NULL,		NULL,								NULL}
 };
 
+/* alternate names of builtin functions (TODO: remove this) */
 function_alias alias_list[] = {
 	{"asinh",	"sinhi"},
 	{"acosh",	"coshi"},
@@ -305,11 +314,6 @@ function_alias alias_list[] = {
 	{"atan",	 "tani"},
 	{NULL,		   NULL},
 };
-
-ohm_t *variable_list = NULL;
-ohm_t *function_list = NULL;
-
-synge_t prev_answer;
 
 int synge_pi(synge_t num, mpfr_rnd_t round) {
 	mpfr_const_pi(num, round);
@@ -364,6 +368,7 @@ int synge_ans(synge_t num, mpfr_rnd_t round) {
 	return 0;
 } /* synge_ans() */
 
+/* inbuilt constants (given using function pointers) */
 special_number constant_list[] = {
 	{"pi",			synge_pi},
 	{"phi",			synge_phi},
@@ -376,7 +381,9 @@ special_number constant_list[] = {
 	{SYNGE_PREV_ANSWER,	synge_ans},
 	{NULL,			NULL},
 };
-/* used for when a (char *) is needed, but needn't be freed */
+
+/* used for when a (char *) is needed, but needn't be freed and *
+ * converts the string into switch-friendly enumeration values. */
 operator op_list[] = {
 	{"+",	op_add},
 	{"-",	op_subtract},
@@ -449,9 +456,6 @@ synge_settings active_settings = {
 	dynamic /* precision */
 };
 
-char *error_msg_container = NULL;
-link_t *traceback_list = NULL;
-
 char *replace(char *str, char *old, char *new) {
 	char *ret, *s = str;
 	int i, count = 0;
@@ -490,14 +494,20 @@ char *replace(char *str, char *old, char *new) {
 
 char *get_word(char *s, char *list, char **endptr) {
 	int lenstr = strlen(s), lenlist = strlen(list);
+
+	/* go through string */
 	int i, j, found;
-	for(i = 0; i < lenstr; i++) { /* for the entire string */
-		found = false; /* reset found variable */
-		for(j = 0; j < lenlist; j++)
+	for(i = 0; i < lenstr; i++) {
+		found = false;
+
+		/* check current character against allowed character "list" */
+		for(j = 0; j < lenlist; j++) {
+			/* match found */
 			if(s[i] == list[j]) {
-				found = true; /* found a match! */
-				break; /* gtfo. */
+				found = true;
+				break;
 			}
+		}
 
 		/* current character not in string -- end of word */
 		if(!found)
@@ -509,7 +519,7 @@ char *get_word(char *s, char *list, char **endptr) {
 	memcpy(ret, s, i);
 	ret[i] = '\0';
 
-	/* make the word lowercase -- since everything is case insensitive */
+	/* make the word lowercase -- everything is case insensitive */
 	strlower(ret);
 
 	*endptr = s+i;
@@ -632,8 +642,6 @@ error_code to_error_code(int error, int position) {
 	return ret;
 } /* to_error_code() */
 
-/* linear search functions */
-
 special_number get_special_num(char *s) {
 	int i;
 	special_number ret = {NULL, NULL};
@@ -644,21 +652,22 @@ special_number get_special_num(char *s) {
 } /* get_special_num() */
 
 function *get_func(char *val) {
-	int i;
+	/* get the word version of the function */
 	char *endptr = NULL, *word = get_word(val, SYNGE_FUNCTION_CHARS, &endptr);
 	function *ret = NULL;
 
-	for(i = 0; func_list[i].name != NULL; i++)
+	/* find matching function in builtin function lists */
+	int i;
+	for(i = 0; func_list[i].name != NULL; i++) {
 		if(!strcmp(word, func_list[i].name)) {
 			ret = &func_list[i];
 			break;
 		}
+	}
 
 	free(word);
 	return ret;
 } /* get_func() */
-
-/* end linear search functions */
 
 void synge_strtofr(synge_t *num, char *str, char **endptr) {
 	int sign = 0, sign_len = 0;
@@ -734,19 +743,18 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 } /* synge_strtofr() */
 
 bool isnum(char *string) {
-	int ret = false;
-	char *endptr = NULL;
-	char *s = get_word(string, SYNGE_VARIABLE_CHARS, &endptr);
-
+	/* get variable word */
+	char *endptr = NULL, *s = get_word(string, SYNGE_VARIABLE_CHARS, &endptr);
 	endptr = NULL;
 
+	/* get synge_t number from string */
 	synge_t tmp;
 	mpfr_init2(tmp, SYNGE_PRECISION);
 	synge_strtofr(&tmp, string, &endptr);
 	mpfr_clears(tmp, NULL);
 
 	/* all cases where word is a number */
-	ret = (get_special_num(s).name || string != endptr);
+	int ret = (get_special_num(s).name || string != endptr);
 	free(s);
 	return ret;
 } /* isnum() */
@@ -757,16 +765,18 @@ error_code set_variable(char *str, synge_t val) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
+	/* make a new copy of the variable to save */
 	synge_t tosave;
 	mpfr_init2(tosave, SYNGE_PRECISION);
 	mpfr_set(tosave, val, SYNGE_ROUND);
 
-	/* delete old value (if there is one) */
+	/* free old value (if there is one) */
 	if(ohm_search(variable_list, s, strlen(s) + 1)) {
 		synge_t *tmp = ohm_search(variable_list, s, strlen(s) + 1);
 		mpfr_clear(*tmp);
 	}
 
+	/* save the variable */
 	ohm_remove(function_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
 	ohm_insert(variable_list, s, strlen(s) + 1, tosave, sizeof(synge_t));
 
@@ -780,6 +790,7 @@ error_code set_function(char *str, char *exp) {
 	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
 
+	/* save the function */
 	ohm_remove(variable_list, s, strlen(s) + 1); /* remove word from variable list (fake dynamic typing) */
 	ohm_insert(function_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
 
@@ -790,6 +801,7 @@ error_code set_function(char *str, char *exp) {
 error_code del_word(char *s, int pos) {
 	assert(synge_started == true, "synge must be initialised");
 
+	/* word types */
 	enum {
 		tp_var,
 		tp_func,
@@ -798,6 +810,7 @@ error_code del_word(char *s, int pos) {
 
 	int type = tp_none;
 
+	/* get type of word */
 	if(ohm_search(variable_list, s, strlen(s) + 1))
 		type = tp_var;
 	else if(ohm_search(function_list, s, strlen(s) + 1))
@@ -805,6 +818,7 @@ error_code del_word(char *s, int pos) {
 	else
 		return to_error_code(UNKNOWN_WORD, pos);
 
+	/* free from correct list */
 	switch(type) {
 		case tp_var:
 			{
@@ -817,10 +831,8 @@ error_code del_word(char *s, int pos) {
 			}
 			break;
 		case tp_func:
-			{
-				/* free entry */
-				ohm_remove(function_list, s, strlen(s) + 1);
-			}
+			/* free entry */
+			ohm_remove(function_list, s, strlen(s) + 1);
 			break;
 		default:
 			return to_error_code(UNKNOWN_WORD, pos);
@@ -885,12 +897,13 @@ int recalc_padding(char *str, int len) {
 } /* recalc_padding() */
 
 int next_offset(char *str, int offset) {
-	int i, len = strlen(str);
 	/* continue from given offset */
+	int i, len = strlen(str);
 	for(i = offset; i < len; i++)
-		if(str[i] != ' ' && str[i] != '\t')
-			/* found a non-whitespace character */
+		/* found first non-whitespace character */
+		if(!isspace(str[i]))
 			return i;
+
 	/* nothing left */
 	return -1;
 } /* next_offset() */
@@ -899,7 +912,9 @@ char *get_expression_level(char *p, char end) {
 	int num_paren = 0, len = 0;
 	char *ret = NULL;
 
+	/* until the end of string or a correct level closing ) */
 	while(*p && ((*p != ')') || (num_paren && (*p == ')')))) {
+		/* update level of expression */
 		switch(get_op(p).tp) {
 			case op_rparen:
 				num_paren--;
@@ -911,18 +926,20 @@ char *get_expression_level(char *p, char end) {
 				break;
 		}
 
-		if(!num_paren && *p == end) {
+		/* was that the end of the level? */
+		if(!num_paren && *p == end)
 			break;
-		}
 
+		/* copy over character */
 		ret = realloc(ret, ++len);
 		ret[len - 1] = *p;
 
 		p++;
 	}
+
+	/* null terminate */
 	ret = realloc(ret, len + 1);
 	ret[len] = '\0';
-
 	return ret;
 } /* get_expression_level() */
 
@@ -942,12 +959,15 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 	int len = strlen(s);
 	for(i = 0; i < len; i++) {
+		/* get position shorthand */
 		pos = i - recalc_padding(s, (i ? i : 1) - 1) + 1;
 		nextpos = next_offset(s, i + 1);
+
+		/* correct update offset */
 		tmpoffset = 0;
 
 		/* ignore spaces */
-		if(s[i] == ' ')
+		if(isspace(s[i]))
 			continue;
 
 		char *endptr = NULL;
