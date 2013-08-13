@@ -68,7 +68,7 @@
 
 /* in-place macros */
 #define strlower(str)		do { char *p = str; for(; *p; ++p) { *p = tolower(*p); } } while(0)
-#define assert(cond, reason)	do { if(!(cond)) { fprintf(stderr, "synge: assertion '%s' (%s) failed\n", reason, #cond); exit(1); }} while(0)
+#define assert(cond, reason)	do { if(!(cond)) { fprintf(stderr, "synge: assertion '%s' (%s) failed\n", reason, #cond); abort(); }} while(0)
 
 /* useful macros */
 #define isaddop(str) (get_op(str).tp == op_add || get_op(str).tp == op_subtract)
