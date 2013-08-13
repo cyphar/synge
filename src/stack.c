@@ -24,7 +24,6 @@
 #include <stdarg.h>
 
 #include "stack.h"
-#include "internal.h"
 
 void init_stack(stack *s) {
 	s->content = NULL;
@@ -72,7 +71,7 @@ void free_scontent(s_content *s) {
 	if(!s) return;
 	if(s->tofree) {
 		if(s->freefunc && s->val)
-			s->freefunc(*(mpfr_t *) s->val);
+			s->freefunc(s->val);
 
 		free(s->val);
 		s->val = NULL;
