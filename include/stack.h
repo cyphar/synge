@@ -28,7 +28,8 @@
 typedef struct __stack_content__ {
 	void *val;
 	int tp;
-	int free;
+	int tofree;
+	void (*freefunc)(void *);
 	int position;
 } s_content;
 
@@ -42,7 +43,7 @@ typedef struct __stack__ {
 
 void init_stack(stack *); /* initialize the stack */
 
-void push_valstack(void *, int, int, int, stack *); /* push value and type to the top of the stack */
+void push_valstack(void *, int, int, void (*)(void *), int, stack *); /* push value and type to the top of the stack */
 void push_ststack(s_content, stack *); /* push struct to the top of the stack */
 
 s_content *pop_stack(stack *); /* pops the top value on the stack */
