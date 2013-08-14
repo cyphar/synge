@@ -2667,8 +2667,18 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	 */
 
 	static int depth = -1;
-	if(++depth >= SYNGE_MAX_DEPTH)
+	if(++depth >= SYNGE_MAX_DEPTH) {
+		ohm_free(backup_func);
+
+		ohm_iter ii = ohm_iter_init(backup_var);
+		for(; ii.key; ohm_iter_inc(&ii)) {
+			synge_t *val = ii.value;
+			mpfr_clear(*val);
+		}
+
+		ohm_free(backup_var);
 		return to_error_code(TOO_DEEP, -1);
+	}
 
 	/* reset traceback */
 	if(!strcmp(caller, SYNGE_MAIN)) {
