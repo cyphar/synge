@@ -384,6 +384,12 @@ CASES = [
 
 	(["2--"],				[error_get("assign", 2)],	0,	0,		"Assign Error		"),
 	(["--2"],				[error_get("assign", 1)],	0,	0,		"Assign Error		"),
+
+	(["f:=f", "f"],				[error_get("unknown", 2), error_get("delved", 1)],
+										0,	0,		"Recursion Error		"),
+
+	(["a:=b", "b:=c", "c:=a", "1+a"], 	[error_get("unknown", 2), error_get("unknown", 2), error_get("unknown", 2), error_get("delved", 3)],
+										0,	0,		"Recursion Error		"),
 ]
 
 def test_calc(program, test, expected, mode, change, description):
