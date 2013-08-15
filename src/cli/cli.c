@@ -318,23 +318,12 @@ cli_command cli_command_list[] = {
 	{"get ",	cli_print_settings,	false},
 };
 
-bool cli_is_command(char *s) {
-	int i, len = length(cli_command_list);
-
-	for(i = 0; i < len; i++) {
-		if((cli_command_list[i].whole && !strcmp(cli_command_list[i].name, s)) ||
-		   (!cli_command_list[i].whole && !strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))))
-			return true;
-	}
-	return false;
-} /* cli_is_command() */
-
 cli_command cli_get_command(char *s) {
 	int i, len = length(cli_command_list);
 
 	for(i = 0; i < len; i++) {
-		if((cli_command_list[i].whole && !strcmp(cli_command_list[i].name, s)) ||
-		   (!cli_command_list[i].whole && !strncmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))))
+		if((cli_command_list[i].whole && !strcasecmp(cli_command_list[i].name, s)) ||
+		   (!cli_command_list[i].whole && !strncasecmp(cli_command_list[i].name, s, strlen(cli_command_list[i].name))))
 			return cli_command_list[i];
 	}
 
@@ -426,7 +415,7 @@ int main(int argc, char **argv) {
 		if(cur_str && !cli_str_empty(cur_str)) {
 
 			/* input is cli wrapper command */
-			if(cli_is_command(cur_str)) {
+			if(cli_get_command(cur_str).name) {
 				synge_reset_traceback();
 				cli_command tmp = cli_get_command(cur_str);
 
