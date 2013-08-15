@@ -111,11 +111,15 @@ int main(int argc, char **argv) {
 
 	int i;
 	for(i = 1; i < argc; i++) {
-		if(!argv[i]) continue;
+		if(!argv[i])
+			continue;
+
 		ecode = synge_compute_string(argv[i], &result);
 
-		if(skip_ignorable && synge_is_ignore_code(ecode.code)) continue;
-		else if(ecode.code != SUCCESS)
+		if(skip_ignorable && synge_is_ignore_code(ecode.code))
+			continue;
+
+		if(ecode.code != SUCCESS)
 			printf("%s\n", synge_error_msg(ecode));
 		else
 			synge_printf("%.*" SYNGE_FORMAT "\n", synge_get_precision(result), result);
