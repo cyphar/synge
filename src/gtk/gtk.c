@@ -52,6 +52,8 @@
 #	define __SYNGE_GIT_VERSION__ ""
 #endif
 
+#define GUI_MAX_PRECISION 10
+
 enum {
 	FUNCL_COLUMN_NAME,
 	FUNCL_COLUMN_DESCRIPTION,
@@ -95,8 +97,12 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	else if(!synge_is_ignore_code(ecode.code)) {
 		gtk_label_set_selectable(GTK_LABEL(output), TRUE);
 
-		char *outputs = malloc((synge_snprintf(NULL, 0, "%.*" SYNGE_FORMAT, synge_get_precision(result), result) + 1) * sizeof(char));
-		synge_sprintf(outputs, "%.*" SYNGE_FORMAT, synge_get_precision(result), result);
+		int precision = synge_get_precision(result);
+		if(precision > GUI_MAX_PRECISION)
+			precision = GUI_MAX_PRECISION;
+
+		char *outputs = malloc((synge_snprintf(NULL, 0, "%.*" SYNGE_FORMAT, precision, result) + 1) * sizeof(char));
+		synge_sprintf(outputs, "%.*" SYNGE_FORMAT, precision, result);
 
 		char *markup = g_markup_printf_escaped("<b>%s</b>", outputs);
 		gtk_label_set_markup(GTK_LABEL(output), markup);
