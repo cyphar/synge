@@ -120,7 +120,7 @@ CLI_SRC		+= $(CLI_SDIR)/cli.c
 GTK_SRC		+= $(GTK_SDIR)/gtk.c
 EVAL_SRC	+= $(EVAL_SDIR)/eval.c
 
-SHR_DEPS	+= $(INCLUDE_DIR)/stack.h $(INCLUDE_DIR)/synge.h $(INCLUDE_DIR)/ohmic.h $(INCLUDE_DIR)/definitions.h $(INCLUDE_DIR)/version.h
+SHR_DEPS	+= $(INCLUDE_DIR)/stack.h $(INCLUDE_DIR)/synge.h $(INCLUDE_DIR)/ohmic.h $(INCLUDE_DIR)/definitions.h $(INCLUDE_DIR)/version.h $(INCLUDE_DIR)/internal.h
 CLI_DEPS	+=
 GTK_DEPS	+= $(GTK_SDIR)/xmltemplate.h $(GTK_SDIR)/ui.glade $(GTK_SDIR)/bakeui.py
 EVAL_DEPS	+=
