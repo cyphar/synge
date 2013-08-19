@@ -71,6 +71,8 @@
 #define assert(cond, reason)	do { if(!(cond)) { fprintf(stderr, "synge: assertion '%s' (%s) failed\n", reason, #cond); abort(); }} while(0)
 
 /* useful macros */
+#define issignop(str) (get_op(str).tp == op_add || get_op(str).tp == op_subtract)
+
 #define isaddop(str) (get_op(str).tp == op_add || get_op(str).tp == op_subtract)
 #define issetop(str) (get_op(str).tp == op_var_set || get_op(str).tp == op_func_set)
 #define isdelop(str) (get_op(str).tp == op_del)
@@ -84,7 +86,8 @@
 		      get_op(str).tp == op_ca_bshiftl || get_op(str).tp == op_ca_bshiftr)
 
 #define isparen(type) (type == lparen || type == rparen)
-#define isop(type) (type == addop || type == multop || type == expop || type == compop || type == bitop || type == setop)
+#define isop(type) (type == addop || type == signop || type == multop || type == expop || type == compop || type == bitop || type == setop)
+#define isterm(type) (type == number || type == userword || type == rparen || type == postmod || type == premod)
 #define isnumword(type) (type == number || type == userword || type == setword)
 
 /* hack to get amount of memory needed to store a sprintf() */
@@ -675,32 +678,14 @@ function *get_func(char *val) {
 } /* get_func() */
 
 void synge_strtofr(synge_t *num, char *str, char **endptr) {
-	int sign = 0, sign_len = 0;
-
-	/* deal with operators */
-	if(isaddop(str)) {
-		switch(get_op(str).tp) {
-			case op_add:
-				sign = 1;
-				break;
-			case op_subtract:
-				sign = -1;
-				break;
-			default:
-				break;
-		}
-
-		/* update iterator to after sign */
-		sign_len = strlen(get_op(str).str);
-		str += sign_len;
+	/* NOTE: Signing is now dealt using operators, so ignore signops */
+	if(issignop(str)) {
+		*endptr = str;
+		return;
 	}
 
-	/* all special bases begin with 0_
-	 * but 0. doesn't count */
+	/* all special bases begin with 0_ but 0. doesn't count */
 	if(*str != '0' || *(str + 1) == '.') {
-		/* go back to sign */
-		str -= sign_len;
-
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
 		return;
@@ -728,22 +713,6 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 			/* Just a leading zero -> Octal */
 			mpfr_strtofr(*num, str, endptr, 8, SYNGE_ROUND);
 			break;
-	}
-
-	/* deal with signs */
-	if(sign) {
-		switch(sign) {
-			case 1:
-				/* positive sign */
-				mpfr_abs(*num, *num, SYNGE_ROUND);
-				break;
-			case -1:
-				/* negative sign */
-				mpfr_neg(*num, *num, SYNGE_ROUND);
-				break;
-			default:
-				break;
-		}
 	}
 } /* synge_strtofr() */
 
@@ -992,36 +961,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				if(top_stack(*infix_stack)) {
 					/* make special numbers act more like numbers (and more like variables) */
 					switch(top_stack(*infix_stack)->tp) {
-						case addop:
-							{
-								/* if there is a +/- in front of a number, it should set the sign of that variable (i.e. 1--pi is 1+pi) */
-								s_content *tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
-								s_content *tmpp = top_stack(*infix_stack);
-
-								if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
-									if(get_op(tmppop->val).tp == op_subtract) {
-										synge_t implied;
-										mpfr_init2(implied, SYNGE_PRECISION);
-										mpfr_set_si(implied, 0, SYNGE_ROUND);
-
-										/* 0 - pi */
-										if(!tmpp || tmpp->tp == lparen)
-											push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
-
-										push_valstack("-", addop, false, NULL, pos, *infix_stack);
-										mpfr_clears(implied, NULL);
-									}
-									else if(tmpp && tmpp->tp != lparen) {
-										/* otherwise, add the number */
-										push_valstack("+", addop, false, NULL, pos, *infix_stack);
-									}
-								}
-								else {
-									/* whoops! didn't match criteria. push sign back. */
-									push_ststack(*tmppop, *infix_stack);
-								}
-							}
-							break;
 						case number:
 							/* two numbers together have an impiled * (i.e 2x is 2*x) */
 							push_valstack("*", multop, false, NULL, pos, *infix_stack);
@@ -1055,7 +994,11 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			switch(get_op(s+i).tp) {
 				case op_add:
 				case op_subtract:
-					type = addop;
+					/* if first thing in operator or previous doesn't mean */
+					if(!top_stack(*infix_stack) || !isterm(top_stack(*infix_stack)->tp))
+						type = signop;
+					else
+						type = addop;
 					break;
 				case op_multiply:
 				case op_divide:
@@ -1072,52 +1015,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 
 					/* every open paren with no operator (and number) before it has an implied * */
 					if(top_stack(*infix_stack)) {
-						synge_t implied;
 						switch(top_stack(*infix_stack)->tp) {
-							case addop:
-								{
-									int tmp = false;
-									s_content top = *pop_stack(*infix_stack);
-
-									/* nothing before the paren */
-									if(!top_stack(*infix_stack))
-										tmp = true;
-
-									else {
-										s_content pop = *pop_stack(*infix_stack);
-
-										/* no implied multiplication for these */
-										if(pop.tp != number && pop.tp != rparen && pop.tp != userword)
-											tmp = true;
-
-										push_ststack(pop, *infix_stack);
-									}
-
-									/* no implied multiplication, gtfo */
-									if(!tmp) {
-										push_ststack(top, *infix_stack);
-										break;
-									}
-
-									mpfr_init2(implied, SYNGE_PRECISION);
-
-									/* is the implied multiplication positve or negative (+/- before paren) */
-									switch(get_op(top.val).tp) {
-										case op_add:
-											mpfr_set_si(implied, 1, SYNGE_ROUND);
-											break;
-										case op_subtract:
-											mpfr_set_si(implied, -1, SYNGE_ROUND);
-											break;
-										default:
-											break;
-									}
-
-									/* push implied multiplier */
-									push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
-									mpfr_clears(implied, NULL);
-								}
-								/* pass-through */
 							case number:
 							case rparen:
 								push_valstack("*", multop, false, NULL, pos + 1, *infix_stack);
@@ -1228,36 +1126,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					if(top_stack(*infix_stack)) {
 						/* make pre-operators act just like normal numbers */
 						switch(top_stack(*infix_stack)->tp) {
-							case addop:
-								{
-									/* if there is a +/- in front of a pre-opped number, it should set the sign of that variable (i.e. 1--pi is 1+pi) */
-									s_content *tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
-									s_content *tmpp = top_stack(*infix_stack);
-
-									if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
-										if(get_op(tmppop->val).tp == op_subtract) {
-											synge_t implied;
-											mpfr_init2(implied, SYNGE_PRECISION);
-											mpfr_set_si(implied, 0, SYNGE_ROUND);
-
-											/* 0 - pi */
-											if(!tmpp || tmpp->tp == lparen)
-												push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
-
-											push_valstack("-", addop, false, NULL, pos, *infix_stack);
-											mpfr_clears(implied, NULL);
-										}
-										else if(tmpp && tmpp->tp != lparen) {
-											/* otherwise, add the pre-op */
-											push_valstack("+", addop, false, NULL, pos, *infix_stack);
-										}
-									}
-									else {
-										/* whoops! didn't match criteria. push sign back. */
-										push_ststack(*tmppop, *infix_stack);
-									}
-								}
-								break;
 							case number:
 								/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
 								push_valstack("*", multop, false, NULL, pos, *infix_stack);
@@ -1306,36 +1174,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			if(top_stack(*infix_stack)) {
 				/* make variables act more like numbers (and more like variables) */
 				switch(top_stack(*infix_stack)->tp) {
-					case addop:
-						{
-							/* if there is a +/- in front of a variable, it should set the sign of that variable (i.e. 1--x is 1+x) */
-							s_content *tmppop = pop_stack(*infix_stack); /* the sign (to be saved for later) */
-							s_content *tmpp = top_stack(*infix_stack);
-
-							if(!tmpp || (tmpp->tp != number && tmpp->tp != rparen)) { /* sign is to be discarded */
-								if(get_op(tmppop->val).tp == op_subtract) {
-									synge_t implied;
-									mpfr_init2(implied, SYNGE_PRECISION);
-									mpfr_set_si(implied, 0, SYNGE_ROUND);
-
-									/* 0 - x */
-									if(!tmpp || tmpp->tp == lparen)
-										push_valstack(num_dup(implied), number, true, synge_clear, pos, *infix_stack);
-
-									push_valstack("-", addop, false, NULL, pos, *infix_stack);
-									mpfr_clears(implied, NULL);
-								}
-								else if(tmpp && tmpp->tp != lparen) {
-									/* otherwise, add the variable */
-									push_valstack("+", addop, false, NULL, pos, *infix_stack);
-								}
-							}
-							else {
-								/* whoops! didn't match criteria. push sign back. */
-								push_ststack(*tmppop, *infix_stack);
-							}
-						}
-						break;
 					case number:
 						/* two numbers together have an impiled * (i.e 2x is 2*x) */
 						push_valstack("*", multop, false, NULL, pos, *infix_stack);
@@ -1406,6 +1244,7 @@ bool op_precedes(s_type op1, s_type op2) {
 		case multop:
 			lassoc = 1;
 			break;
+		case signop:
 		case setop:
 		case modop:
 		case expop:
@@ -1498,6 +1337,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case ifop:
 			case bitop:
 			case compop:
+			case signop:
 			case addop:
 			case multop:
 			case expop:
@@ -2243,6 +2083,50 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				free_stackm(&evalstack, rpn);
 				mpfr_clears(arg[0], arg[1], arg[2], NULL);
 				return to_error_code(MISSING_ELSE, pos);
+				break;
+			case signop:
+				/* check if there is enough numbers for operator "arguments" */
+				if(stack_size(evalstack) < 1) {
+					free_stackm(&evalstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
+					return to_error_code(OPERATOR_WRONG_ARGC, pos);
+				}
+
+				/* only numbers can be signed */
+				if(top_stack(evalstack)->tp != number) {
+					free_stackm(&evalstack, rpn);
+					mpfr_clears(arg[0], arg[1], arg[2], NULL);
+					return to_error_code(INVALID_LEFT_OPERAND, pos);
+				}
+
+				/* get argument */
+				mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
+				free_scontent(pop_stack(evalstack));
+
+				result = malloc(sizeof(synge_t));
+				mpfr_init2(*result, SYNGE_PRECISION);
+
+				/* find correct evaluation and do it */
+				switch(get_op(stackp.val).tp) {
+					case op_add:
+						/* just copy value */
+						mpfr_set(*result, arg[0], SYNGE_ROUND);
+						break;
+					case op_subtract:
+						/* negate value */
+						mpfr_neg(*result, arg[0], SYNGE_ROUND);
+						break;
+					default:
+						/* catch-all -- unknown token */
+						mpfr_clears(*result, arg[0], arg[1], arg[2], NULL);
+						free(result);
+						free_stackm(&evalstack, rpn);
+						return to_error_code(UNKNOWN_TOKEN, pos);
+						break;
+				}
+
+				/* push result onto stack */
+				push_valstack(result, number, true, synge_clear, pos, evalstack);
 				break;
 			case bitop:
 			case compop:

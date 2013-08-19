@@ -46,11 +46,12 @@ typedef enum __stack_type__ {
 	bitop	=  4,
 	addop	=  5,
 	multop	=  6,
-	preop	=  7,
-	expop	=  8,
-	ifop	=  9,
-	elseop	= 10,
-	delop	= 11,
+	signop	=  7,
+	preop	=  8,
+	expop	=  9,
+	ifop	= 10,
+	elseop	= 11,
+	delop	= 12,
 
 	/* not treated as operator in parsing */
 	premod,
