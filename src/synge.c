@@ -34,13 +34,6 @@
 #include "ohmic.h"
 #include "linked.h"
 
-/* Operator Precedence
- * 4 Parenthesis
- * 3 Exponents, Roots (right associative)
- * 2 Multiplication, Division, Modulo (left associative)
- * 1 Addition, Subtraction (left associative)
- */
-
 /* value macros */
 #define str(x)				#x
 #define mstr(x)				str(x)
@@ -67,7 +60,7 @@
 					"%s: %s"
 
 /* in-place macros */
-#define strlower(str)		do { char *p = str; for(; *p; ++p) { *p = tolower(*p); } } while(0)
+#define strlower(str)		do { char *p = str; for(; *p; ++p) *p = tolower(*p); } while(0)
 #define assert(cond, reason)	do { if(!(cond)) { fprintf(stderr, "synge: assertion '%s' (%s) failed\n", reason, #cond); abort(); }} while(0)
 
 /* useful macros */
@@ -90,7 +83,7 @@
 #define isterm(type) (type == number || type == userword || type == rparen || type == postmod || type == premod)
 #define isnumword(type) (type == number || type == userword || type == setword)
 
-/* hack to get amount of memory needed to store a sprintf() */
+/* get amount of memory needed to store a sprintf() -- including null terminator */
 #define lenprintf(...) (synge_snprintf(NULL, 0, __VA_ARGS__) + 1)
 
 /* macros for casting void stack pointers */
@@ -2617,14 +2610,16 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 
 		ohm_cpy(variable_list, backup_var);
 		ohm_cpy(function_list, backup_func);
-	} else {
-		/* mpfr_clear backup variable list */
+	}
+
+	/* no error -- clear backup variable list */
+	else {
 		ohm_iter j = ohm_iter_init(backup_var);
 		for(; j.key; ohm_iter_inc(&j))
 			mpfr_clear(j.value);
 	}
 
-	/* if everythin went well, set the answer variable (and remove current depth from traceback) */
+	/* if everything went well, set the answer variable (and remove current depth from traceback) */
 	if(synge_is_success_code(ecode.code)) {
 		mpfr_set(prev_answer, *result, SYNGE_ROUND);
 		link_pend(traceback_list);
@@ -2719,6 +2714,7 @@ void synge_reset_traceback(void) {
 	free(tmp);
 } /* synge_reset_traceback() */
 
+/* TODO: Turn these into macros */
 int synge_is_success_code(int code) {
 	return (code == SUCCESS);
 } /* is_success_code() */
