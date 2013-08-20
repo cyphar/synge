@@ -76,6 +76,7 @@ CASES = [
 	(["41+1"],				["42"],				0,	0,		"Addition		"),
 	(["43.7+2.3"],				["46"],				0,	0,		"Addition		"),
 	(["1+-1"],				["0"],				0,	0,		"Convoluted Addition	"),
+	(["1+-+4"],				["-3"],				0,	0,		"Convoluted Addition	"),
 
 	(["5-3"],				["2"],				0,	0,		"Subtraction		"),
 	(["-5-3"],				["-8"],				0,	0,		"Subtraction		"),
@@ -383,7 +384,6 @@ CASES = [
 	(["1+4)"],				[error_get("rparen", 4)],	0,	0,		"Parenthesis Error	"),
 	(["1+(4))"],				[error_get("rparen", 6)],	0,	0,		"Parenthesis Error	"),
 
-	(["1+-+4"],				[error_get("opvals", 2)],	0,	0,		"Token Number Error	"),
 	(["2+1-"],				[error_get("opvals", 4)],	0,	0,		"Token Number Error	"),
 	(["abs()"],				[error_get("funcvals", 1)],	0,	0,		"Token Number Error	"),
 
