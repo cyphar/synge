@@ -678,7 +678,7 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 	}
 
 	/* all special bases begin with 0_ but 0. doesn't count */
-	if(*str != '0' || *(str + 1) == '.') {
+	if(*str != '0' || *(str + 1) == '.' || !isalnum(*(str + 1))) {
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
 		return;
@@ -702,10 +702,20 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 		case 'o':
 			/* Octal */
 			str++;
-		default:
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
 			/* Just a leading zero -> Octal */
 			mpfr_strtofr(*num, str, endptr, 8, SYNGE_ROUND);
 			break;
+		default:
+			*endptr = str;
+			return;
 	}
 } /* synge_strtofr() */
 
