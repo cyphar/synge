@@ -688,19 +688,19 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 	str++;
 	switch(*str) {
 		case 'x':
-			/* Hexadecimal */
+			/* hexadecimal */
 			mpfr_strtofr(*num, str + 1, endptr, 16, SYNGE_ROUND);
 			break;
 		case 'd':
-			/* Decimal */
+			/* decimal */
 			mpfr_strtofr(*num, str + 1, endptr, 10, SYNGE_ROUND);
 			break;
 		case 'b':
-			/* Binary */
+			/* binary */
 			mpfr_strtofr(*num, str + 1, endptr, 2, SYNGE_ROUND);
 			break;
 		case 'o':
-			/* Octal */
+			/* octal */
 			str++;
 		case '0':
 		case '1':
@@ -710,11 +710,12 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 		case '5':
 		case '6':
 		case '7':
-			/* Just a leading zero -> Octal */
+			/* just a leading zero -> octal */
 			mpfr_strtofr(*num, str, endptr, 8, SYNGE_ROUND);
 			break;
 		default:
-			*endptr = str;
+			/* default to decimal */
+			mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
 			return;
 	}
 } /* synge_strtofr() */
