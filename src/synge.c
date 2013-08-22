@@ -891,7 +891,7 @@ char *get_expression_level(char *p, char end) {
 	char *ret = NULL;
 
 	/* until the end of string or a correct level closing ) */
-	while(*p && ((*p != ')') || (num_paren && (*p == ')')))) {
+	while(*p && (*p != ')' || num_paren)) {
 		/* update level of expression */
 		switch(get_op(p).tp) {
 			case op_rparen:
