@@ -678,7 +678,7 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 	}
 
 	/* all special bases begin with 0_ but 0. doesn't count */
-	if(*str != '0' || *(str + 1) == '.' || !isalnum(*(str + 1))) {
+	if(*str != '0') {
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
 		return;
@@ -715,7 +715,7 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 			break;
 		default:
 			/* default to decimal */
-			mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
+			mpfr_strtofr(*num, --str, endptr, 10, SYNGE_ROUND);
 			return;
 	}
 } /* synge_strtofr() */
