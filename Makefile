@@ -49,14 +49,14 @@ endif
 OS_PRE		= $(SY_OS)-pre
 OS_POST		= $(SY_OS)-post
 
-PYTHON		= python
+PYTHON		= python2
 
 ##################
 # OPTIONAL FLAGS #
 ##################
 
-SAFE		= 0
-CHEEKY		= 0
+SAFE		?= 0
+CHEEKY		?= 0
 
 #####################
 # CONSTANTS SECTION #
@@ -115,14 +115,14 @@ CLI_LFLAGS	+=
 GTK_LFLAGS	+= `pkg-config --libs gtk+-2.0 gmodule-2.0`
 EVAL_LFLAGS	+=
 
-SHR_SRC		+= $(SRC_DIR)/stack.c $(SRC_DIR)/synge.c $(SRC_DIR)/ohmic.c $(SRC_DIR)/linked.c
-CLI_SRC		+= $(CLI_SDIR)/cli.c
-GTK_SRC		+= $(GTK_SDIR)/gtk.c
-EVAL_SRC	+= $(EVAL_SDIR)/eval.c
+SHR_SRC		+= $(wildcard $(SRC_DIR)/*.c)
+CLI_SRC		+= $(wildcard $(CLI_SDIR)/*.c)
+GTK_SRC		+= $(wildcard $(GTK_SDIR)/*.c)
+EVAL_SRC	+= $(wildcard $(EVAL_SDIR)/*.c)
 
-SHR_DEPS	+= $(INCLUDE_DIR)/stack.h $(INCLUDE_DIR)/synge.h $(INCLUDE_DIR)/ohmic.h $(INCLUDE_DIR)/definitions.h $(INCLUDE_DIR)/version.h $(INCLUDE_DIR)/internal.h
+SHR_DEPS	+= $(wildcard $(INCLUDE_DIR)/*.h)
 CLI_DEPS	+=
-GTK_DEPS	+= $(GTK_SDIR)/xmltemplate.h $(GTK_SDIR)/ui.glade $(GTK_SDIR)/bakeui.py
+GTK_DEPS	+= $(wildcard $(GTK_SDIR)/*.h) $(GTK_SDIR)/ui.glade $(GTK_SDIR)/bakeui.py
 EVAL_DEPS	+=
 
 TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
@@ -194,7 +194,7 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 # Compile "production" core and test suite wrapper + execute test suite
 test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
-		echo "$(PYTHON) not found - required for test suite"; \
+		echo "$(PYTHON) not found -- required for test suite"; \
 		false; \
 	else \
 		$(PYTHON) $(TEST_DIR)/test.py "$(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
@@ -203,7 +203,7 @@ test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 # Compile "production" core and test suite wrapper + execute test suite (in valgrind)
 mtest: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
-		echo "$(PYTHON) not found - required for test suite"; \
+		echo "$(PYTHON) not found -- required for test suite"; \
 		false; \
 	else \
 		$(PYTHON) $(TEST_DIR)/test.py "$(VALGRIND) $(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
@@ -313,7 +313,7 @@ uninstall-eval:
 
 xmlui:
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
-		echo "$(PYTHON) not found - required to bake gtk xml ui"; \
+		echo "$(PYTHON) not found -- required to bake gtk xml ui"; \
 		false; \
 	else \
 		echo "--- BAKING UI ---"; \
@@ -334,11 +334,10 @@ windows-pre: $(RC_CLI) $(RC_GTK) $(RC_EVAL)
 windows-post:
 	@true
 
-# *Unix pre-compilation
+# *UNIX pre-compilation
 unix-pre:
 	@true
 
-# *Unix post-compilation
+# *UNIX post-compilation
 unix-post:
 	@true
-
