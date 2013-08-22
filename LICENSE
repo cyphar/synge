@@ -1,5 +1,4 @@
 Synge: A shunting-yard calculation "engine"
-Synge-TestSuite: The "official" test suite for Synge
 
 Synge-Cli: A command-line wrapper for Synge
 Synge-GTK: A GTK+ gui wrapper for Synge
