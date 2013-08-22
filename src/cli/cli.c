@@ -117,10 +117,15 @@ void cli_banner(void) {
 } /* cli_banner() */
 
 void cli_print_list(char *s) {
-	char *args = strchr(s, ' ') + 1;
-	int i;
+	/* get argument */
+	while(isspace(*s) && *s)
+		s++;
+	char *args = s;
+
+	/* TODO: Should be replaced with a struct lookup */
 	if(!strcmp(args, "functions")) {
 		function *function_list = synge_get_function_list();
+		int i;
 		for(i = 0; function_list[i].name != NULL; i++)
 			printf("%s%*s - %s%s\n", ANSI_INFO, 10, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
 	}
@@ -147,9 +152,14 @@ char *itoa(int i) {
 
 void cli_print_settings(char *s) {
 	synge_settings current_settings = synge_get_settings();
-	char *args = strchr(s, ' ') + 1, *ret = NULL, *tmpfree = NULL;
 
-	/* should be replaced with a struct lookup */
+	/* get argument */
+	while(isspace(*s) && *s)
+		s++;
+	char *args = s;
+
+	/* TODO: Should be replaced with a struct lookup */
+	char *ret = NULL, *tmpfree = NULL;
 	if(!strcmp(args, "mode")) {
 		switch(current_settings.mode) {
 			case degrees:
@@ -199,11 +209,21 @@ void cli_print_settings(char *s) {
 
 void cli_set_settings(char *s) {
 	synge_settings new_settings = synge_get_settings();
-	char *args = strchr(s, ' ') + 1;
-	char *val = strchr(args, ' ') + 1;
-	bool err = false;
 
-	/* should be replaced with a struct lookup */
+	/* get argument */
+	while(isspace(*s) && *s)
+		s++;
+	char *args = s;
+
+	/* get new value */
+	while(!isspace(*s) && *s)
+		s++;
+	while(isspace(*s) && *s)
+		s++;
+	char *val = s;
+
+	/* TODO: Should be replaced with a struct lookup */
+	bool err = false;
 	if(!strncmp(args, "mode ", strlen("mode "))) {
 		if(!strcasecmp(val, "degrees"))
 			new_settings.mode = degrees;
@@ -245,11 +265,13 @@ void cli_set_settings(char *s) {
 	else {
 		synge_set_settings(new_settings);
 
-		char *tmp = malloc(strlen(s) + 1);
-		strcpy(tmp, s);
+		char *p = args;
+		while(!isspace(*p) && *p)
+			p++;
 
-		tmp[0] = 'g';
-		*strrchr(tmp, ' ') = '\0';
+		char *tmp = malloc(p - args + 1);
+		strncpy(tmp, args, p - args);
+		tmp[p - args] = '\0';
 
 		cli_print_settings(tmp);
 		free(tmp);
@@ -257,11 +279,6 @@ void cli_set_settings(char *s) {
 } /* cli_set_settings() */
 
 void cli_exec(char *str) {
-	/* jump in front of first word */
-	while(!isspace(*str)) {
-		str++;
-	}
-
 	/* get rid of leading spaces */
 	while(isspace(*str)) {
 		str++;
@@ -311,7 +328,7 @@ cli_command cli_command_list[] = {
 	{"warranty",	cli_warranty,		true},
 	{"banner",	cli_banner,		true},
 
-	{"exec ",	cli_exec,		false},
+	{"$",		cli_exec,		false},
 
 	{"list ",	cli_print_list,		false},
 	{"set ",	cli_set_settings,	false},
@@ -422,7 +439,7 @@ int main(int argc, char **argv) {
 				if(!tmp.exec)
 					break; /* command is to exit */
 
-				tmp.exec(cur_str);
+				tmp.exec(cur_str + strlen(tmp.name));
 			}
 			/* computation yielded error */
 			else if((ecode = synge_compute_string(cur_str, &result)).code != SUCCESS) {
