@@ -331,6 +331,12 @@ CASES = [
 	(["a=3", "::a", "a"],
 	 ["3",   "3",   error_get("token", 1)],					0,	0,		"Variable Deletion	"),
 
+	(["a=3", "::a+2", "a"],
+	 ["3",   "5",   error_get("token", 1)],					0,	0,		"Variable Deletion	"),
+
+	(["a=2", "y:=1/a", "a=5", "::y-2", "y"],
+	 ["2",   "0.5",    "5",   "-1.8", error_get("token", 1)],		0,	0,		"Function Deletion	"),
+
 	(["a=2", "y:=1/a", "a=5", "::y", "y"],
 	 ["2",   "0.5",    "5",   "0.2", error_get("token", 1)],		0,	0,		"Function Deletion	"),
 
