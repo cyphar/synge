@@ -80,8 +80,9 @@
 
 #define isparen(type) (type == lparen || type == rparen)
 #define isop(type) (type == addop || type == signop || type == multop || type == expop || type == compop || type == bitop || type == setop)
-#define isterm(type) (type == number || type == userword || type == rparen || type == postmod || type == premod)
+#define isterm(type) (type == number || type == userword || type == setword || type == rparen || type == postmod || type == premod)
 #define isnumword(type) (type == number || type == userword || type == setword)
+#define isword(type) (type == userword || type == setword)
 
 /* get amount of memory needed to store a sprintf() -- including null terminator */
 #define lenprintf(...) (synge_snprintf(NULL, 0, __VA_ARGS__) + 1)
@@ -1239,7 +1240,6 @@ bool op_precedes(s_type op1, s_type op2) {
 	int lassoc = 0;
 
 	switch(op2) {
-		case delop:
 		case ifop:
 		case elseop:
 		case bitop:
@@ -1248,6 +1248,7 @@ bool op_precedes(s_type op1, s_type op2) {
 		case multop:
 			lassoc = 1;
 			break;
+		case delop:
 		case signop:
 		case setop:
 		case modop:
@@ -1318,12 +1319,13 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 				}
 				break;
 			case premod:
+			case delop:
 				{
 					i++;
 					s_content *tmpstackp = &(*infix_stack)->content[i];
 
 					/* ensure that you are pushing a setword */
-					if(i >= size || tmpstackp->tp != setword) {
+					if(i >= size || !isword(tmpstackp->tp)) {
 						free_stackm(infix_stack, &op_stack, rpn_stack);
 						return to_error_code(INVALID_LEFT_OPERAND, pos);
 					}
@@ -1345,7 +1347,6 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case addop:
 			case multop:
 			case expop:
-			case delop:
 				/* reorder operators to be in the correct order of precedence */
 				while(stack_size(op_stack)) {
 					s_content *tmpstackp = top_stack(op_stack);
