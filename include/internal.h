@@ -51,9 +51,9 @@ typedef enum __stack_type__ {
 	expop	=  9,
 	ifop	= 10,
 	elseop	= 11,
-	delop	= 12,
 
 	/* not treated as operator in parsing */
+	delop,
 	premod,
 	postmod,
 
