@@ -9,7 +9,7 @@ SYNGE:
 + Functions to:
   - Get factors of a number
 * Refactor helper functions
-* Move implied parsing to a parsing function
+* Refactor implied multiplication
 
 CLI:
 + Getopt command line options for cli
