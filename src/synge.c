@@ -1103,6 +1103,17 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_del:
 					type = delop;
+					if(top_stack(*infix_stack)) {
+						/* make delops act more like numbers */
+						switch(top_stack(*infix_stack)->tp) {
+							case number:
+								/* two numbers together have an impiled * (i.e 2::x is 2*::x) */
+								push_valstack("*", multop, false, NULL, pos, *infix_stack);
+								break;
+							default:
+								break;
+						}
+					}
 					break;
 				case op_ca_add:
 				case op_ca_subtract:
@@ -1128,6 +1139,8 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_binv:
 				case op_bnot:
+					type = preop;
+
 					if(top_stack(*infix_stack)) {
 						/* make pre-operators act just like normal numbers */
 						switch(top_stack(*infix_stack)->tp) {
@@ -1139,7 +1152,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 								break;
 						}
 					}
-					type = preop;
 					break;
 				case op_none:
 				default:
