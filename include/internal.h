@@ -32,6 +32,7 @@ typedef struct {
 
 typedef struct {
 	char *name;
+	char *description;
 	/* an mpfr_* like function to set the value of the special number */
 	int (*value)();
 } special_number;

@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <mpfr.h>
 
+#include "ohmic.h"
+
 #ifndef __SYNGE_H__
 #define __SYNGE_H__
 
@@ -112,12 +114,20 @@ typedef struct {
 	int (*get)();
 } function;
 
+typedef struct {
+	char *name;
+	char *description;
+} word;
+
 int synge_get_precision(synge_t); /* returns minimum decimal precision needed to print number */
 
 synge_settings synge_get_settings(void); /* returns active settings */
 void synge_set_settings(synge_settings); /* set active settings to given settings */
 
-function *synge_get_function_list(void); /* returns list of available functions */
+function *synge_get_function_list(void); /* returns list of available builtin functions */
+ohm_t *synge_get_variable_list(void); /* returns list of variables */
+ohm_t *synge_get_expression_list(void); /* returns list of user functions */
+word *synge_get_constant_list(void); /* returns list of builtin constants (must be freed) */
 
 char *synge_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */
 char *synge_error_msg_pos(int, int); /* returns a string which describes the error code (DO NOT FREE) */
