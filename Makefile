@@ -127,7 +127,7 @@ EVAL_DEPS	+=
 
 TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
 
-VALGRIND	= valgrind --leak-check=full
+VALGRIND	= valgrind --leak-check=full --show-reachable=yes
 PREFIX		?= /usr
 INSTALL_DIR	= $(PREFIX)/bin
 
