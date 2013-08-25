@@ -125,11 +125,68 @@ void cli_print_list(char *s) {
 	/* TODO: Should be replaced with a struct lookup */
 	if(!strcmp(args, "functions")) {
 		function *function_list = synge_get_function_list();
-		int i;
+
+		unsigned int i, longest = 0;
+
+		/* get longest name */
 		for(i = 0; function_list[i].name != NULL; i++)
-			printf("%s%*s - %s%s\n", ANSI_INFO, 10, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
+			if(strlen(function_list[i].prototype) > longest)
+				longest = strlen(function_list[i].prototype);
+
+		for(i = 0; function_list[i].name != NULL; i++)
+			printf("%s%*s - %s%s\n", ANSI_INFO, longest, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
 	}
-	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+	else if(!strcmp(args, "constants")) {
+		word *constant_list = synge_get_constant_list();
+
+		unsigned int i, longest = 0;
+
+		/* get longest name */
+		for(i = 0; constant_list[i].name != NULL; i++)
+			if(strlen(constant_list[i].name) > longest)
+				longest = strlen(constant_list[i].name);
+
+		for(i = 0; constant_list[i].name != NULL; i++)
+			printf("%s%*s - %s%s\n", ANSI_INFO, longest, constant_list[i].name, constant_list[i].description, ANSI_CLEAR);
+
+		free(constant_list);
+	}
+	else if(!strcmp(args, "expressions")) {
+		ohm_t *exps = synge_get_expression_list();
+
+		unsigned int longest = 0;
+		ohm_iter i = ohm_iter_init(exps);
+
+		/* get longest word */
+		for(; i.key; ohm_iter_inc(&i))
+			if(strlen(i.key) > longest)
+				longest = strlen(i.key);
+
+		i = ohm_iter_init(exps);
+		for(; i.key; ohm_iter_inc(&i))
+			printf("%s%*s - %s%s\n", ANSI_INFO, longest, (char *) i.key, (char *) i.value, ANSI_CLEAR);
+	}
+	else if(!strcmp(args, "variables")) {
+		ohm_t *vars = synge_get_variable_list();
+
+		unsigned int longest = 0;
+		ohm_iter i = ohm_iter_init(vars);
+
+		/* get longest word */
+		for(; i.key; ohm_iter_inc(&i)) {
+			if(strlen(i.key) > longest)
+				longest = strlen(i.key);
+		}
+
+		i = ohm_iter_init(vars);
+		for(; i.key; ohm_iter_inc(&i)) {
+			synge_t *num = i.value;
+			synge_printf("%s%*s - %.*" SYNGE_FORMAT "%s\n", ANSI_INFO, longest, (char *) i.key, synge_get_precision(*num), *num, ANSI_CLEAR);
+		}
+	}
+	else {
+		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+	}
 } /* cli_print_list() */
 
 #define intlen(number) (int) (number ? floor(log10(abs(number))) + 1 : 1) /* magical math hack to get number of digits in an integer */

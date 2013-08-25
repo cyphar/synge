@@ -37,6 +37,7 @@
 /* value macros */
 #define str(x)				#x
 #define mstr(x)				str(x)
+#define mlen(x)				(sizeof(x) / sizeof(*x))
 
 /* function names */
 #define SYNGE_MAIN			"<main>"
@@ -97,7 +98,7 @@ static gmp_randstate_t synge_state;
 
 /* variables and functions */
 static ohm_t *variable_list = NULL;
-static ohm_t *function_list = NULL;
+static ohm_t *expression_list = NULL;
 static synge_t prev_answer;
 
 /* traceback */
@@ -372,16 +373,16 @@ int synge_ans(synge_t num, mpfr_rnd_t round) {
 
 /* inbuilt constants (given using function pointers) */
 special_number constant_list[] = {
-	{"pi",			synge_pi},
-	{"phi",			synge_phi},
-	{"e",			synge_euler},
-	{"life",		synge_life}, /* Sorry, I couldn't resist */
+	{"pi",			"The ratio of a circle's circumfrence to its diameter",			synge_pi},
+	{"phi",			"The golden ratio",							synge_phi},
+	{"e",			"The base of a natural logarithm",					synge_euler},
+	{"life",		"The answer to the question of life, the universe and everything",	synge_life}, /* Sorry, I couldn't resist */
 
-	{"true",		synge_true},
-	{"false",		synge_false},
+	{"true",		"Standard true value",							synge_true},
+	{"false",		"Standard false value",							synge_false},
 
-	{SYNGE_PREV_ANSWER,	synge_ans},
-	{NULL,			NULL},
+	{SYNGE_PREV_ANSWER,	"Gives the last successful answer",					synge_ans},
+	{NULL,			NULL,									NULL},
 };
 
 /* used for when a (char *) is needed, but needn't be freed and *
@@ -646,7 +647,7 @@ error_code to_error_code(int error, int position) {
 
 special_number get_special_num(char *s) {
 	int i;
-	special_number ret = {NULL, NULL};
+	special_number ret = {NULL, NULL, NULL};
 	for(i = 0; constant_list[i].name != NULL; i++)
 		if(!strcmp(constant_list[i].name, s))
 			return constant_list[i];
@@ -756,7 +757,7 @@ error_code set_variable(char *str, synge_t val) {
 	}
 
 	/* save the variable */
-	ohm_remove(function_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
+	ohm_remove(expression_list, s, strlen(s) + 1); /* remove word from function list (fake dynamic typing) */
 	ohm_insert(variable_list, s, strlen(s) + 1, tosave, sizeof(synge_t));
 
 	free(s);
@@ -771,7 +772,7 @@ error_code set_function(char *str, char *exp) {
 
 	/* save the function */
 	ohm_remove(variable_list, s, strlen(s) + 1); /* remove word from variable list (fake dynamic typing) */
-	ohm_insert(function_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
+	ohm_insert(expression_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
 
 	free(s);
 	return ret;
@@ -792,7 +793,7 @@ error_code del_word(char *s, int pos) {
 	/* get type of word */
 	if(ohm_search(variable_list, s, strlen(s) + 1))
 		type = tp_var;
-	else if(ohm_search(function_list, s, strlen(s) + 1))
+	else if(ohm_search(expression_list, s, strlen(s) + 1))
 		type = tp_func;
 	else
 		return to_error_code(UNKNOWN_WORD, pos);
@@ -811,7 +812,7 @@ error_code del_word(char *s, int pos) {
 			break;
 		case tp_func:
 			/* free entry */
-			ohm_remove(function_list, s, strlen(s) + 1);
+			ohm_remove(expression_list, s, strlen(s) + 1);
 			break;
 		default:
 			return to_error_code(UNKNOWN_WORD, pos);
@@ -1449,11 +1450,11 @@ error_code eval_word(char *str, int pos, synge_t *result) {
 		mpfr_set(*result, SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1)), SYNGE_ROUND);
 	}
 
-	else if(ohm_search(function_list, str, strlen(str) + 1)) {
+	else if(ohm_search(expression_list, str, strlen(str) + 1)) {
 
 		/* function */
 		/* recursively evaluate a user function's value */
-		char *expression = ohm_search(function_list, str, strlen(str) + 1);
+		char *expression = ohm_search(expression_list, str, strlen(str) + 1);
 		error_code tmpecode = synge_internal_compute_string(expression, result, str, pos);
 
 		/* error was encountered */
@@ -2544,7 +2545,7 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 		variable_list = ohm_resize(variable_list, ohm_size(variable_list) * 2);
 
 	ohm_t *backup_var = ohm_dup(variable_list);
-	ohm_t *backup_func = ohm_dup(function_list);
+	ohm_t *backup_func = ohm_dup(expression_list);
 
 	/* duplicate all variables */
 	ohm_iter i = ohm_iter_init(variable_list);
@@ -2633,7 +2634,7 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 			mpfr_clear(i.value);
 
 		ohm_cpy(variable_list, backup_var);
-		ohm_cpy(function_list, backup_func);
+		ohm_cpy(expression_list, backup_func);
 	}
 
 	/* no error -- clear backup variable list */
@@ -2679,6 +2680,26 @@ function *synge_get_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
+ohm_t *synge_get_variable_list(void) {
+	return variable_list;
+} /* synge_get_variable_list() */
+
+ohm_t *synge_get_expression_list(void) {
+	return expression_list;
+} /* synge_get_expression_list() */
+
+word *synge_get_constant_list(void) {
+	word *ret = malloc(mlen(constant_list) * sizeof(word));
+
+	unsigned int i;
+	for(i = 0; i < mlen(constant_list); i++) {
+		ret[i].name = constant_list[i].name;
+		ret[i].description = constant_list[i].description;
+	}
+
+	return ret;
+} /* synge_get_constant_list() */
+
 void synge_seed(unsigned int seed) {
 	assert(synge_started == true, "synge must be initialised");
 	gmp_randseed_ui(synge_state, seed);
@@ -2686,7 +2707,7 @@ void synge_seed(unsigned int seed) {
 
 void synge_start(void) {
 	variable_list = ohm_init(2, NULL);
-	function_list = ohm_init(2, NULL);
+	expression_list = ohm_init(2, NULL);
 	traceback_list = link_init();
 
 	mpfr_init2(prev_answer, SYNGE_PRECISION);
@@ -2706,7 +2727,7 @@ void synge_end(void) {
 		mpfr_clear(i.value);
 
 	ohm_free(variable_list);
-	ohm_free(function_list);
+	ohm_free(expression_list);
 
 	link_free(traceback_list);
 	free(error_msg_container);
