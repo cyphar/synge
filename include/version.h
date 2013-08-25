@@ -28,7 +28,7 @@
 #define B__SYNGE_VERSION__ 		 1,4,4,0 /* binary (for resources) */
 
 /* cli version */
-#define __SYNGE_CLI_VERSION__ 		"1.1.0"  /* ANSI string */
+#define __SYNGE_CLI_VERSION__ 		"1.1.1"  /* ANSI string */
 #define B__SYNGE_CLI_VERSION__ 		 1,1,0,0 /* binary (for resources) */
 
 /* gtk version */
