@@ -30,12 +30,19 @@ Factorial:
 Traceback:
 * `f := 1/0`
 * `f`
+
 ```
 Synge Traceback (most recent call last):
   Function <main>, at 0
   Function f, at 1
 MathError: Cannot divide by zero @ 2
 ```
+
+Dynamic Scoping:
+* `f := a=3`
+* `::a` (undef a)
+* `f`
+* `a` (def'd within f)
 
 ## License ##
 Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in both open source and propretary projects (provided the license conditions are met).
