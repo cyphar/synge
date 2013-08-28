@@ -11,7 +11,8 @@ A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
 * Recursive User Functions
 * Variables
 * Simple Programming API
-* Highly detailed traceback errors
+* Detailed Traceback Errors
+* Dynamic Scoping
 
 ## Examples ##
 Fibonacci Sequence:
@@ -25,6 +26,16 @@ Series:
 Factorial:
 * `x = <input>` (input)
 * `f := (x > 0) ? x-- * f : 1` (recursively generate result)
+
+Traceback:
+* `f := 1/0`
+* `f`
+```
+Synge Traceback (most recent call last):
+  Function <main>, at 0
+  Function f, at 1
+MathError: Cannot divide by zero @ 2
+```
 
 ## License ##
 Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in both open source and propretary projects (provided the license conditions are met).
