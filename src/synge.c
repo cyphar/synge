@@ -2425,6 +2425,7 @@ char *get_error_type(error_code error) {
 			break;
 
 	}
+
 	return "IHaveNoIdea";
 } /* get_error_type() */
 
@@ -2488,6 +2489,7 @@ char *synge_error_msg(error_code error) {
 			msg = "Expression was empty";
 			break;
 		case UNDEFINED:
+			cheeky("This is not the value you are looking for.\n");
 			msg = "Result is undefined";
 			break;
 		case TOO_DEEP:
