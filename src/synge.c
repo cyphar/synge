@@ -680,7 +680,7 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 	}
 
 	/* all special bases begin with 0_ but 0. doesn't count */
-	if(*str != '0') {
+	if(*str != '0' || issignop(str + 1) || issignop(str + 2)) {
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
 		return;
