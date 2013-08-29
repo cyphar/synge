@@ -76,7 +76,10 @@
 #	define __SYNGE_GIT_VERSION__ ""
 #endif
 
-#define OUTPUT_PADDING	""
+#define OUTPUT_PADDING		""
+#define ERROR_PADDING		""
+
+#define CLI_COMMAND_PREFIX	';'
 
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
 			"Copyright (C) 2013 Cyphar\n" \
@@ -185,7 +188,7 @@ void cli_print_list(char *s) {
 		}
 	}
 	else {
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+		printf("%s%s%s%s\n", ERROR_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 	}
 } /* cli_print_list() */
 
@@ -258,8 +261,8 @@ void cli_print_settings(char *s) {
 	}
 
 	if(!ret)
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
-	else printf("%s%s%s\n", ANSI_INFO, ret, ANSI_CLEAR);
+		printf("%s%s%s%s\n", ERROR_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+	else printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_INFO, ret, ANSI_CLEAR);
 
 	free(tmpfree);
 } /* cli_print_settings() */
@@ -318,7 +321,7 @@ void cli_set_settings(char *s) {
 	else err = true;
 
 	if(err)
-		printf("%s%s%s%s\n", OUTPUT_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+		printf("%s%s%s%s\n", ERROR_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
 	else {
 		synge_set_settings(new_settings);
 
@@ -371,7 +374,7 @@ void cli_exec(char *str) {
 
 	/* an error occured */
 	if(ret)
-		printf("%sError code: %d%s\n", ANSI_ERROR, ret, ANSI_CLEAR);
+		printf("%s%sError code: %d%s\n", ERROR_PADDING, ANSI_ERROR, ret, ANSI_CLEAR);
 } /* cli_exec() */
 
 cli_command cli_command_list[] = {
@@ -488,15 +491,31 @@ int main(int argc, char **argv) {
 
 		if(cur_str && !cli_str_empty(cur_str)) {
 
-			/* input is cli wrapper command */
-			if(cli_get_command(cur_str).name) {
+			char *cmd = cur_str;
+
+			/* jump past spaces for command */
+			while(isspace(*cmd))
+				cmd++;
+
+			/* input is cli command */
+			if((cli_get_command(cmd).name && !cli_get_command(cmd).exec) || *cmd++ == CLI_COMMAND_PREFIX) {
 				synge_reset_traceback();
-				cli_command tmp = cli_get_command(cur_str);
 
-				if(!tmp.exec)
-					break; /* command is to exit */
+				while(isspace(*cmd))
+					cmd++;
 
-				tmp.exec(cur_str + strlen(tmp.name));
+				if(cli_get_command(cmd).name) {
+					cli_command tmp = cli_get_command(cmd);
+
+					if(!tmp.exec)
+						break; /* command is to exit */
+
+					tmp.exec(cmd + strlen(tmp.name));
+				}
+
+				else {
+					printf("%s%s%s%s\n", ERROR_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+				}
 			}
 			/* computation yielded error */
 			else if((ecode = synge_compute_string(cur_str, &result)).code != SUCCESS) {
@@ -506,10 +525,10 @@ int main(int argc, char **argv) {
 
 				/* if there is some form of non-ignorable return code, print it */
 				else if(!synge_is_ignore_code(ecode.code))
-					printf("%s%s%s%s\n", OUTPUT_PADDING, synge_is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, synge_error_msg(ecode), ANSI_CLEAR);
+					printf("%s%s%s%s\n", ERROR_PADDING, synge_is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, synge_error_msg(ecode), ANSI_CLEAR);
 			} else {
 				/* otherwise, print the result of the computation*/
-				synge_printf("%s%.*" SYNGE_FORMAT "%s\n", ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
+				synge_printf("%s%s%.*" SYNGE_FORMAT "%s\n", OUTPUT_PADDING, ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
 			}
 
 #ifdef UNIX
