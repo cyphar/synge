@@ -498,7 +498,7 @@ int main(int argc, char **argv) {
 				cmd++;
 
 			/* input is cli command */
-			if((cli_get_command(cmd).name && !cli_get_command(cmd).exec) || *cmd++ == CLI_COMMAND_PREFIX) {
+			if((cli_get_command(cmd).name && !cli_get_command(cmd).exec) || *cmd == '$' || *cmd++ == CLI_COMMAND_PREFIX) {
 				synge_reset_traceback();
 
 				while(isspace(*cmd))
