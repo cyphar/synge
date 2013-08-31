@@ -51,6 +51,7 @@
 
 /* word-related things */
 #define SYNGE_PREV_ANSWER		"ans"
+#define SYNGE_PREV_EXPRESSION		"_"
 #define SYNGE_VARIABLE_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
 #define SYNGE_FUNCTION_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
 
@@ -2480,7 +2481,7 @@ int synge_call_type(char *caller) {
 	return FUNCTION;
 } /* synge_call_type() */
 
-error_code synge_internal_compute_string(char *original_str, synge_t *result, char *caller, int position) {
+error_code synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* "dynamically" resize hashmap to keep efficiency up */
@@ -2555,17 +2556,13 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	free(to_add);
 
 	debug("depth %d with caller %s\n", depth, caller);
-	debug(" - expression '%s'\n", original_str);
+	debug(" - expression '%s'\n", string);
 
 	/* initialise all local variables */
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
 	init_stack(rpn_stack);
 	init_stack(infix_stack);
 	error_code ecode = to_error_code(SUCCESS, -1);
-
-	/* process string */
-	char *final_pass_str = str_dup(original_str);
-	char *string = final_pass_str;
 
 	/* generate infix stack */
 	if((ecode = synge_tokenise_string(string, &infix_stack)).code == SUCCESS)
@@ -2606,13 +2603,17 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 	if(synge_is_success_code(ecode.code)) {
 		mpfr_set(prev_answer, *result, SYNGE_ROUND);
 		link_pend(traceback_list);
+
+		char *stripped = trim_spaces(string);
+		if(strcmp(SYNGE_PREV_EXPRESSION, stripped))
+			ohm_insert(expression_list, SYNGE_PREV_EXPRESSION, strlen(SYNGE_PREV_EXPRESSION) + 1, stripped, strlen(stripped) + 1);
+		free(stripped);
 	}
 
 	/* free memory */
 	ohm_free(backup_var);
 	ohm_free(backup_func);
 
-	free(final_pass_str);
 	free_stackm(&infix_stack, &rpn_stack);
 	return ecode;
 } /* synge_internal_compute_string() */
@@ -2671,8 +2672,9 @@ void synge_start(void) {
 	mpfr_init2(prev_answer, SYNGE_PRECISION);
 	mpfr_set_si(prev_answer, 0, SYNGE_ROUND);
 
-	gmp_randinit_default(synge_state);
+	ohm_insert(expression_list, SYNGE_PREV_EXPRESSION, strlen(SYNGE_PREV_EXPRESSION) + 1, "", 1);
 
+	gmp_randinit_default(synge_state);
 	synge_started = true;
 } /* synge_end() */
 
@@ -2694,7 +2696,6 @@ void synge_end(void) {
 	mpfr_free_cache();
 
 	gmp_randclear(synge_state);
-
 	synge_started = false;
 } /* synge_end() */
 
