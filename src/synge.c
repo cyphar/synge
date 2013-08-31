@@ -522,18 +522,6 @@ char *get_word(char *s, char *list, char **endptr) {
 	return ret;
 } /* get_word() */
 
-/* get number of times a character occurs in the given string */
-int strnchr(char *str, char ch, int len) {
-	if(len < 0)
-		len = strlen(str);
-
-	int i, ret = 0;
-	for(i = 0; i < len; i++)
-		if(str[i] == ch)
-			ret++; /* found a match */
-	return ret;
-} /* strnchr() */
-
 char *trim_spaces(char *str) {
 	/* move starting pointer to first non-space character */
 	while(isspace(*str))
@@ -811,18 +799,6 @@ error_code del_word(char *s, int pos) {
 	return to_error_code(SUCCESS, -1);
 } /* del_word() */
 
-int next_offset(char *str, int offset) {
-	/* continue from given offset */
-	int i, len = strlen(str);
-	for(i = offset; i < len; i++)
-		/* found first non-whitespace character */
-		if(!isspace(str[i]))
-			return i;
-
-	/* nothing left */
-	return -1;
-} /* next_offset() */
-
 char *get_expression_level(char *p, char end) {
 	int num_paren = 0, len = 0;
 	char *ret = NULL;
@@ -875,8 +851,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	for(i = 0; i < len; i++) {
 		/* get position shorthand */
 		pos = i + 1;
-
-		/* correct update offset */
 		tmpoffset = 0;
 
 		/* ignore spaces */
@@ -985,8 +959,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					type = ifop;
 					{
 
-						/* get expression and position of it */
-						int tmp = next_offset(string, i + oplen);
+						/* get expression */
 						char *expr = get_expression_level(string + i + oplen, ':');
 						char *stripped = trim_spaces(expr);
 
@@ -998,7 +971,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						}
 
 						/* push expression */
-						push_valstack(stripped, expression, true, NULL, tmp, *infix_stack);
+						push_valstack(stripped, expression, true, NULL, pos, *infix_stack);
 						tmpoffset = strlen(expr);
 						free(expr);
 					}
@@ -1007,8 +980,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					type = elseop;
 					{
 
-						/* get expression and position of it */
-						int tmp = next_offset(string, i + oplen);
+						/* get expression */
 						char *expr = get_expression_level(string + i + oplen, '\0');
 						char *stripped = trim_spaces(expr);
 
@@ -1020,7 +992,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						}
 
 						/* push expression */
-						push_valstack(stripped, expression, true, NULL, tmp, *infix_stack);
+						push_valstack(stripped, expression, true, NULL, pos, *infix_stack);
 						tmpoffset = strlen(expr);
 						free(expr);
 					}
@@ -1094,7 +1066,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				char *func_expr = get_expression_level(string + i + oplen, '\0');
 				char *stripped = trim_spaces(func_expr);
 
-				push_valstack(stripped, expression, true, NULL, next_offset(string, i + oplen), *infix_stack);
+				push_valstack(stripped, expression, true, NULL, pos, *infix_stack);
 
 				tmpoffset = strlen(func_expr);
 				free(func_expr);
