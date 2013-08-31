@@ -233,9 +233,19 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 	}
 } /* gui_populate_function_list() */
 
+void gtk_default_settings(void) {
+	synge_settings new = synge_get_settings();
+
+	new.error = simple;
+	new.strict = flexible;
+
+	synge_set_settings(new);
+} /* gtk_default_settings() */
+
 int main(int argc, char **argv) {
 	synge_start();
 	synge_seed(time(NULL) ^ getpid());
+	gtk_default_settings();
 
 	gtk_init(&argc, &argv);
 
