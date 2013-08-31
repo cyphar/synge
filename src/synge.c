@@ -37,9 +37,9 @@
 /* value macros */
 #define str(x)				#x
 #define mstr(x)				str(x)
-#define mlen(x)				(sizeof(x) / sizeof(*x))
+#define len(x)				(sizeof(x) / sizeof(*x))
 
-/* function names */
+/* inbuilt caller names */
 #define SYNGE_MAIN			"<main>"
 #define SYNGE_IF			"<if>"
 #define SYNGE_ELSE			"<else>"
@@ -55,10 +55,13 @@
 #define SYNGE_FUNCTION_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
 
 /* traceback format macros */
-#define SYNGE_TRACEBACK_TEMPLATE	"  Function %s, at %d\n"
 #define SYNGE_TRACEBACK_FORMAT		"Synge Traceback (most recent call last):\n" \
 					"%s" \
 					"%s: %s"
+
+#define SYNGE_TRACEBACK_MODULE		"  Module %s\n"
+#define SYNGE_TRACEBACK_CONDITIONAL	"  %s condition, at %d\n"
+#define SYNGE_TRACEBACK_FUNCTION	"  Function %s, at %d\n"
 
 /* in-place macros */
 #define strlower(str)		do { char *p = str; for(; *p; ++p) *p = tolower(*p); } while(0)
@@ -2539,6 +2542,28 @@ char *synge_error_msg_pos(int code, int pos) {
 	return synge_error_msg(to_error_code(code, pos));
 } /* get_error_msg_pos() */
 
+enum {
+	MODULE,
+	CONDITIONAL,
+	FUNCTION
+};
+
+int synge_call_type(char *caller) {
+	char first = *caller;
+	char last = *(caller + strlen(caller) - 1);
+
+	/* conditionals are SYNGE_IF and SYNGE_ELSE */
+	if(!strcmp(caller, SYNGE_IF) || !strcmp(caller, SYNGE_ELSE))
+		return CONDITIONAL;
+
+	/* modules are in the format <____> */
+	else if(first == '<' && last == '>')
+		return MODULE;
+
+	/* resort to function */
+	return FUNCTION;
+} /* synge_call_type() */
+
 error_code synge_internal_compute_string(char *original_str, synge_t *result, char *caller, int position) {
 	assert(synge_started == true, "synge must be initialised");
 
@@ -2591,9 +2616,24 @@ error_code synge_internal_compute_string(char *original_str, synge_t *result, ch
 		depth = -1;
 	}
 
-	/* add current level to traceback */
-	char *to_add = malloc(lenprintf(SYNGE_TRACEBACK_TEMPLATE, caller, position));
-	sprintf(to_add, SYNGE_TRACEBACK_TEMPLATE, caller, position);
+	/* get traceback format from caller type */
+	char *format = NULL;
+	switch(synge_call_type(caller)) {
+		case MODULE:
+			format = SYNGE_TRACEBACK_MODULE;
+			break;
+		case CONDITIONAL:
+			format = SYNGE_TRACEBACK_CONDITIONAL;
+			break;
+		case FUNCTION:
+		default:
+			format = SYNGE_TRACEBACK_FUNCTION;
+			break;
+	}
+
+	/* add level to traceback */
+	char *to_add = malloc(lenprintf(format, caller, position));
+	sprintf(to_add, format, caller, position);
 
 	link_append(traceback_list, to_add, strlen(to_add) + 1);
 	free(to_add);
@@ -2691,10 +2731,10 @@ ohm_t *synge_get_expression_list(void) {
 } /* synge_get_expression_list() */
 
 word *synge_get_constant_list(void) {
-	word *ret = malloc(mlen(constant_list) * sizeof(word));
+	word *ret = malloc(len(constant_list) * sizeof(word));
 
 	unsigned int i;
-	for(i = 0; i < mlen(constant_list); i++) {
+	for(i = 0; i < len(constant_list); i++) {
 		ret[i].name = constant_list[i].name;
 		ret[i].description = constant_list[i].description;
 	}
@@ -2752,9 +2792,9 @@ void synge_reset_traceback(void) {
 	traceback_list = link_init();
 
 	/* reset traceback to base notation */
-	int len = lenprintf(SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
+	int len = lenprintf(SYNGE_TRACEBACK_MODULE, SYNGE_MAIN);
 	char *tmp = malloc(len);
-	sprintf(tmp, SYNGE_TRACEBACK_TEMPLATE, SYNGE_MAIN, 0);
+	sprintf(tmp, SYNGE_TRACEBACK_MODULE, SYNGE_MAIN);
 
 	link_append(traceback_list, tmp, len);
 
