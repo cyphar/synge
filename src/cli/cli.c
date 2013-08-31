@@ -79,12 +79,12 @@
 #define OUTPUT_PADDING		""
 #define ERROR_PADDING		""
 
-#define CLI_COMMAND_PREFIX	';'
+#define CLI_COMMAND_PREFIX	':'
 
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
 			"Copyright (C) 2013 Cyphar\n" \
 			"This free software is licensed under the terms of the MIT License and is provided with ABSOLUTELY NO WARRANTY\n" \
-			"For more information, type ';version', ';license' and ';warranty'\n"
+			"For more information, type ':version', ':license' and ':warranty'\n"
 
 #define FLUSH_INPUT() do { while(getchar() != '\n'); } while(0) /* flush input buffer */
 
@@ -500,6 +500,7 @@ int main(int argc, char **argv) {
 
 		if(cur_str && !cli_str_empty(cur_str)) {
 
+			int cont = true;
 			char *cmd = cur_str;
 
 			/* jump past spaces for command */
@@ -520,24 +521,24 @@ int main(int argc, char **argv) {
 						break; /* command is to exit */
 
 					tmp.exec(cmd + strlen(tmp.name));
-				}
-
-				else {
-					printf("%s%s%s%s\n", ERROR_PADDING, ANSI_ERROR, synge_error_msg_pos(UNKNOWN_TOKEN, -1), ANSI_CLEAR);
+					cont = false;
 				}
 			}
-			/* computation yielded error */
-			else if((ecode = synge_compute_string(cur_str, &result)).code != SUCCESS) {
-				/* do not add history for empty stack errors */
-				if(ecode.code == EMPTY_STACK)
-					continue;
 
-				/* if there is some form of non-ignorable return code, print it */
-				else if(!synge_is_ignore_code(ecode.code))
-					printf("%s%s%s%s\n", ERROR_PADDING, synge_is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, synge_error_msg(ecode), ANSI_CLEAR);
-			} else {
-				/* otherwise, print the result of the computation*/
-				synge_printf("%s%s%.*" SYNGE_FORMAT "%s\n", OUTPUT_PADDING, ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
+			if(cont) {
+				/* computation yielded error */
+				if((ecode = synge_compute_string(cur_str, &result)).code != SUCCESS) {
+					/* do not add history for empty stack errors */
+					if(ecode.code == EMPTY_STACK)
+						continue;
+
+					/* if there is some form of non-ignorable return code, print it */
+					else if(!synge_is_ignore_code(ecode.code))
+						printf("%s%s%s%s\n", ERROR_PADDING, synge_is_success_code(ecode.code) ? ANSI_GOOD : ANSI_ERROR, synge_error_msg(ecode), ANSI_CLEAR);
+				} else {
+					/* otherwise, print the result of the computation*/
+					synge_printf("%s%s%.*" SYNGE_FORMAT "%s\n", OUTPUT_PADDING, ANSI_OUTPUT, synge_get_precision(result), result, ANSI_CLEAR);
+				}
 			}
 
 #ifdef UNIX
