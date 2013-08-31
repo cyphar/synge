@@ -27,7 +27,7 @@
  * Command-line Arguments:
  *
  * SYNPOSIS:
- *        ./synge-eval expression[s] [-m mode] [=R]
+ *        ./synge-eval expression[s] [-m mode] [-RVh]
  *
  * DESCRIPION:
  *        Run the expression through Synge, using the given settings, and defaults otherwise.
@@ -38,6 +38,7 @@
  *        -S, --no-skip			Do not skip "ignorable" error messages
  *
  *        -V, --version			Print version information
+ *        -h, --help			Print help information
  */
 
 #include <stdio.h>
@@ -54,6 +55,17 @@
 #ifndef __SYNGE_GIT_VERSION__
 #	define __SYNGE_GIT_VERSION__ ""
 #endif
+
+#define __SYNGE_EVAL_HELP__ "./synge-eval expression[s] [-m mode] [-RVh]\n" \
+"\n" \
+"Run the expression through Synge, using the given settings, and defaults otherwise.\n" \
+"\n" \
+"  -m <mode>, --mode <mode>     Sets the mode to <mode> (radians || degrees)\n" \
+"  -R, --no-random              Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)\n" \
+"  -S, --no-skip                Do not skip 'ignorable' error messages\n" \
+"\n" \
+"  -V, --version                Print version information\n" \
+"  -h, --help                   Print help information"
 
 synge_settings test_settings;
 
@@ -88,6 +100,10 @@ void bake_args(int argc, char ***argv) {
 				"Synge-Eval:  %s\n"
 				"%s"
 				"Compiled:    %s, %s\n", __SYNGE_VERSION__, __SYNGE_EVAL_VERSION__, revision, __TIME__, __DATE__);
+			exit(0);
+		}
+		else if(!strcmp((*argv)[i], "-h") || !strcmp((*argv)[i], "-help") || !strcmp((*argv)[i], "--help")) {
+			printf(__SYNGE_EVAL_HELP__ "\n");
 			exit(0);
 		}
 	}
