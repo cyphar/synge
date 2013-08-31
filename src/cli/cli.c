@@ -453,9 +453,18 @@ int cli_str_empty(char *str) {
 	return true;
 } /* cli_str_empty() */
 
+void cli_default_settings(void) {
+	synge_settings new = synge_get_settings();
+
+	new.error = traceback;
+
+	synge_set_settings(new);
+} /* cli_default_settings() */
+
 int main(int argc, char **argv) {
 	synge_start();
 	synge_seed(time(NULL) ^ getpid());
+	cli_default_settings();
 
 	char *cur_str = NULL;
 	int count;
