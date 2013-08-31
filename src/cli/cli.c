@@ -84,7 +84,7 @@
 #define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
 			"Copyright (C) 2013 Cyphar\n" \
 			"This free software is licensed under the terms of the MIT License and is provided with ABSOLUTELY NO WARRANTY\n" \
-			"For more information, type 'version', 'license' and 'warranty'\n"
+			"For more information, type ';version', ';license' and ';warranty'\n"
 
 #define FLUSH_INPUT() do { while(getchar() != '\n'); } while(0) /* flush input buffer */
 
