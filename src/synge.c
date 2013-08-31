@@ -75,6 +75,7 @@
 #define isdelop(str) (get_op(str).tp == op_del)
 
 #define iscreop(str) (get_op(str).tp == op_ca_decrement || get_op(str).tp == op_ca_increment)
+#define isparenop(str) (get_op(str).tp == op_lparen || get_op(str).tp == op_rparen)
 
 #define ismodop(str) (get_op(str).tp == op_ca_add || get_op(str).tp == op_ca_subtract || \
 		      get_op(str).tp == op_ca_multiply || get_op(str).tp == op_ca_divide || get_op(str).tp == op_ca_int_divide || get_op(str).tp == op_ca_modulo || \
@@ -294,31 +295,20 @@ function func_list[] = {
 	{"deg2rad",	"deg2rad(x)",	"Convert x degrees to radians",   				deg2rad},
 	{"rad2deg",	"rad2deg(x)",	"Convert x radians to degrees",   				rad2deg},
 
-	{"sinhi",	"asinh(x)",	"Inverse hyperbolic sine of x",					mpfr_asinh},
-	{"coshi",	"acosh(x)",	"Inverse hyperbolic cosine of x",				mpfr_acosh},
-	{"tanhi",	"atanh(x)",	"Inverse hyperbolic tangent of x",				mpfr_atanh},
+	{"asinh",	"asinh(x)",	"Inverse hyperbolic sine of x",					mpfr_asinh},
+	{"acosh",	"acosh(x)",	"Inverse hyperbolic cosine of x",				mpfr_acosh},
+	{"atanh",	"atanh(x)",	"Inverse hyperbolic tangent of x",				mpfr_atanh},
 	{"sinh",	"sinh(x)",	"Hyperbolic sine of x",						mpfr_sinh},
 	{"cosh",	"cosh(x)",	"Hyperbolic cosine of x",					mpfr_cosh},
 	{"tanh",	"tanh(x)",	"Hyperbolic tangent of x",					mpfr_tanh},
 
-	{"sini",	"asin(x)",	"Inverse sine of x",						mpfr_asin},
-	{"cosi",	"acos(x)",	"Inverse cosine of x",						mpfr_acos},
-	{"tani",	"atan(x)",	"Inverse tangent of x",						mpfr_atan},
+	{"asin",	"asin(x)",	"Inverse sine of x",						mpfr_asin},
+	{"acos",	"acos(x)",	"Inverse cosine of x",						mpfr_acos},
+	{"atan",	"atan(x)",	"Inverse tangent of x",						mpfr_atan},
 	{"sin",		"sin(x)",	"Sine of x",							mpfr_sin},
 	{"cos",		"cos(x)",	"Cosine of x",							mpfr_cos},
 	{"tan",		"tan(x)",	"Tangent of x",							mpfr_tan},
 	{NULL,		NULL,		NULL,								NULL}
-};
-
-/* alternate names of builtin functions (TODO: remove this) */
-function_alias alias_list[] = {
-	{"asinh",	"sinhi"},
-	{"acosh",	"coshi"},
-	{"atanh",	"tanhi"},
-	{"asin",	 "sini"},
-	{"acos",	 "cosi"},
-	{"atan",	 "tani"},
-	{NULL,		   NULL},
 };
 
 int synge_pi(synge_t num, mpfr_rnd_t round) {
@@ -588,7 +578,7 @@ operator get_op(char *ch) {
 		/* checks against part or entire string against the given list */
 		if(!strncmp(op_list[i].str, ch, strlen(op_list[i].str)))
 			/* get longest match */
-			if(!ret.str || strlen(ret.str) < strlen(op_list[i].str))
+			if(!ret.str || strlen(op_list[i].str) > strlen(ret.str))
 				ret = op_list[i];
 
 	return ret;
@@ -659,19 +649,15 @@ special_number get_special_num(char *s) {
 
 function *get_func(char *val) {
 	/* get the word version of the function */
-	char *endptr = NULL, *word = get_word(val, SYNGE_FUNCTION_CHARS, &endptr);
 	function *ret = NULL;
 
 	/* find matching function in builtin function lists */
 	int i;
-	for(i = 0; func_list[i].name != NULL; i++) {
-		if(!strcmp(word, func_list[i].name)) {
-			ret = &func_list[i];
-			break;
-		}
-	}
+	for(i = 0; func_list[i].name != NULL; i++)
+		if(!strncmp(val, func_list[i].name, strlen(func_list[i].name)))
+			if(!ret || strlen(func_list[i].name) > strlen(ret->name))
+				ret = &func_list[i];
 
-	free(word);
 	return ret;
 } /* get_func() */
 
@@ -825,60 +811,6 @@ error_code del_word(char *s, int pos) {
 	return to_error_code(SUCCESS, -1);
 } /* del_word() */
 
-/* XXX: This hack is... ugly and difficult to explain. Consider re-doing or simplifying - cyphar */
-char *function_process_replace(char *string) {
-	char *firstpass = NULL;
-
-	/* replace all aliased functions first */
-	int i;
-	for(i = 0; alias_list[i].alias != NULL; i++) {
-		char *tmppass = replace(firstpass ? firstpass : string, alias_list[i].alias, alias_list[i].function);
-		free(firstpass);
-		firstpass = tmppass;
-	}
-
-	/* a "hack" for function division i thought of in maths ...
-	 * ... basically, double every open and close bracket ... */
-	char *secondpass = replace(firstpass, "(", "((");
-	char *final = replace(secondpass, ")", "))");
-
-	/* ... then for each function name, turn f((x)) into (f(x)) */
-	for(i = 0; func_list[i].name != NULL; i++) {
-		/* make search string */
-		char *tmpfrom = malloc(strlen(func_list[i].name) + 3); /* +2 for brackets, +1 for null terminator */
-		strcpy(tmpfrom, func_list[i].name);
-		strcat(tmpfrom, "((");
-
-		/* make replacement string */
-		char *tmpto = malloc(strlen(func_list[i].name) + 3); /* +2 for brackets, +1 for null terminator */
-		strcpy(tmpto, "(");
-		strcat(tmpto, func_list[i].name);
-		strcat(tmpto, "(");
-
-		char *tmpfinal = replace(final, tmpfrom, tmpto);
-
-		free(final);
-		free(tmpfrom);
-		free(tmpto);
-
-		final = tmpfinal;
-	}
-
-	free(firstpass);
-	free(secondpass);
-	return final;
-} /* function_process_replace() */
-
-int recalc_padding(char *str, int len) {
-	int ret = 0, tmp;
-
-	/* the number of open and close brackets is synge_t the amount in the original string (except for mismatched parens) */
-	tmp = strnchr(str, ')', len) + strnchr(str, '(', len);
-	ret += tmp / 2 + tmp % 2;
-
-	return ret;
-} /* recalc_padding() */
-
 int next_offset(char *str, int offset) {
 	/* continue from given offset */
 	int i, len = strlen(str);
@@ -932,31 +864,29 @@ char *get_expression_level(char *p, char end) {
 
 error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
-	char *s = function_process_replace(string);
 
 	debug("--\nTokenise\n--\n");
-	debug("Input: %s\nProcessed: %s\n", string, s);
+	debug("Input: %s\n", string);
 
 	init_stack(*infix_stack);
-	int i, pos, nextpos, tmpoffset;
+	int i, pos, tmpoffset;
 
-	int len = strlen(s);
+	int len = strlen(string);
 	for(i = 0; i < len; i++) {
 		/* get position shorthand */
-		pos = i - recalc_padding(s, (i ? i : 1) - 1) + 1;
-		nextpos = next_offset(s, i + 1);
+		pos = i + 1;
 
 		/* correct update offset */
 		tmpoffset = 0;
 
 		/* ignore spaces */
-		if(isspace(s[i]))
+		if(isspace(string[i]))
 			continue;
 
 		char *endptr = NULL;
-		char *word = get_word(s + i, SYNGE_VARIABLE_CHARS, &endptr);
+		char *word = get_word(string + i, SYNGE_VARIABLE_CHARS, &endptr);
 
-		if(isnum(s+i) && !false_number(s+i, *infix_stack)) {
+		if(isnum(string+i) && !false_number(string+i, *infix_stack)) {
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
 			mpfr_init2(*num, SYNGE_PRECISION);
 
@@ -965,42 +895,42 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				special_number stnum = get_special_num(word);
 				stnum.value(*num, SYNGE_ROUND);
 				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
-
-				/* implied multiplications, etc just like variables */
-				if(top_stack(*infix_stack)) {
-					/* make special numbers act more like numbers (and more like variables) */
-					switch(top_stack(*infix_stack)->tp) {
-						case number:
-							/* two numbers together have an impiled * (i.e 2x is 2*x) */
-							push_valstack("*", multop, false, NULL, pos, *infix_stack);
-							break;
-						default:
-							break;
-					}
-				}
 			}
 			else {
 				/* set value */
 				char *endptr = NULL;
-				synge_strtofr(num, s+i, &endptr);
-				tmpoffset = endptr - (s + i); /* update iterator to correct offset */
+				synge_strtofr(num, string + i, &endptr);
+				tmpoffset = endptr - (string + i); /* update iterator to correct offset */
 			}
+
+			/* implied multiplications just like variables */
+			if(top_stack(*infix_stack)) {
+				switch(top_stack(*infix_stack)->tp) {
+					case number:
+					case rparen:
+						/* two numbers together have an impiled * (i.e 2::x is 2*::x) */
+						push_valstack("*", multop, false, NULL, pos, *infix_stack);
+						break;
+					default:
+						break;
+				}
+			}
+
 			push_valstack(num, number, true, synge_clear, pos, *infix_stack); /* push given value */
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
 			if(mpfr_nan_p(*num)) {
-				free(s);
 				free(word);
 				return to_error_code(UNDEFINED, pos);
 			}
 		}
 
-		else if(get_op(s+i).str) {
-			int postpush = false, oplen = strlen(get_op(s+i).str);
+		else if(get_op(string+i).str) {
+			int oplen = strlen(get_op(string+i).str);
 			s_type type;
 
 			/* find and set type appropriate to operator */
-			switch(get_op(s+i).tp) {
+			switch(get_op(string+i).tp) {
 				case op_add:
 				case op_subtract:
 					/* if first thing in operator or previous doesn't mean */
@@ -1020,7 +950,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_lparen:
 					type = lparen;
-					pos--;  /* "hack" to ensure error position is correct */
 
 					/* every open paren with no operator (and number) before it has an implied * */
 					if(top_stack(*infix_stack)) {
@@ -1036,9 +965,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_rparen:
 					type = rparen;
-					pos--;  /* "hack" to ensure error position is correct */
-					if(nextpos > 0 && isnum(s + nextpos) && !get_op(s + nextpos).str)
-						postpush = true;
 					break;
 				case op_gt:
 				case op_gteq:
@@ -1060,12 +986,11 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					{
 
 						/* get expression and position of it */
-						int tmp = next_offset(s, i + oplen);
-						char *expr = get_expression_level(s + i + oplen, ':');
+						int tmp = next_offset(string, i + oplen);
+						char *expr = get_expression_level(string + i + oplen, ':');
 						char *stripped = trim_spaces(expr);
 
 						if(!expr || !stripped) {
-							free(s);
 							free(word);
 							free(expr);
 							free(stripped);
@@ -1083,12 +1008,11 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					{
 
 						/* get expression and position of it */
-						int tmp = next_offset(s, i + oplen);
-						char *expr = get_expression_level(s + i + oplen, '\0');
+						int tmp = next_offset(string, i + oplen);
+						char *expr = get_expression_level(string + i + oplen, '\0');
 						char *stripped = trim_spaces(expr);
 
 						if(!expr || !stripped) {
-							free(s);
 							free(word);
 							free(expr);
 							free(stripped);
@@ -1111,6 +1035,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						/* make delops act more like numbers */
 						switch(top_stack(*infix_stack)->tp) {
 							case number:
+							case rparen:
 								/* two numbers together have an impiled * (i.e 2::x is 2*::x) */
 								push_valstack("*", multop, false, NULL, pos, *infix_stack);
 								break;
@@ -1149,6 +1074,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						/* make pre-operators act just like normal numbers */
 						switch(top_stack(*infix_stack)->tp) {
 							case number:
+							case rparen:
 								/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
 								push_valstack("*", multop, false, NULL, pos, *infix_stack);
 								break;
@@ -1159,20 +1085,16 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 					break;
 				case op_none:
 				default:
-					free(s);
 					free(word);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
-			push_valstack(get_op(s+i).str, type, false, NULL, pos, *infix_stack); /* push operator onto stack */
+			push_valstack(get_op(string+i).str, type, false, NULL, pos, *infix_stack); /* push operator onto stack */
 
-			if(postpush)
-				push_valstack("*", multop, false, NULL, pos, *infix_stack);
-
-			if(get_op(s+i).tp == op_func_set) {
-				char *func_expr = get_expression_level(s + i + oplen, '\0');
+			if(get_op(string+i).tp == op_func_set) {
+				char *func_expr = get_expression_level(string + i + oplen, '\0');
 				char *stripped = trim_spaces(func_expr);
 
-				push_valstack(stripped, expression, true, NULL, next_offset(s, i + oplen), *infix_stack);
+				push_valstack(stripped, expression, true, NULL, next_offset(string, i + oplen), *infix_stack);
 
 				tmpoffset = strlen(func_expr);
 				free(func_expr);
@@ -1181,11 +1103,24 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			/* update iterator */
 			tmpoffset += oplen;
 		}
-		else if(get_func(s+i)) {
-			char *endptr = NULL, *funcword = get_word(s+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
+		else if(get_func(string+i)) {
+			char *endptr = NULL, *funcword = get_word(string+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
+
+			/* make functions act just like normal numbers */
+			if(top_stack(*infix_stack)) {
+				switch(top_stack(*infix_stack)->tp) {
+					case number:
+					case rparen:
+						/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
+						push_valstack("*", multop, false, NULL, pos, *infix_stack);
+						break;
+					default:
+						break;
+				}
+			}
 
 			function *functionp = get_func(funcword); /* get the function pointer, name, etc. */
-			push_valstack(functionp, func, false, NULL, pos - 1, *infix_stack);
+			push_valstack(functionp, func, false, NULL, pos, *infix_stack);
 
 			tmpoffset = strlen(functionp->name); /* update iterator to correct offset */
 			free(funcword);
@@ -1196,6 +1131,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 				/* make variables act more like numbers (and more like variables) */
 				switch(top_stack(*infix_stack)->tp) {
 					case number:
+					case rparen:
 						/* two numbers together have an impiled * (i.e 2x is 2*x) */
 						push_valstack("*", multop, false, NULL, pos, *infix_stack);
 						break;
@@ -1203,29 +1139,20 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 						break;
 				}
 			}
-
-			int type = userword;
-
-			/* is this word going to be set? */
-			nextpos = next_offset(s, i + strlen(word));
-			if(nextpos > 0 && (issetop(s + nextpos) || ismodop(s + nextpos) || iscreop(s + nextpos)))
-				type = setword;
-
-			if(top_stack(*infix_stack) && (isdelop(top_stack(*infix_stack)->val) || iscreop(top_stack(*infix_stack)->val)))
-				type = setword;
-
 			char *stripped = trim_spaces(word);
 
-			if(!stripped)
-				stripped = str_dup("");
+			/* improvise an empty string */
+			if(!stripped) {
+				stripped = malloc(1);
+				*stripped = '\0';
+			}
 
-			push_valstack(stripped, type, true, NULL, pos, *infix_stack);
+			push_valstack(stripped, userword, true, NULL, pos, *infix_stack);
 			tmpoffset = strlen(word); /* update iterator to correct offset */
 		}
 		else {
 			/* catchall -- unknown token */
 			free(word);
-			free(s);
 			return to_error_code(UNKNOWN_TOKEN, pos);
 		}
 
@@ -1237,7 +1164,6 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 		i += tmpoffset - 1;
 	}
 
-	free(s);
 	if(!stack_size(*infix_stack))
 		return to_error_code(EMPTY_STACK, -1); /* stack was empty */
 
@@ -1305,7 +1231,6 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 				break;
 			case expression:
 			case userword:
-			case setword:
 				/* do nothing, just push it onto the stack */
 				push_valstack(str_dup(stackp.val), stackp.tp, true, NULL, pos, *rpn_stack);
 				break;
@@ -1327,10 +1252,14 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 						push_ststack(*tmpstackp, *rpn_stack); /* push it onto the stack */
 					}
 
+					/* push function pointer to ouput (if there is one) */
+					if(top_stack(op_stack) && top_stack(op_stack)->tp == func)
+						push_ststack(*pop_stack(op_stack), *rpn_stack);
+
 					/* if no lparen was found, this is an unmatched right bracket*/
 					if(!found) {
 						free_stackm(infix_stack, &op_stack, rpn_stack);
-						return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos + 1);
+						return to_error_code(UNMATCHED_RIGHT_PARENTHESIS, pos);
 					}
 				}
 				break;
@@ -1346,15 +1275,30 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 						return to_error_code(INVALID_LEFT_OPERAND, pos);
 					}
 
-					push_valstack(str_dup(tmpstackp->val), tmpstackp->tp, true, NULL, tmpstackp->position, *rpn_stack);
-					/* pass-through */
-			case postmod:
+					push_valstack(str_dup(tmpstackp->val), setword, true, NULL, tmpstackp->position, *rpn_stack);
 					push_ststack(stackp, *rpn_stack);
 				}
 				break;
-			case preop:
+			case postmod:
+				{
+					if(top_stack(*rpn_stack) && top_stack(*rpn_stack)->tp == userword) {
+						s_content *pop = pop_stack(*rpn_stack);
+						push_valstack(pop->val, setword, true, NULL, pop->position, *rpn_stack);
+					}
+
+					push_ststack(stackp, *rpn_stack);
+				}
+				break;
 			case setop:
 			case modop:
+				{
+					if(top_stack(*rpn_stack) && top_stack(*rpn_stack)->tp == userword) {
+						s_content *pop = pop_stack(*rpn_stack);
+						push_valstack(pop->val, setword, true, NULL, pop->position, *rpn_stack);
+					}
+				}
+				/* pass-through */
+			case preop:
 			case elseop:
 			case ifop:
 			case bitop:
@@ -1428,9 +1372,9 @@ void settings_to_rad(synge_t out, synge_t in) {
 
 /* functions' whose output is in radians */
 char *angle_outfunc_list[] = {
-	"sini",
-	"cosi",
-	"tani",
+	"asin",
+	"acos",
+	"atan",
 	NULL
 };
 
