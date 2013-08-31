@@ -2,12 +2,9 @@ Things to fix/implement:
 
 ALL:
 + Documentation
-* General code clean-up (especially tokenisation & evaluation code)
+* General code clean-up (especially evaluation code)
 
 SYNGE:
-+ Multiple evaluations per line (a=1;a+2;a=a+1;a)
-+ Functions to:
-  - Get factors of a number
 * Refactor helper functions
 * Refactor implied multiplication
 
@@ -17,6 +14,9 @@ CLI:
 
 GTK:
 * (Better) GTK+ interface
+
+EVAL:
+* Clean up bake_args
 
 TESTS:
 * Add more tests
