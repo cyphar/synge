@@ -35,14 +35,14 @@
 #include "linked.h"
 
 /* value macros */
-#define str(x)				#x
-#define mstr(x)				str(x)
-#define len(x)				(sizeof(x) / sizeof(*x))
+#define str(x)					#x
+#define mstr(x)					str(x)
+#define len(x)					(sizeof(x) / sizeof(*x))
 
 /* inbuilt caller names */
-#define SYNGE_MAIN			"<main>"
-#define SYNGE_IF			"<if>"
-#define SYNGE_ELSE			"<else>"
+#define SYNGE_MAIN				"<main>"
+#define SYNGE_IF				"<if>"
+#define SYNGE_ELSE				"<else>"
 
 /* internal "magic numbers" */
 #define SYNGE_MAX_PRECISION		64
@@ -51,21 +51,21 @@
 
 /* word-related things */
 #define SYNGE_PREV_ANSWER		"ans"
-#define SYNGE_PREV_EXPRESSION		"_"
-#define SYNGE_VARIABLE_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
-#define SYNGE_FUNCTION_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
+#define SYNGE_PREV_EXPRESSION	"_"
+#define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
+#define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
 
 /* traceback format macros */
-#define SYNGE_TRACEBACK_FORMAT		"Synge Traceback (most recent call last):\n" \
-					"%s" \
-					"%s: %s"
+#define SYNGE_TRACEBACK_FORMAT	"Synge Traceback (most recent call last):\n" \
+								"%s" \
+								"%s: %s"
 
 #define SYNGE_TRACEBACK_MODULE		"  Module %s\n"
 #define SYNGE_TRACEBACK_CONDITIONAL	"  %s condition, at %d\n"
 #define SYNGE_TRACEBACK_FUNCTION	"  Function %s, at %d\n"
 
 /* in-place macros */
-#define strlower(str)		do { char *p = str; for(; *p; ++p) *p = tolower(*p); } while(0)
+#define strlower(str)			do { char *p = str; for(; *p; ++p) *p = tolower(*p); } while(0)
 #define assert(cond, reason)	do { if(!(cond)) { fprintf(stderr, "synge: assertion '%s' (%s) failed\n", reason, #cond); abort(); }} while(0)
 
 /* useful macros */
@@ -274,42 +274,42 @@ int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
 
 /* builtin function names, prototypes, descriptions and function pointers */
 function func_list[] = {
-	{"abs",		"abs(x)",	"Absolute value of x",						mpfr_abs},
-	{"sqrt",	"sqrt(x)",	"Square root of x",						mpfr_sqrt},
-	{"cbrt",	"cbrt(x)",	"Cubic root of x",						mpfr_cbrt},
+	{"abs",		"abs(x)",		"Absolute value of x",								mpfr_abs},
+	{"sqrt",	"sqrt(x)",		"Square root of x",									mpfr_sqrt},
+	{"cbrt",	"cbrt(x)",		"Cubic root of x",									mpfr_cbrt},
 
-	{"floor",	"floor(x)",	"Largest integer not greater than x",				mpfr_floor},
-	{"round",	"round(x)",	"Closest integer to x",						mpfr_round},
-	{"ceil",	"ceil(x)",	"Smallest integer not smaller than x",				mpfr_ceil},
+	{"floor",	"floor(x)",		"Largest integer not greater than x",				mpfr_floor},
+	{"round",	"round(x)",		"Closest integer to x",								mpfr_round},
+	{"ceil",	"ceil(x)",		"Smallest integer not smaller than x",				mpfr_ceil},
 
-	{"log10",	"log10(x)",	"Base 10 logarithm of x",					mpfr_log10},
-	{"log",		"log(x)",	"Base 2 logarithm of x",					mpfr_log2},
-	{"ln",		"ln(x)",	"Base e logarithm of x",					mpfr_log},
+	{"log10",	"log10(x)",		"Base 10 logarithm of x",							mpfr_log10},
+	{"log",		"log(x)",		"Base 2 logarithm of x",							mpfr_log2},
+	{"ln",		"ln(x)",		"Base e logarithm of x",							mpfr_log},
 
-	{"rand",	"rand(x)",	"Generate a pseudo-random number between 0 and x",		sy_rand},
-	{"randi",	"randi(x)",	"Generate a pseudo-random integer between 0 and x",		sy_int_rand},
+	{"rand",	"rand(x)",		"Generate a pseudo-random number between 0 and x",	sy_rand},
+	{"randi",	"randi(x)",		"Generate a pseudo-random integer between 0 and x",	sy_int_rand},
 
-	{"fact",	"fact(x)",	"Factorial of round(x)",					sy_factorial},
+	{"fact",	"fact(x)",		"Factorial of round(x)",							sy_factorial},
 	{"series",	"series(x)",	"Gives addition of all integers up to x",			sy_series},
-	{"assert",	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise",			sy_assert},
+	{"assert",	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise",		sy_assert},
 
-	{"deg2rad",	"deg2rad(x)",	"Convert x degrees to radians",   				deg2rad},
-	{"rad2deg",	"rad2deg(x)",	"Convert x radians to degrees",   				rad2deg},
+	{"deg2rad",	"deg2rad(x)",	"Convert x degrees to radians",   					deg2rad},
+	{"rad2deg",	"rad2deg(x)",	"Convert x radians to degrees",   					rad2deg},
 
-	{"asinh",	"asinh(x)",	"Inverse hyperbolic sine of x",					mpfr_asinh},
-	{"acosh",	"acosh(x)",	"Inverse hyperbolic cosine of x",				mpfr_acosh},
-	{"atanh",	"atanh(x)",	"Inverse hyperbolic tangent of x",				mpfr_atanh},
-	{"sinh",	"sinh(x)",	"Hyperbolic sine of x",						mpfr_sinh},
-	{"cosh",	"cosh(x)",	"Hyperbolic cosine of x",					mpfr_cosh},
-	{"tanh",	"tanh(x)",	"Hyperbolic tangent of x",					mpfr_tanh},
+	{"asinh",	"asinh(x)",		"Inverse hyperbolic sine of x",						mpfr_asinh},
+	{"acosh",	"acosh(x)",		"Inverse hyperbolic cosine of x",					mpfr_acosh},
+	{"atanh",	"atanh(x)",		"Inverse hyperbolic tangent of x",					mpfr_atanh},
+	{"sinh",	"sinh(x)",		"Hyperbolic sine of x",								mpfr_sinh},
+	{"cosh",	"cosh(x)",		"Hyperbolic cosine of x",							mpfr_cosh},
+	{"tanh",	"tanh(x)",		"Hyperbolic tangent of x",							mpfr_tanh},
 
-	{"asin",	"asin(x)",	"Inverse sine of x",						mpfr_asin},
-	{"acos",	"acos(x)",	"Inverse cosine of x",						mpfr_acos},
-	{"atan",	"atan(x)",	"Inverse tangent of x",						mpfr_atan},
-	{"sin",		"sin(x)",	"Sine of x",							mpfr_sin},
-	{"cos",		"cos(x)",	"Cosine of x",							mpfr_cos},
-	{"tan",		"tan(x)",	"Tangent of x",							mpfr_tan},
-	{NULL,		NULL,		NULL,								NULL}
+	{"asin",	"asin(x)",		"Inverse sine of x",								mpfr_asin},
+	{"acos",	"acos(x)",		"Inverse cosine of x",								mpfr_acos},
+	{"atan",	"atan(x)",		"Inverse tangent of x",								mpfr_atan},
+	{"sin",		"sin(x)",		"Sine of x",										mpfr_sin},
+	{"cos",		"cos(x)",		"Cosine of x",										mpfr_cos},
+	{"tan",		"tan(x)",		"Tangent of x",										mpfr_tan},
+	{NULL,		NULL,			NULL,												NULL}
 };
 
 int synge_pi(synge_t num, mpfr_rnd_t round) {
@@ -367,16 +367,16 @@ int synge_ans(synge_t num, mpfr_rnd_t round) {
 
 /* inbuilt constants (given using function pointers) */
 special_number constant_list[] = {
-	{"pi",			"The ratio of a circle's circumfrence to its diameter",			synge_pi},
-	{"phi",			"The golden ratio",							synge_phi},
-	{"e",			"The base of a natural logarithm",					synge_euler},
-	{"life",		"The answer to the question of life, the universe and everything",	synge_life}, /* Sorry, I couldn't resist */
+	{"pi",				"The ratio of a circle's circumfrence to its diameter",				synge_pi},
+	{"phi",				"The golden ratio",													synge_phi},
+	{"e",				"The base of a natural logarithm",									synge_euler},
+	{"life",			"The answer to the question of life, the universe and everything",	synge_life}, /* Sorry, I couldn't resist */
 
-	{"true",		"Standard true value",							synge_true},
-	{"false",		"Standard false value",							synge_false},
+	{"true",			"Standard true value",												synge_true},
+	{"false",			"Standard false value",												synge_false},
 
-	{SYNGE_PREV_ANSWER,	"Gives the last successful answer",					synge_ans},
-	{NULL,			NULL,									NULL},
+	{SYNGE_PREV_ANSWER,	"Gives the last successful answer",									synge_ans},
+	{NULL,				NULL,																NULL},
 };
 
 /* used for when a (char *) is needed, but needn't be freed and *
