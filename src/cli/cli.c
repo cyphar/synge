@@ -378,21 +378,21 @@ void cli_exec(char *str) {
 } /* cli_exec() */
 
 cli_command cli_command_list[] = {
-	{"exit",	NULL,			true},
-	{"exit()",	NULL,			true},
-	{"quit",	NULL,			true},
-	{"quit()",	NULL,			true},
+	{"exit",		NULL,				true},
+	{"exit()",		NULL,				true},
+	{"quit",		NULL,				true},
+	{"quit()",		NULL,				true},
 
-	{"version",	cli_version,		true},
-	{"license",	cli_license,		true},
+	{"version",		cli_version,		true},
+	{"license",		cli_license,		true},
 	{"warranty",	cli_warranty,		true},
-	{"banner",	cli_banner,		true},
+	{"banner",		cli_banner,			true},
 
-	{"$",		cli_exec,		false},
+	{"$",			cli_exec,			false},
 
-	{"list ",	cli_print_list,		false},
-	{"set ",	cli_set_settings,	false},
-	{"get ",	cli_print_settings,	false},
+	{"list ",		cli_print_list,		false},
+	{"set ",		cli_set_settings,	false},
+	{"get ",		cli_print_settings,	false},
 };
 
 cli_command cli_get_command(char *s) {
