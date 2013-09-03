@@ -1146,14 +1146,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 } /* synge_tokenise_string() */
 
 bool op_precedes(s_type op1, s_type op2) {
-	/* +---------------------------+ *
-	 * | WARNING: here be dragons! | *
-	 * +---------------------------+ */
-
-	/* obscure integer hacks follow. */
-
-	int lassoc = 0;
-
+	/* returns whether or not op2 should precede op1 */
 	switch(op2) {
 		case ifop:
 		case elseop:
@@ -1161,23 +1154,22 @@ bool op_precedes(s_type op1, s_type op2) {
 		case compop:
 		case addop:
 		case multop:
-			lassoc = 1;
-			break;
+			/* left associated operator */
+			return op1 >= op2;
+
 		case delop:
 		case signop:
 		case setop:
 		case modop:
 		case expop:
 		case preop:
-			lassoc = 0;
-			break;
-		default:
-			/* catchall -- i don't even ... */
-			return false; /* what the hell are you doing? */
-			break;
-	}
+			/* right associated operator */
+			return op1 > op2;
 
-	return op1 > (op2 - lassoc);
+		default:
+			/* what the hell are you doing? */
+			return false;
+	}
 } /* op_precedes() */
 
 /* my implementation of Dijkstra's really cool shunting-yard algorithm */
