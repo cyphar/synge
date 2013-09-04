@@ -835,10 +835,6 @@ char *get_expression_level(char *p, char end) {
 	return ret;
 } /* get_expression_level() */
 
-#define false_number(str, stack) (!(!top_stack(stack) || /* first token is a number */ \
-				 ((((!isnumword(top_stack(stack)->tp) && !iscreop(top_stack(stack)->val)) || !isaddop(str))) && /* a +/- number preceeded by a number is not a number */ \
-	 			 (top_stack(stack)->tp != rparen || (!isaddop(str) && !iscreop(top_stack(stack)->val)))))) /* a +/- number preceeded by a ')' is not a number */
-
 error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
 
@@ -861,7 +857,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 		char *endptr = NULL;
 		char *word = get_word(string + i, SYNGE_VARIABLE_CHARS, &endptr);
 
-		if(isnum(string+i) && !false_number(string+i, *infix_stack)) {
+		if(isnum(string+i)) {
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
 			mpfr_init2(*num, SYNGE_PRECISION);
 
