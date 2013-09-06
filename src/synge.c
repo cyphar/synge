@@ -211,9 +211,6 @@ int rad2deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
 } /* rad2deg() */
 
 int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
-	/* round input */
-	mpfr_floor(number, number);
-
 	/* A = rand() -- 0 <= rand() < 1 */
 	synge_t random;
 	mpfr_init2(random, SYNGE_PRECISION);
@@ -228,6 +225,9 @@ int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 } /* sy_rand() */
 
 int sy_int_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
+	/* round input */
+	mpfr_floor(number, number);
+
 	/* get random number */
 	sy_rand(to, number, round);
 
