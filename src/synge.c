@@ -251,7 +251,6 @@ int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	}
 
 	mpfr_copysign(to, to, num, round);
-
 	mpfr_clears(number, NULL);
 	return 0;
 } /* sy_factorial() */
@@ -593,26 +592,17 @@ int synge_get_precision(synge_t num) {
 	if(active_settings.precision >= 0)
 		return active_settings.precision;
 
-	/* +---------------------------+ *
-	 * | WARNING: here be dragons! | *
-	 * +---------------------------+ */
-
 	/* printf knows how to fix rounding errors */
-	int tmpsize = lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num);
-	char *tmp = malloc(tmpsize);
-
-	/* get the string representation of the number */
+	char *tmp = malloc(lenprintf("%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num));
 	synge_sprintf(tmp, "%.*" SYNGE_FORMAT, SYNGE_MAX_PRECISION, num);
 
 	/* move pointer to end and set precision to maximum */
-	char *p = tmp + tmpsize - 2;
+	char *p = tmp + strlen(tmp) - 1;
 	int precision = SYNGE_MAX_PRECISION;
 
 	/* find all trailing zeros */
-	while(*p == '0') {
+	while(*p-- == '0')
 		precision--;
-		p--;
-	}
 
 	free(tmp);
 	return precision;
@@ -628,11 +618,13 @@ error_code to_error_code(int error, int position) {
 } /* to_error_code() */
 
 special_number get_special_num(char *s) {
-	int i;
 	special_number ret = {NULL, NULL, NULL};
+	int i;
+
 	for(i = 0; constant_list[i].name != NULL; i++)
 		if(!strcmp(constant_list[i].name, s))
 			return constant_list[i];
+
 	return ret;
 } /* get_special_num() */
 
