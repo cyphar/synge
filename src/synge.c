@@ -2697,12 +2697,3 @@ void synge_reset_traceback(void) {
 
 	free(tmp);
 } /* synge_reset_traceback() */
-
-/* TODO: Turn these into macros */
-int synge_is_success_code(int code) {
-	return (code == SUCCESS);
-} /* is_success_code() */
-
-int synge_is_ignore_code(int code) {
-	return (code == EMPTY_STACK || code == ERROR_FUNC_ASSIGNMENT || code == ERROR_DELETE);
-} /* ignore_code() */
