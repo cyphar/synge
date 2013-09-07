@@ -134,8 +134,13 @@ char *synge_error_msg_pos(int, int); /* returns a string which describes the err
 
 error_code synge_compute_string(char *, synge_t *); /* takes an infix-style string and runs it through the synge core */
 
-int synge_is_success_code(int); /* returns true if the return code should be treated as a success, otherwise false */
-int synge_is_ignore_code(int); /* returns true if the return code and result should be ignored, otherwise false */
+/* returns true if the return code should be treated as a success, otherwise false */
+#define synge_is_success_code(code) \
+	(code == SUCCESS)
+
+/* returns true if the return code and result should be ignored, otherwise false */
+#define synge_is_ignore_code(code) \
+	(code == EMPTY_STACK || code == ERROR_FUNC_ASSIGNMENT || code == ERROR_DELETE)
 
 void synge_seed(unsigned int seed); /* seed synge's pseudorandom number generator */
 void synge_start(void); /* run at program initiation -- assertion will fail if not run before using synge functions */
