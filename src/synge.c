@@ -1344,15 +1344,12 @@ void rad_to_settings(synge_t out, synge_t in) {
 } /* rad_to_settings() */
 
 error_code eval_word(char *str, int pos, synge_t *result) {
-	/* is it a legitamate variable or function? */
 	if(ohm_search(variable_list, str, strlen(str) + 1)) {
-		/* variable */
-		mpfr_set(*result, SYNGE_T(ohm_search(variable_list, str, strlen(str) + 1)), SYNGE_ROUND);
+		synge_t *value = ohm_search(variable_list, str, strlen(str) + 1);
+		mpfr_set(*result, *value, SYNGE_ROUND);
 	}
 
 	else if(ohm_search(expression_list, str, strlen(str) + 1)) {
-
-		/* function */
 		/* recursively evaluate a user function's value */
 		char *expression = ohm_search(expression_list, str, strlen(str) + 1);
 		error_code tmpecode = synge_internal_compute_string(expression, result, str, pos);
