@@ -797,7 +797,7 @@ char *get_expression_level(char *p, char end) {
 	char *ret = NULL;
 
 	/* until the end of string or a correct level closing ) */
-	while(*p && (*p != ')' || num_paren)) {
+	while(*p && (get_op(p).tp != op_rparen || num_paren)) {
 		/* update level of expression */
 		switch(get_op(p).tp) {
 			case op_rparen:
@@ -2581,6 +2581,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 		mpfr_set(prev_answer, *result, SYNGE_ROUND);
 		link_pend(traceback_list);
 
+		/* TODO: don't make '_' equal an expression that has '_' as a word in it */
 		char *stripped = trim_spaces(string);
 		if(strcmp(SYNGE_PREV_EXPRESSION, stripped))
 			ohm_insert(expression_list, SYNGE_PREV_EXPRESSION, strlen(SYNGE_PREV_EXPRESSION) + 1, stripped, strlen(stripped) + 1);
