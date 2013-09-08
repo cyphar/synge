@@ -52,7 +52,7 @@
 /* word-related things */
 #define SYNGE_PREV_ANSWER		"ans"
 #define SYNGE_PREV_EXPRESSION	"_"
-#define SYNGE_VARIABLE_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
+#define SYNGE_WORD_CHARS		"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ\'\"_"
 #define SYNGE_FUNCTION_CHARS	"abcdefghijklmnopqrstuvwxyzABCDEFHIJKLMNOPQRSTUVWXYZ0123456789\'\"_"
 
 /* traceback format macros */
@@ -694,7 +694,7 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 
 bool isnum(char *string) {
 	/* get variable word */
-	char *endptr = NULL, *s = get_word(string, SYNGE_VARIABLE_CHARS, &endptr);
+	char *endptr = NULL, *s = get_word(string, SYNGE_WORD_CHARS, &endptr);
 	endptr = NULL;
 
 	/* get synge_t number from string */
@@ -713,7 +713,7 @@ error_code set_variable(char *str, synge_t val) {
 	assert(synge_started == true, "synge must be initialised");
 
 	error_code ret = to_error_code(SUCCESS, -1);
-	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
+	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
 	/* make a new copy of the variable to save */
 	synge_t tosave;
@@ -738,7 +738,7 @@ error_code set_function(char *str, char *exp) {
 	assert(synge_started == true, "synge must be initialised");
 
 	error_code ret = to_error_code(SUCCESS, -1);
-	char *endptr = NULL, *s = get_word(str, SYNGE_FUNCTION_CHARS, &endptr);
+	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
 	/* save the function */
 	ohm_remove(variable_list, s, strlen(s) + 1); /* remove word from variable list (fake dynamic typing) */
@@ -847,7 +847,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			continue;
 
 		char *endptr = NULL;
-		char *word = get_word(string + i, SYNGE_VARIABLE_CHARS, &endptr);
+		char *word = get_word(string + i, SYNGE_WORD_CHARS, &endptr);
 
 		if(isnum(string+i)) {
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
