@@ -225,6 +225,9 @@ void cli_print_settings(char *s) {
 			case degrees:
 				ret = "Degrees";
 				break;
+			case gradians:
+				ret = "Gradians";
+				break;
 			case radians:
 				ret = "Radians";
 				break;
@@ -287,6 +290,8 @@ void cli_set_settings(char *s) {
 	if(!strncmp(args, "mode ", strlen("mode "))) {
 		if(!strcasecmp(val, "degrees"))
 			new_settings.mode = degrees;
+		else if(!strcasecmp(val, "gradians"))
+			new_settings.mode = gradians;
 		else if(!strcasecmp(val, "radians"))
 			new_settings.mode = radians;
 		else err = true;

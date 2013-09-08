@@ -87,7 +87,8 @@ enum {
 typedef struct {
 	enum {
 		degrees,
-		radians
+		radians,
+		gradians
 	} mode;
 
 	enum {
