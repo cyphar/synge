@@ -172,7 +172,7 @@ int iszero(synge_t num) {
 	return (cmp < 0 || mpfr_zero_p(num));
 } /* iszero() */
 
-int deg2rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
+int deg_to_rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
 	/* get pi */
 	synge_t pi;
 	mpfr_init2(pi, SYNGE_PRECISION);
@@ -181,7 +181,7 @@ int deg2rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
 	/* get conversion for deg -> rad */
 	synge_t from_deg;
 	mpfr_init2(from_deg, SYNGE_PRECISION);
-	mpfr_div_si(from_deg, pi, 180, SYNGE_PRECISION);
+	mpfr_div_si(from_deg, pi, 180, round);
 
 	/* convert it */
 	mpfr_mul(rad, deg, from_deg, round);
@@ -189,18 +189,67 @@ int deg2rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
 	/* free memory associated with values */
 	mpfr_clears(pi, from_deg, NULL);
 	return 0;
-} /* deg2rad() */
+} /* deg_to_rad() */
 
-int rad2deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
+int deg_to_grad(synge_t grad, synge_t deg, mpfr_rnd_t round) {
+	/* get conversion for deg -> grad */
+	synge_t from_deg;
+	mpfr_init2(from_deg, SYNGE_PRECISION);
+	mpfr_set_si(from_deg, 10, round);
+	mpfr_div_si(from_deg, from_deg, 9, round);
+
+	/* convert it */
+	mpfr_mul(grad, deg, from_deg, round);
+
+	/* free memory associated with values */
+	mpfr_clears(from_deg, NULL);
+	return 0;
+} /* deg_to_grad() */
+
+int grad_to_deg(synge_t deg, synge_t grad, mpfr_rnd_t round) {
+	/* get conversion for grad -> deg */
+	synge_t from_grad;
+	mpfr_init2(from_grad, SYNGE_PRECISION);
+	mpfr_set_si(from_grad, 9, round);
+	mpfr_div_si(from_grad, from_grad, 10, round);
+
+	/* convert it */
+	mpfr_mul(deg, grad, from_grad, round);
+
+	/* free memory associated with values */
+	mpfr_clears(from_grad, NULL);
+	return 0;
+} /* grad_to_deg() */
+
+int grad_to_rad(synge_t rad, synge_t grad, mpfr_rnd_t round) {
 	/* get pi */
 	synge_t pi;
 	mpfr_init2(pi, SYNGE_PRECISION);
 	mpfr_const_pi(pi, round);
 
-	/* get conversion for deg -> rad */
+	/* get conversion for grad -> rad */
+	synge_t from_grad;
+	mpfr_init2(from_grad, SYNGE_PRECISION);
+	mpfr_div_si(from_grad, pi, 200, round);
+
+	/* convert it */
+	mpfr_mul(rad, grad, from_grad, round);
+
+	/* free memory associated with values */
+	mpfr_clears(pi, from_grad, NULL);
+	return 0;
+} /* grad_to_rad() */
+
+int rad_to_deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
+	/* get pi */
+	synge_t pi;
+	mpfr_init2(pi, SYNGE_PRECISION);
+	mpfr_const_pi(pi, round);
+
+	/* get conversion for rad -> deg */
 	synge_t from_rad;
 	mpfr_init2(from_rad, SYNGE_PRECISION);
-	mpfr_si_div(from_rad, 180, pi, SYNGE_PRECISION);
+	mpfr_si_div(from_rad, 180, pi, round);
 
 	/* convert it */
 	mpfr_mul(deg, rad, from_rad, round);
@@ -208,7 +257,26 @@ int rad2deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
 	/* free memory associated with values */
 	mpfr_clears(pi, from_rad, NULL);
 	return 0;
-} /* rad2deg() */
+} /* rad_to_deg() */
+
+int rad_to_grad(synge_t grad, synge_t rad, mpfr_rnd_t round) {
+	/* get pi */
+	synge_t pi;
+	mpfr_init2(pi, SYNGE_PRECISION);
+	mpfr_const_pi(pi, round);
+
+	/* get conversion for rad -> grad */
+	synge_t from_rad;
+	mpfr_init2(from_rad, SYNGE_PRECISION);
+	mpfr_si_div(from_rad, 200, pi, round);
+
+	/* convert it */
+	mpfr_mul(grad, rad, from_rad, round);
+
+	/* free memory associated with values */
+	mpfr_clears(pi, from_rad, NULL);
+	return 0;
+} /* rad_to_grad() */
 
 int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* A = rand() -- 0 <= rand() < 1 */
@@ -292,8 +360,14 @@ function func_list[] = {
 	{"series",	"series(x)",	"Gives addition of all integers up to x",			sy_series},
 	{"assert",	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise",		sy_assert},
 
-	{"deg2rad",	"deg2rad(x)",	"Convert x degrees to radians",   					deg2rad},
-	{"rad2deg",	"rad2deg(x)",	"Convert x radians to degrees",   					rad2deg},
+	{"deg_to_rad",	"deg_to_rad(x)",	"Convert x degrees to radians",   			deg_to_rad},
+	{"deg_to_grad",	"deg_to_grad(x)",	"Convert x degrees to gradians",   			deg_to_grad},
+
+	{"rad_to_deg",	"rad_to_deg(x)",	"Convert x radians to degrees",   			rad_to_deg},
+	{"rad_to_grad",	"rad_to_grad(x)",	"Convert x radians to gradians",   			rad_to_grad},
+
+	{"grad_to_deg",	"grad_to_deg(x)",	"Convert x gradians to degrees",   			grad_to_deg},
+	{"grad_to_rad",	"grad_to_rad(x)",	"Convert x gradians to radians",   			grad_to_rad},
 
 	{"asinh",	"asinh(x)",		"Inverse hyperbolic sine of x",						mpfr_asinh},
 	{"acosh",	"acosh(x)",		"Inverse hyperbolic cosine of x",					mpfr_acosh},
@@ -1315,7 +1389,10 @@ char *angle_infunc_list[] = {
 void settings_to_rad(synge_t out, synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
-			deg2rad(out, in, SYNGE_ROUND);
+			deg_to_rad(out, in, SYNGE_ROUND);
+			break;
+		case gradians:
+			grad_to_rad(out, in, SYNGE_ROUND);
 			break;
 		case radians:
 			mpfr_set(out, in, SYNGE_ROUND);
@@ -1335,7 +1412,10 @@ char *angle_outfunc_list[] = {
 void rad_to_settings(synge_t out, synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
-			rad2deg(out, in, SYNGE_ROUND);
+			rad_to_deg(out, in, SYNGE_ROUND);
+			break;
+		case gradians:
+			rad_to_grad(out, in, SYNGE_ROUND);
 			break;
 		case radians:
 			mpfr_set(out, in, SYNGE_ROUND);
