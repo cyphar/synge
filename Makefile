@@ -49,7 +49,7 @@ endif
 OS_PRE		= $(SY_OS)-pre
 OS_POST		= $(SY_OS)-post
 
-PYTHON		= python2
+PYTHON		= python3
 
 ##################
 # OPTIONAL FLAGS #

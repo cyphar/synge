@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Synge: A shunting-yard calculation "engine"
 # Copyright (C) 2013 Cyphar
@@ -457,34 +457,34 @@ def test_calc(program, test, expected, mode, change, description):
 		output = output[:-1]
 
 	if output == expected:
-		print "%s ... %sOK%s" % (description, ansi_good, ansi_reset)
+		print("%s ... %sOK%s" % (description, ansi_good, ansi_reset))
 		return True
 	elif change:
-		print "%s ... %sWARN%s" % (description, ansi_warn, ansi_reset)
+		print("%s ... %sWARN%s" % (description, ansi_warn, ansi_reset))
 		return True
 	else:
-		print "%s ... %sFAIL%s" % (description, ansi_error, ansi_reset)
+		print("%s ... %sFAIL%s" % (description, ansi_error, ansi_reset))
 
 		if len(expected) > 1:
-			print "\tExpressions:"
+			print("\tExpressions:")
 			for each in test:
-				print '\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset)
+				print('\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset))
 		else:
-			print '\tExpression: "%s%s%s"' % (ansi_good, test[0], ansi_reset)
+			print('\tExpression: "%s%s%s"' % (ansi_good, test[0], ansi_reset))
 
 		if len(output) > 1:
-			print "\tOutput:"
+			print("\tOutput:")
 			for each in output:
-				print '\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset)
+				print('\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset))
 		else:
-			print '\tOutput: "%s%s%s"' % (ansi_error, output[0], ansi_reset)
+			print('\tOutput: "%s%s%s"' % (ansi_error, output[0], ansi_reset))
 
 		if len(expected) > 1:
-			print "\tExpected:"
+			print("\tExpected:")
 			for each in expected:
-				print '\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset)
+				print('\t\t- "%s%s%s"' % (ansi_good, each, ansi_reset))
 		else:
-			print '\tExpected: "%s%s%s"' % (ansi_good, expected[0], ansi_reset)
+			print('\tExpected: "%s%s%s"' % (ansi_good, expected[0], ansi_reset))
 
 		return False
 
@@ -495,19 +495,19 @@ def run_tests(program):
 		counter += 1
 		if not test_calc(program, case[0], case[1], case[2], case[3], case[4]):
 			failures += 1
-	print "--- Test Summary ---"
-	print "Cases run: %d" % (counter)
+	print("--- Test Summary ---")
+	print("Cases run: %d" % (counter))
 	if failures > 0:
-		print "%sFailed cases: %d%s" % (ansi_error, failures, ansi_reset)
+		print("%sFailed cases: %d%s" % (ansi_error, failures, ansi_reset))
 		return 1
 	else:
-		print "%sAll tests passed%s" % (ansi_good, ansi_reset)
+		print("%sAll tests passed%s" % (ansi_good, ansi_reset))
 		return 0
 
 def main():
-	print "--- Beginning Synge Test Suite ---"
+	print("--- Beginning Synge Test Suite ---")
 	if len(argv) < 2:
-		print "Error: no test executable given"
+		print("Error: no test executable given")
 		return 1
 	return run_tests(argv[1])
 
