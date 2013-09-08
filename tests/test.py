@@ -26,6 +26,7 @@ from sys import argv
 
 deg = "degrees"
 rad = "radians"
+grad = "gradians"
 
 if name is not "nt":
 	ansi_error = "\x1b[1;31m"
@@ -276,8 +277,11 @@ CASES = [
 	["-0.3206694139641565326987689858924589712956105145341298199928108166"],	rad,	0,		"Radian Trigonometry	"),
 	(["atan(1)+acos(0.5)+asin(0)"],
 	["1.8325957145940460557698753069130433491150154829688117289020510122"],		rad,	0,		"Radian Trigonometry	"),
-
 	(["atan(sin(1.1)/cos(1.1))"],	["1.1"],			rad,	0,		"Radian Trigonometry	"),
+
+	(["tan(50)+cos(200/3)+sin(100/3)"],	["2"],				grad,	0,		"Gradian Trigonometry	"),
+	(["atan(1)+acos(0.5)+asin(0.5)"],	["150"],			grad,	0,		"Gradian Trigonometry	"),
+	(["atan(sin(42)/cos(42))"],			["42"],				grad,	0,		"Gradian Trigonometry	"),
 
 	(["tanh(ln(2))"],				["0.6"],			0,	0,		"Hyperbolic Trigonometry	"),
 	(["e^atanh(0.6)"],				["2"],				0,	0,		"Hyperbolic Trigonometry	"),
@@ -286,7 +290,7 @@ CASES = [
 	(["sinh(ln(2))"],				["0.75"],			0,	0,		"Hyperbolic Trigonometry	"),
 	(["e^asinh(0.75)"],				["2"],				0,	0,		"Hyperbolic Trigonometry	"),
 
-	(["deg2rad(180/pi)+rad2deg(pi)"],	["181"],		0,	0,		"Angle Conversion	"),
+	(["deg_to_rad(180/pi)+rad_to_deg(pi)"],	["181"],		0,	0,		"Angle Conversion	"),
 
 	(["2^2^2-15-14-12-11-10^5"],		["-100036"],	0,	0,		"Long Expression		"),
 	(["57-(-2)^2-floor(log10(23))"],	["52"],			0,	0,		"Long Expression		"),
