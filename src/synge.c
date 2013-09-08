@@ -2110,37 +2110,75 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					case op_gt:
 						{
 							int cmp = mpfr_cmp(arg[0], arg[1]);
-							mpfr_set_si(*result, cmp > 0, SYNGE_ROUND);
+
+							/* equality => abs(arg[0] - arg[1]) < epsilon */
+							synge_t eq;
+							mpfr_init2(eq, SYNGE_PRECISION);
+							mpfr_sub(eq, arg[0], arg[1], SYNGE_ROUND);
+
+							mpfr_set_si(*result, cmp > 0 && !iszero(eq), SYNGE_ROUND);
+							mpfr_clear(eq);
 						}
 						break;
 					case op_gteq:
 						{
 							int cmp = mpfr_cmp(arg[0], arg[1]);
-							mpfr_set_si(*result, cmp >= 0, SYNGE_ROUND);
+
+							/* equality => abs(arg[0] - arg[1]) < epsilon */
+							synge_t eq;
+							mpfr_init2(eq, SYNGE_PRECISION);
+							mpfr_sub(eq, arg[0], arg[1], SYNGE_ROUND);
+
+							mpfr_set_si(*result, cmp > 0 || iszero(eq), SYNGE_ROUND);
+							mpfr_clear(eq);
 						}
 						break;
 					case op_lt:
 						{
 							int cmp = mpfr_cmp(arg[0], arg[1]);
-							mpfr_set_si(*result, cmp < 0, SYNGE_ROUND);
+
+							/* equality => abs(arg[0] - arg[1]) < epsilon */
+							synge_t eq;
+							mpfr_init2(eq, SYNGE_PRECISION);
+							mpfr_sub(eq, arg[0], arg[1], SYNGE_ROUND);
+
+							mpfr_set_si(*result, cmp < 0 && !iszero(eq), SYNGE_ROUND);
+							mpfr_clear(eq);
 						}
 						break;
 					case op_lteq:
 						{
 							int cmp = mpfr_cmp(arg[0], arg[1]);
-							mpfr_set_si(*result, cmp <= 0, SYNGE_ROUND);
+
+							/* equality => abs(arg[0] - arg[1]) < epsilon */
+							synge_t eq;
+							mpfr_init2(eq, SYNGE_PRECISION);
+							mpfr_sub(eq, arg[0], arg[1], SYNGE_ROUND);
+
+							mpfr_set_si(*result, cmp < 0 || iszero(eq), SYNGE_ROUND);
+							mpfr_clear(eq);
 						}
 						break;
 					case op_neq:
 						{
-							int cmp = mpfr_cmp(arg[0], arg[1]);
-							mpfr_set_si(*result, cmp != 0, SYNGE_ROUND);
+							/* equality => abs(arg[0] - arg[1]) < epsilon */
+							synge_t eq;
+							mpfr_init2(eq, SYNGE_PRECISION);
+							mpfr_sub(eq, arg[0], arg[1], SYNGE_ROUND);
+
+							mpfr_set_si(*result, !iszero(eq), SYNGE_ROUND);
+							mpfr_clear(eq);
 						}
 						break;
 					case op_eq:
 						{
-							int cmp = mpfr_cmp(arg[0], arg[1]);
-							mpfr_set_si(*result, cmp == 0, SYNGE_ROUND);
+							/* equality => abs(arg[0] - arg[1]) < epsilon */
+							synge_t eq;
+							mpfr_init2(eq, SYNGE_PRECISION);
+							mpfr_sub(eq, arg[0], arg[1], SYNGE_ROUND);
+
+							mpfr_set_si(*result, iszero(eq), SYNGE_ROUND);
+							mpfr_clear(eq);
 						}
 						break;
 					case op_band:
