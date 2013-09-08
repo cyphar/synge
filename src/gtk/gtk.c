@@ -159,16 +159,14 @@ __EXPORT_SYMBOL void gui_about_popup(GtkWidget *widget, gpointer data) {
 
 __EXPORT_SYMBOL void gui_toggle_mode(GtkWidget *widget, gpointer data) {
 	synge_settings new = synge_get_settings();
-	switch(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
-		case TRUE:
-			if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "degrees")) new.mode = degrees;
-			else if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "radians")) new.mode = radians;
-			break;
-		case FALSE:
-			if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "degrees")) new.mode = radians;
-			else if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "radians")) new.mode = degrees;
-			break;
-	}
+
+	if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "degrees"))
+		new.mode = degrees;
+	else if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "radians"))
+		new.mode = radians;
+	else if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "gradians"))
+		new.mode = gradians;
+
 	synge_set_settings(new);
 } /* gui_toggle_mode() */
 
