@@ -2,7 +2,7 @@ language: c
 compiler:
         - gcc
         - clang
-install: "sudo apt-get install libedit-dev libgtk2.0-dev libmpfr-dev libgmp-dev valgrind"
+install: "sudo apt-get install libedit-dev libgtk2.0-dev libmpfr-dev libgmp-dev valgrind python3"
 script:
         - "make -B debug"
         - "make -B all"
