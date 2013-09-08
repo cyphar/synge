@@ -33,7 +33,7 @@
  *        Run the expression through Synge, using the given settings, and defaults otherwise.
  *
  * OPTIONS:
- *        -m <mode>, --mode <mode> 	Sets the mode to <mode> (radians || degrees)
+ *        -m <mode>, --mode <mode> 	Sets the mode to <mode> (radians || degrees || gradians)
  *        -R, --no-random		Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)
  *        -S, --no-skip			Do not skip "ignorable" error messages
  *
@@ -60,7 +60,7 @@
 "\n" \
 "Run the expression through Synge, using the given settings, and defaults otherwise.\n" \
 "\n" \
-"  -m <mode>, --mode <mode>     Sets the mode to <mode> (radians || degrees)\n" \
+"  -m <mode>, --mode <mode>     Sets the mode to <mode> (radians || degrees || gradians)\n" \
 "  -R, --no-random              Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)\n" \
 "  -S, --no-skip                Do not skip 'ignorable' error messages\n" \
 "\n" \
@@ -78,8 +78,14 @@ void bake_args(int argc, char ***argv) {
 	for(i = 1; i < argc; i++) {
 		if(!strcmp((*argv)[i], "-m") || !strcmp((*argv)[i], "-mode") || !strcmp((*argv)[i], "--mode")) {
 				i++;
-				if(!strcasecmp((*argv)[i], "radians")) test_settings.mode = radians;
-				else if(!strcasecmp((*argv)[i], "degrees")) test_settings.mode = degrees;
+
+				if(!strcasecmp((*argv)[i], "radians"))
+					test_settings.mode = radians;
+				else if(!strcasecmp((*argv)[i], "degrees"))
+					test_settings.mode = degrees;
+				else if(!strcasecmp((*argv)[i], "gradians"))
+					test_settings.mode = gradians;
+
 				(*argv)[i-1] = NULL;
 				(*argv)[i] = NULL;
 		}
