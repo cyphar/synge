@@ -1,6 +1,28 @@
 @echo off
 title Synge Installer
 
+:: Synge: A shunting-yard calculation "engine"
+:: Copyright (C) 2013 Cyphar
+::
+:: Permission is hereby granted, free of charge, to any person obtaining a copy of
+:: this software and associated documentation files (the "Software"), to deal in
+:: the Software without restriction, including without limitation the rights to
+:: use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+:: the Software, and to permit persons to whom the Software is furnished to do so,
+:: subject to the following conditions:
+::
+:: 1. The above copyright notice and this permission notice shall be included in
+::    all copies or substantial portions of the Software.
+::
+:: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+:: IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+:: FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+:: AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+:: LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+:: OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+:: SOFTWARE.
+::
+
 set INSTALL_DIR=C:\Program Files\Synge
 set BIN=%INSTALL_DIR%\bin
 
@@ -20,11 +42,20 @@ goto help
 set OPTIONS=1
 
 cls
-echo ========= Synge Windows Installer =========
-echo  i  Install Synge and its dependencies
-echo  u  Uninstall Synge and its dependencies
+echo =========== Synge Windows Installer ===========
+echo This simple installer will un/install Synge and
+echo all of the associated dependancies on a windows
+echo system. The files will be downloaded from an
+echo online repository, giving the freshest copy of
+echo the source tree.
+echo ===============================================
+echo  i  Install Synge and its dependencies [*] [+]
+echo  u  Uninstall Synge and its dependencies [*]
 echo  q  Quit installer
-echo ===========================================
+echo ===============================================
+echo [*] Requires administrative privileges
+echo [+] Requires internet access
+echo ===============================================
 
 set /p INPUT="option> "
 
@@ -105,8 +136,8 @@ goto end
 echo Removing Libraries and Synge ...
 rmdir /s /q "%INSTALL_DIR%"
 
-echo Updating PATH ...
-::call setx -a PATH %STRIP_PATH%
+::echo Updating PATH ...
+::setx -a PATH %STRIP_PATH%
 
 echo Done
 goto end
@@ -116,12 +147,21 @@ goto end
 :: Help
 :: ----
 
-echo ========= Synge Windows Installer =========
+echo =========== Synge Windows Installer ===========
+echo This simple installer will un/install Synge and
+echo all of the associated dependancies on a windows
+echo system. The files will be downloaded from an
+echo online repository, giving the freshest copy of
+echo the source tree.
+echo ===============================================
 echo windows.bat [-i] [-u] [-h]
-echo   -i  Install Synge and its dependencies
-echo   -u  Uninstall Synge and its dependencies
-echo   -h  Show this help screen
-echo ===========================================
+echo  -i  Install Synge and its dependencies [*] [+]
+echo  -u  Uninstall Synge and its dependencies [*]
+echo  -q  Quit installer
+echo ===============================================
+echo [*] Requires administrative privileges
+echo [+] Requires internet access
+echo ===============================================
 goto end
 
 :end
