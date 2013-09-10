@@ -55,8 +55,42 @@ Install all of the above to a single `/bin` location, and ensure that your `%PAT
 
 ### OS X ###
 Unfortunately, there is currently no easy, simple and documented way to compile, test and install Synge on OS X.
-For the really ambitious, you need to compile `mpfr` and `gmp` manually, and then compile Synge.
-Since GTK doesn't work on OS X, you can only really use the CLI version.
+
+#### For the ambitious ####
+You need the following:
+
+* XCode Developer Tools (with the gcc/clang command line tools).
+* [libedit](http://www.thrysoee.dk/editline)>=3.1 source
+* [libgmp](http://gmplib.org/#DOWNLOAD)>=5.1.2 source
+* [libmpfr](http://www.mpfr.org/mpfr-current/#download)>=3.1.2 source
+* [python3](http://www.python.org/download/)>=3.3.2 (should be pre-installed)
+
+You first need to compile libedit, libgmp, libmpfr (in that order). These commands will produce HUGE amounts of errors (because OS X is very bad when it comes to compilation), but it *SHOULD* still work:
+```
+# libedit
+tar xvfz libedit.tar.gz
+cd libedit
+./configure && make && sudo make install
+
+# GMP
+tar xvfz libgmp.tar.gz
+cd libgmp
+./configure && make && sudo make install
+
+# MPFR
+tar xvfz libmpfr.tar.gz
+cd libmpfr
+./configure && make && sudo make install
+
+# Synge
+cd synge
+make
+make test
+sudo make install
+```
+
+The above instructions are far from conclusive. While Synge has been successfully compiled on OS X, it has not been done on REAL hardware.
+Since GTK doesn't really work on OS X, you can only really use the CLI version.
 
 ### Hurd ###
 Really? Since Synge isn't GPL, you probably don't want to use it anyway. But the instructions are the same as Linux.
