@@ -28,7 +28,7 @@ This method requires an internet connection and a administrative privileges
 * Download the zip'd [repository](https://github.com/cyphar/synge/archive/master.zip)
 * Unzip it, and navigate to `win/`
 * Run `windows.bat`, and press `i` (or run `windows.bat -i`)
-* Synge is now installed at `C:\Program Files\Synge`
+* Synge is now installed in `C:\Program Files\Synge`
 
 #### Compiling ####
 In order to compile Synge, you need a working [mingw](http://www.mingw.org/) toolchain.
@@ -36,7 +36,7 @@ In order to compile Synge, you need a working [mingw](http://www.mingw.org/) too
 * Install the [libgmp](http://sourceforge.net/projects/mingw/files/MinGW/Base/gmp/) ...
 * ... and [libmpfr](http://sourceforge.net/projects/mingw/files/MinGW/Base/mpfr/) dlls to the `mingw/bin` directory
 * Install [python 3](http://www.python.org/download/)
-* Download code from github.com/cyphar/synge
+* Download code from [github](https://github.com/cyphar/synge)
 
 Compile and test code:
 ```
@@ -65,7 +65,7 @@ You need the following:
 * [libmpfr](http://www.mpfr.org/mpfr-current/#download)>=3.1.2 source
 * [python3](http://www.python.org/download/)>=3.3.2 (should be pre-installed)
 
-You first need to compile libedit, libgmp, libmpfr (in that order). These commands will produce HUGE amounts of errors (because OS X is very bad when it comes to compilation), but it *SHOULD* still work:
+You first need to compile libedit, libgmp, libmpfr (in that order). These commands will produce **huge** amounts of errors (because OS X is very bad when it comes to compilation), but it *should* still work:
 ```
 # libedit
 tar xvfz libedit.tar.gz
@@ -89,8 +89,8 @@ make test
 sudo make install
 ```
 
-The above instructions are far from conclusive. While Synge has been successfully compiled on OS X, it has not been done on REAL hardware.
-Since GTK doesn't really work on OS X, you can only really use the CLI version.
+The above instructions are far from comprehensive. While Synge has been successfully compiled on OS X and passed all of the tests, it has not been fully documented.
+In addition, since GTK doesn't work on OS X, you can only really use the CLI version.
 
 ### Hurd ###
 Really? Since Synge isn't GPL, you probably don't want to use it anyway. But the instructions are the same as Linux.
