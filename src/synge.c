@@ -526,44 +526,8 @@ synge_settings active_settings = {
 	dynamic /* precision */
 };
 
-char *replace(char *str, char *old, char *new) {
-	char *ret, *s = str;
-	int i, count = 0;
-	int newlen = strlen(new), oldlen = strlen(old);
-
-	for(i = 0; s[i] != '\0'; i++) {
-		if(strstr(&s[i], old) == &s[i]) {
-			/* update count and jump forward in string */
-			count++;
-			i += oldlen - 1;
-		}
-	}
-
-	ret = malloc(i + count * (newlen - oldlen) + 1);
-	if (ret == NULL) return NULL;
-
-	i = 0;
-	while(*s != '\0') {
-		/* overwrite every occurence of old */
-		if(strstr(s, old) == s) {
-			strcpy(&ret[i], new);
-
-			/* update iterators */
-			i += newlen;
-			s += oldlen;
-		} else {
-			/* otherwise, copy over offset character from original string */
-			ret[i++] = *s++;
-		}
-	}
-
-	/* null terminate */
-	ret[i] = '\0';
-	return ret;
-} /* replace() */
-
-char *get_word(char *s, char *list, char **endptr) {
-	int lenstr = strlen(s), lenlist = strlen(list);
+char *get_word_ptr(char *string, char *list) {
+	int lenstr = strlen(string), lenlist = strlen(list);
 
 	/* go through string */
 	int i, j, found;
@@ -573,7 +537,7 @@ char *get_word(char *s, char *list, char **endptr) {
 		/* check current character against allowed character "list" */
 		for(j = 0; j < lenlist; j++) {
 			/* match found */
-			if(s[i] == list[j]) {
+			if(string[i] == list[j]) {
 				found = true;
 				break;
 			}
@@ -584,17 +548,45 @@ char *get_word(char *s, char *list, char **endptr) {
 			break;
 	}
 
+	/* found end of word */
+	return string + i;
+} /* get_word_ptr() */
+
+char *get_word(char *string, char *list, char **endptr) {
+	/* get word pointer */
+	*endptr = get_word_ptr(string, list);
+	int i = *endptr - string;
+
+	/* no word found */
+	if(!i)
+		return NULL;
+
 	/* copy over the word */
 	char *ret = malloc(i + 1);
-	memcpy(ret, s, i);
+	memcpy(ret, string, i);
 	ret[i] = '\0';
 
 	/* make the word lowercase -- everything is case insensitive */
 	strlower(ret);
-
-	*endptr = s+i;
 	return ret;
 } /* get_word() */
+
+bool contains_word(char *string, char *word, char *list) {
+	int len = strlen(word);
+	char *p = string, *cur = NULL;
+
+	do {
+		/* word found */
+		if(!strncasecmp(p, word, len))
+			return true;
+
+		/* "backup" pointer */
+		cur = p;
+	} while(cur != (p = get_word_ptr(p, list)) || *(++p));
+
+	/* word not found */
+	return false;
+} /* contains_word() */
 
 char *trim_spaces(char *str) {
 	/* move starting pointer to first non-space character */
@@ -778,7 +770,7 @@ bool isnum(char *string) {
 	mpfr_clears(tmp, NULL);
 
 	/* all cases where word is a number */
-	int ret = (get_special_num(s).name || string != endptr);
+	int ret = ((s && get_special_num(s).name) || string != endptr);
 	free(s);
 	return ret;
 } /* isnum() */
@@ -928,7 +920,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			mpfr_init2(*num, SYNGE_PRECISION);
 
 			/* if it is a "special" number */
-			if(get_special_num(word).name) {
+			if(word && get_special_num(word).name) {
 				special_number stnum = get_special_num(word);
 				stnum.value(*num, SYNGE_ROUND);
 				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
@@ -2699,10 +2691,12 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 		mpfr_set(prev_answer, *result, SYNGE_ROUND);
 		link_pend(traceback_list);
 
-		/* TODO: don't make '_' equal an expression that has '_' as a word in it */
+		/* if the expression doesn't contain '_', set '_' to the expression*/
 		char *stripped = trim_spaces(string);
-		if(strcmp(SYNGE_PREV_EXPRESSION, stripped))
+
+		if(!contains_word(stripped, SYNGE_PREV_EXPRESSION, SYNGE_WORD_CHARS))
 			ohm_insert(expression_list, SYNGE_PREV_EXPRESSION, strlen(SYNGE_PREV_EXPRESSION) + 1, stripped, strlen(stripped) + 1);
+
 		free(stripped);
 	}
 
