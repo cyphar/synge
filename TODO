@@ -3,6 +3,7 @@ Things to fix/implement:
 ALL:
 + Documentation
 * General code clean-up (especially evaluation code)
+* Make Synge a shared library
 
 SYNGE:
 * Refactor helper functions
