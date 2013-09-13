@@ -2686,6 +2686,11 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 			mpfr_clear(j.value);
 	}
 
+	/* make sure user hasn't done something like set '_' to a variable or deleted it */
+	ohm_remove(variable_list, SYNGE_PREV_EXPRESSION, strlen(SYNGE_PREV_EXPRESSION) + 1);
+	if(!ohm_search(expression_list, SYNGE_PREV_EXPRESSION, strlen(SYNGE_PREV_EXPRESSION) + 1))
+			ohm_insert(expression_list, SYNGE_PREV_EXPRESSION, strlen(SYNGE_PREV_EXPRESSION) + 1, "", 1);
+
 	/* if everything went well, set the answer variable (and remove current depth from traceback) */
 	if(synge_is_success_code(ecode.code)) {
 		mpfr_set(prev_answer, *result, SYNGE_ROUND);
