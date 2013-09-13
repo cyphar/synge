@@ -30,6 +30,9 @@ ifeq ($(OS), Windows_NT)
 	EXEC_PREFIX	=
 	EXEC_SUFFIX	=.exe
 
+	CORE_PREFIX	=
+	CORE_SUFFIX	=.dll
+
 	GIT_VERSION	=
 	SY_OS		= windows
 else
@@ -41,6 +44,9 @@ else
 
 	EXEC_PREFIX	=./
 	EXEC_SUFFIX	=
+
+	CORE_PREFIX	=lib
+	CORE_SUFFIX	=.so
 
 	GIT_VERSION	= $(shell git rev-parse --verify HEAD)
 	SY_OS		= unix
@@ -62,12 +68,14 @@ CHEEKY		?= 0
 # CONSTANTS SECTION #
 #####################
 
-CC		?= cc
+CC			?= cc
 EXEC_BASE	= synge
+LIB_CORE	= $(EXEC_BASE)
 
 NAME_CLI	= $(EXEC_BASE)-cli
 NAME_GTK	= $(EXEC_BASE)-gtk
 NAME_EVAL	= $(EXEC_BASE)-eval
+NAME_CORE	= $(CORE_PREFIX)$(EXEC_BASE)$(CORE_SUFFIX)
 
 EXEC_CLI	= $(NAME_CLI)$(EXEC_SUFFIX)
 EXEC_GTK	= $(NAME_GTK)$(EXEC_SUFFIX)
@@ -105,17 +113,24 @@ EVAL_IDIR	= $(INCLUDE_DIR)/eval
 TEST_DIR	= tests
 
 WARNINGS	= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
+
 SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
+
+CORE_CFLAGS	+= -fPIC
+CORE_SFLAGS += -shared -Wl,-soname,$(NAME_CORE)
+
 CLI_CFLAGS	+=
 GTK_CFLAGS	+= `pkg-config --cflags gtk+-2.0`
 EVAL_CFLAGS	+=
 
-SHR_LFLAGS	+= -lm -lgmp -lmpfr
+SHR_LFLAGS	+= -lm -lgmp -lmpfr -L. -l$(LIB_CORE)
+CORE_LFLAGS	+=
 CLI_LFLAGS	+=
 GTK_LFLAGS	+= `pkg-config --libs gtk+-2.0 gmodule-2.0`
 EVAL_LFLAGS	+=
 
 SHR_SRC		+= $(wildcard $(SRC_DIR)/*.c)
+CORE_SRC	+= $(wildcard $(SRC_DIR)/*.c)
 CLI_SRC		+= $(wildcard $(CLI_SDIR)/*.c)
 GTK_SRC		+= $(wildcard $(GTK_SDIR)/*.c)
 EVAL_SRC	+= $(wildcard $(EVAL_SDIR)/*.c)
@@ -125,11 +140,12 @@ CLI_DEPS	+=
 GTK_DEPS	+= $(wildcard $(GTK_SDIR)/*.h) $(GTK_SDIR)/ui.glade $(GTK_SDIR)/bakeui.py
 EVAL_DEPS	+=
 
-TO_CLEAN	= $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
+TO_CLEAN	= $(NAME_CORE) $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
 
 VALGRIND	= valgrind --leak-check=full --show-reachable=yes
 PREFIX		?= /usr
-INSTALL_DIR	= $(PREFIX)/bin
+INSTALL_BIN	= $(PREFIX)/bin
+INSTALL_LIB = $(PREFIX)/lib
 
 ######################
 # PRODUCTION SECTION #
@@ -137,20 +153,37 @@ INSTALL_DIR	= $(PREFIX)/bin
 
 # Compile "production" core and wrappers (w/ git-version)
 all:
+	make $(NAME_CORE)
 	make $(NAME_CLI)
 	make $(NAME_GTK)
 	make $(NAME_EVAL)
 
 # Compile "final" core and wrappers (w/o git-version)
 final:
+	make $(NAME_CORE) GIT_VERSION=
 	make $(NAME_CLI) GIT_VERSION=
 	make $(NAME_GTK) GIT_VERSION=
 	make $(NAME_EVAL) GIT_VERSION=
 
-# Compile "production" core and command-line wrapper
+# Compile "production" core library
+$(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
+	make -B $(OS_PRE)
+	$(CC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
+		-c $(CORE_SRC) $(CORE_LFLAGS) \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
+		$(WARNINGS)
+	$(CC) $(CORE_SFLAGS) -o $(NAME_CORE) *.o
+	strip $(NAME_CORE)
+	make -B $(OS_POST)
+	rm *.o
+
+# Compile "production" command-line wrapper
 $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
@@ -160,11 +193,11 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	strip $(EXEC_CLI)
 	make -B $(OS_POST)
 
-# Compile "production" core and gui wrapper
+# Compile "production" gui wrapper
 $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
@@ -174,10 +207,10 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	strip $(EXEC_GTK)
 	make -B $(OS_POST)
 
-# Compile "production" core and simple eval wrapper
+# Compile "production" simple eval wrapper
 $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
@@ -191,22 +224,22 @@ $(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 # TEST SECTION #
 ################
 
-# Compile "production" core and test suite wrapper + execute test suite
+# Execute test suite
 test: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found -- required for test suite"; \
 		false; \
 	else \
-		$(PYTHON) $(TEST_DIR)/test.py "$(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
+		LD_LIBRARY_PATH=. $(PYTHON) $(TEST_DIR)/test.py "$(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
 	fi
 
-# Compile "production" core and test suite wrapper + execute test suite (in valgrind)
+# Execute test suite (in valgrind)
 mtest: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	@if [ -z "`$(PYTHON) --version 2>&1`" ]; then \
 		echo "$(PYTHON) not found -- required for test suite"; \
 		false; \
 	else \
-		$(PYTHON) $(TEST_DIR)/test.py "$(VALGRIND) $(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
+		LD_LIBRARY_PATH=. $(PYTHON) $(TEST_DIR)/test.py "$(VALGRIND) $(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
 	fi
 
 #################
@@ -215,14 +248,29 @@ mtest: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 
 # Compile "debug" core and wrappers
 debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
+	make debug-lib
 	make debug-cli
 	make debug-gtk
 	make debug-eval
 
-# Compile "debug" core and command-line wrapper
-debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+# Compile "debug" core library
+debug-lib: $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(CC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
+		-c $(CORE_SRC) -g -O0 -D__SYNGE_DEBUG__ \
+		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
+		-D__SYNGE_SAFE__="$(SAFE)" \
+		-D__SYNGE_COLOUR__="$(COLOUR)" \
+		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
+		$(WARNINGS)
+	$(CC) $(CORE_SFLAGS) -g -O0 -o $(NAME_CORE) *.o
+	make -B $(OS_POST)
+	rm *.o
+
+# Compile "debug" command-line wrapper
+debug-cli: $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+	make -B $(OS_PRE)
+	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		-g -O0 -D__SYNGE_DEBUG__ \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -232,11 +280,11 @@ debug-cli: $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(WARNINGS)
 	make -B $(OS_POST)
 
-# Compile "debug" core and gui wrapper
-debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
+# Compile "debug" gui wrapper
+debug-gtk: $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(SHR_SRC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		-g -O0 -D__SYNGE_DEBUG__ \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -246,10 +294,10 @@ debug-gtk: $(SHR_SRC) $(GTK) $(SHR_DEPS) $(GTK_DEPS)
 		$(WARNINGS)
 	make -B $(OS_POST)
 
-# Compile "debug" core and simple eval wrapper
-debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
+# Compile "debug" simple eval wrapper
+debug-eval: $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_SRC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		-g -O0 -D__SYNGE_DEBUG__ \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
@@ -265,21 +313,26 @@ debug-eval: $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 
 # Install both wrappers
 install:
+	make install-lib
 	make install-cli
 	make install-gtk
 	make install-eval
 
+# Install core library
+install-lib: $(NAME_CORE)
+	cp $(NAME_CORE) $(INSTALL_LIB)/$(NAME_CORE)
+
 # Install cli wrapper
 install-cli: $(EXEC_CLI)
-	cp $(EXEC_CLI) $(INSTALL_DIR)/$(EXEC_CLI)
+	cp $(EXEC_CLI) $(INSTALL_BIN)/$(EXEC_CLI)
 
 # Install gtk wrapper
 install-gtk: $(EXEC_GTK)
-	cp $(EXEC_GTK) $(INSTALL_DIR)/$(EXEC_GTK)
+	cp $(EXEC_GTK) $(INSTALL_BIN)/$(EXEC_GTK)
 
 # Install eval wrapper
 install-eval: $(EXEC_EVAL)
-	cp $(EXEC_EVAL) $(INSTALL_DIR)/$(EXEC_EVAL)
+	cp $(EXEC_EVAL) $(INSTALL_BIN)/$(EXEC_EVAL)
 
 #################
 # CLEAN SECTION #
@@ -291,21 +344,26 @@ clean:
 
 # Uninstall both wrappers
 uninstall:
+	make uninstall-lib
 	make uninstall-cli
 	make uninstall-gtk
 	make uninstall-eval
 
+# Uninstall core library
+uninstall-lib:
+	rm -f $(INSTALL_LIB)/$(NAME_CORE)
+
 # Uninstall cli wrapper
 uninstall-cli:
-	rm -f $(INSTALL_DIR)/$(EXEC_CLI)
+	rm -f $(INSTALL_BIN)/$(EXEC_CLI)
 
 # Uninstall gtk wrapper
 uninstall-gtk:
-	rm -f $(INSTALL_DIR)/$(EXEC_GTK)
+	rm -f $(INSTALL_BIN)/$(EXEC_GTK)
 
 # Uninstall eval wrapper
 uninstall-eval:
-	rm -f $(INSTALL_DIR)/$(EXEC_EVAL)
+	rm -f $(INSTALL_BIN)/$(EXEC_EVAL)
 
 ################
 # MISC SECTION #

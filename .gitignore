@@ -4,3 +4,4 @@ synge-gtk
 synge-eval
 
 *.o
+*.so
