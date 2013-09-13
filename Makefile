@@ -117,7 +117,7 @@ WARNINGS	= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-vari
 SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
 
 CORE_CFLAGS	+= -fPIC
-CORE_SFLAGS += -shared -Wl,-soname,$(NAME_CORE)
+CORE_SFLAGS += -shared
 
 CLI_CFLAGS	+=
 GTK_CFLAGS	+= `pkg-config --cflags gtk+-2.0`
