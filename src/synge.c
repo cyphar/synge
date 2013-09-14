@@ -110,7 +110,7 @@ static synge_t prev_answer;
 static char *error_msg_container = NULL;
 static link_t *traceback_list = NULL;
 
-void print_stack(stack *s) {
+static void print_stack(stack *s) {
 #ifdef __SYNGE_DEBUG__
 	int i, size = stack_size(s);
 	for(i = 0; i < size; i++) {
@@ -135,7 +135,7 @@ void print_stack(stack *s) {
 #endif
 } /* print_stack() */
 
-void debug(char *format, ...) {
+static void debug(char *format, ...) {
 #ifdef __SYNGE_DEBUG__
 	va_list ap;
 	va_start(ap, format);
@@ -144,7 +144,7 @@ void debug(char *format, ...) {
 #endif
 } /* debug() */
 
-void cheeky(char *format, ...) {
+static void cheeky(char *format, ...) {
 #if defined(__SYNGE_CHEEKY__) && __SYNGE_CHEEKY__ > 0
 	va_list ap;
 	va_start(ap, format);
@@ -153,12 +153,41 @@ void cheeky(char *format, ...) {
 #endif
 } /* cheeky() */
 
-void synge_clear(void *tofree) {
+/* for windows, define strcasecmp and strncasecmp */
+#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+int strcasecmp(char *s1, char *s2) {
+	while (tolower(*s1) == tolower(*s2)) {
+		if (*s1 == '\0' || *s2 == '\0')
+			break;
+		s1++;
+		s2++;
+	}
+
+	return tolower(*(char *) s1) - tolower(*(char *) s2);
+}
+
+int strncasecmp(char *s1, char *s2, size_t n) {
+	if (n == 0)
+		return 0;
+
+	while (n-- != 0 && tolower(*s1) == tolower(*s2)) {
+		if (n == 0 || *s1 == '\0' || *s2 == '\0')
+			break;
+		s1++;
+		s2++;
+	}
+
+	return tolower(*(char *) s1) - tolower(*(char *) s2);
+}
+
+#endif
+
+static void synge_clear(void *tofree) {
 	synge_t *item = tofree;
 	mpfr_clear(SYNGE_T(item));
 } /* synge_clear() */
 
-int iszero(synge_t num) {
+static int iszero(synge_t num) {
 	synge_t epsilon;
 
 	/* generate "epsilon" */
@@ -172,7 +201,7 @@ int iszero(synge_t num) {
 	return (cmp < 0 || mpfr_zero_p(num));
 } /* iszero() */
 
-int deg_to_rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
+static int deg_to_rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
 	/* get pi */
 	synge_t pi;
 	mpfr_init2(pi, SYNGE_PRECISION);
@@ -191,7 +220,7 @@ int deg_to_rad(synge_t rad, synge_t deg, mpfr_rnd_t round) {
 	return 0;
 } /* deg_to_rad() */
 
-int deg_to_grad(synge_t grad, synge_t deg, mpfr_rnd_t round) {
+static int deg_to_grad(synge_t grad, synge_t deg, mpfr_rnd_t round) {
 	/* get conversion for deg -> grad */
 	synge_t from_deg;
 	mpfr_init2(from_deg, SYNGE_PRECISION);
@@ -206,7 +235,7 @@ int deg_to_grad(synge_t grad, synge_t deg, mpfr_rnd_t round) {
 	return 0;
 } /* deg_to_grad() */
 
-int grad_to_deg(synge_t deg, synge_t grad, mpfr_rnd_t round) {
+static int grad_to_deg(synge_t deg, synge_t grad, mpfr_rnd_t round) {
 	/* get conversion for grad -> deg */
 	synge_t from_grad;
 	mpfr_init2(from_grad, SYNGE_PRECISION);
@@ -221,7 +250,7 @@ int grad_to_deg(synge_t deg, synge_t grad, mpfr_rnd_t round) {
 	return 0;
 } /* grad_to_deg() */
 
-int grad_to_rad(synge_t rad, synge_t grad, mpfr_rnd_t round) {
+static int grad_to_rad(synge_t rad, synge_t grad, mpfr_rnd_t round) {
 	/* get pi */
 	synge_t pi;
 	mpfr_init2(pi, SYNGE_PRECISION);
@@ -240,7 +269,7 @@ int grad_to_rad(synge_t rad, synge_t grad, mpfr_rnd_t round) {
 	return 0;
 } /* grad_to_rad() */
 
-int rad_to_deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
+static int rad_to_deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
 	/* get pi */
 	synge_t pi;
 	mpfr_init2(pi, SYNGE_PRECISION);
@@ -259,7 +288,7 @@ int rad_to_deg(synge_t deg, synge_t rad, mpfr_rnd_t round) {
 	return 0;
 } /* rad_to_deg() */
 
-int rad_to_grad(synge_t grad, synge_t rad, mpfr_rnd_t round) {
+static int rad_to_grad(synge_t grad, synge_t rad, mpfr_rnd_t round) {
 	/* get pi */
 	synge_t pi;
 	mpfr_init2(pi, SYNGE_PRECISION);
@@ -278,7 +307,7 @@ int rad_to_grad(synge_t grad, synge_t rad, mpfr_rnd_t round) {
 	return 0;
 } /* rad_to_grad() */
 
-int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
+static int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* A = rand() -- 0 <= rand() < 1 */
 	synge_t random;
 	mpfr_init2(random, SYNGE_PRECISION);
@@ -292,7 +321,7 @@ int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	return 0;
 } /* sy_rand() */
 
-int sy_int_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
+static int sy_int_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
 	mpfr_floor(number, number);
 
@@ -304,7 +333,7 @@ int sy_int_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	return 0;
 } /* sy_int_rand() */
 
-int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
+static int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	/* round input */
 	synge_t number;
 	mpfr_init2(number, SYNGE_PRECISION);
@@ -323,7 +352,7 @@ int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	return 0;
 } /* sy_factorial() */
 
-int sy_series(synge_t to, synge_t number, mpfr_rnd_t round) {
+static int sy_series(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
 	mpfr_floor(number, number);
 
@@ -335,12 +364,12 @@ int sy_series(synge_t to, synge_t number, mpfr_rnd_t round) {
 	return 0;
 } /* sy_series() */
 
-int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
+static int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
 	return mpfr_set_si(to, iszero(check) ? 0 : 1, round);
 } /* sy_assert */
 
 /* builtin function names, prototypes, descriptions and function pointers */
-function func_list[] = {
+static function func_list[] = {
 	{"abs",		"abs(x)",		"Absolute value of x",								mpfr_abs},
 	{"sqrt",	"sqrt(x)",		"Square root of x",									mpfr_sqrt},
 	{"cbrt",	"cbrt(x)",		"Cubic root of x",									mpfr_cbrt},
@@ -385,12 +414,12 @@ function func_list[] = {
 	{NULL,		NULL,			NULL,												NULL}
 };
 
-int synge_pi(synge_t num, mpfr_rnd_t round) {
+static int synge_pi(synge_t num, mpfr_rnd_t round) {
 	mpfr_const_pi(num, round);
 	return 0;
 } /* synge_pi() */
 
-int synge_phi(synge_t num, mpfr_rnd_t round) {
+static int synge_phi(synge_t num, mpfr_rnd_t round) {
 	/* get sqrt(5) */
 	synge_t root_five;
 	mpfr_init2(root_five, SYNGE_PRECISION);
@@ -404,7 +433,7 @@ int synge_phi(synge_t num, mpfr_rnd_t round) {
 	return 0;
 } /* synge_phi() */
 
-int synge_euler(synge_t num, mpfr_rnd_t round) {
+static int synge_euler(synge_t num, mpfr_rnd_t round) {
 	/* get one */
 	synge_t one;
 	mpfr_init2(one, SYNGE_PRECISION);
@@ -417,29 +446,29 @@ int synge_euler(synge_t num, mpfr_rnd_t round) {
 	return 0;
 } /* synge_euler() */
 
-int synge_life(synge_t num, mpfr_rnd_t round) {
+static int synge_life(synge_t num, mpfr_rnd_t round) {
 	cheeky("What do you get if you multiply six by nine? Fourty two.\n");
 	mpfr_set_si(num, 42, round);
 	return 0;
 } /* synge_life() */
 
-int synge_true(synge_t num, mpfr_rnd_t round) {
+static int synge_true(synge_t num, mpfr_rnd_t round) {
 	mpfr_set_si(num, 1, round);
 	return 0;
 } /* synge_true() */
 
-int synge_false(synge_t num, mpfr_rnd_t round) {
+static int synge_false(synge_t num, mpfr_rnd_t round) {
 	mpfr_set_si(num, 0, round);
 	return 0;
 } /* synge_false() */
 
-int synge_ans(synge_t num, mpfr_rnd_t round) {
+static int synge_ans(synge_t num, mpfr_rnd_t round) {
 	mpfr_set(num, prev_answer, round);
 	return 0;
 } /* synge_ans() */
 
 /* inbuilt constants (given using function pointers) */
-special_number constant_list[] = {
+static special_number constant_list[] = {
 	{"pi",				"The ratio of a circle's circumfrence to its diameter",				synge_pi},
 	{"phi",				"The golden ratio",													synge_phi},
 	{"e",				"The base of a natural logarithm",									synge_euler},
@@ -454,7 +483,7 @@ special_number constant_list[] = {
 
 /* used for when a (char *) is needed, but needn't be freed and *
  * converts the string into switch-friendly enumeration values. */
-operator op_list[] = {
+static operator op_list[] = {
 	{"+",	op_add},
 	{"-",	op_subtract},
 	{"*",	op_multiply},
@@ -519,14 +548,14 @@ operator op_list[] = {
 };
 
 /* default settings */
-synge_settings active_settings = {
+static synge_settings active_settings = {
 	degrees, /* mode */
 	position, /* error level */
 	strict, /* strictness */
 	dynamic /* precision */
 };
 
-char *get_word_ptr(char *string, char *list) {
+static char *get_word_ptr(char *string, char *list) {
 	int lenstr = strlen(string), lenlist = strlen(list);
 
 	/* go through string */
@@ -552,7 +581,7 @@ char *get_word_ptr(char *string, char *list) {
 	return string + i;
 } /* get_word_ptr() */
 
-char *get_word(char *string, char *list, char **endptr) {
+static char *get_word(char *string, char *list, char **endptr) {
 	/* get word pointer */
 	*endptr = get_word_ptr(string, list);
 	int i = *endptr - string;
@@ -571,7 +600,7 @@ char *get_word(char *string, char *list, char **endptr) {
 	return ret;
 } /* get_word() */
 
-bool contains_word(char *string, char *word, char *list) {
+static bool contains_word(char *string, char *word, char *list) {
 	int len = strlen(word);
 	char *p = string, *cur = NULL;
 
@@ -588,7 +617,7 @@ bool contains_word(char *string, char *word, char *list) {
 	return false;
 } /* contains_word() */
 
-char *trim_spaces(char *str) {
+static char *trim_spaces(char *str) {
 	/* move starting pointer to first non-space character */
 	while(isspace(*str))
 		str++;
@@ -614,7 +643,7 @@ char *trim_spaces(char *str) {
 } /* trim_spaces() */
 
 /* greedy finder */
-char *get_from_ch_list(char *ch, char **list) {
+static char *get_from_ch_list(char *ch, char **list) {
 	int i;
 	char *ret = "";
 	for(i = 0; list[i] != NULL; i++)
@@ -625,7 +654,7 @@ char *get_from_ch_list(char *ch, char **list) {
 	return strlen(ret) ? ret : 0;
 } /* get_from_ch_list() */
 
-operator get_op(char *ch) {
+static operator get_op(char *ch) {
 	int i;
 	operator ret = {NULL, op_none};
 	for(i = 0; op_list[i].str != NULL; i++)
@@ -638,7 +667,7 @@ operator get_op(char *ch) {
 	return ret;
 } /* get_op() */
 
-synge_t *num_dup(synge_t num) {
+static synge_t *num_dup(synge_t num) {
 	synge_t *ret = malloc(sizeof(synge_t));
 
 	mpfr_init2(*ret, SYNGE_PRECISION);
@@ -647,13 +676,13 @@ synge_t *num_dup(synge_t num) {
 	return ret;
 } /* num_dup() */
 
-char *str_dup(char *s) {
+static char *str_dup(char *s) {
 	char *ret = malloc(strlen(s) + 1);
 	memcpy(ret, s, strlen(s) + 1);
 	return ret;
 } /* str_dup() */
 
-int synge_get_precision(synge_t num) {
+__EXPORT int synge_get_precision(synge_t num) {
 	/* use the current settings' precision if given */
 	if(active_settings.precision >= 0)
 		return active_settings.precision;
@@ -674,7 +703,7 @@ int synge_get_precision(synge_t num) {
 	return precision;
 } /* get_precision() */
 
-error_code to_error_code(int error, int position) {
+static error_code to_error_code(int error, int position) {
 	/* fill a struct with the given values */
 	error_code ret = {
 		error,
@@ -683,7 +712,7 @@ error_code to_error_code(int error, int position) {
 	return ret;
 } /* to_error_code() */
 
-special_number get_special_num(char *s) {
+static special_number get_special_num(char *s) {
 	special_number ret = {NULL, NULL, NULL};
 	int i;
 
@@ -694,7 +723,7 @@ special_number get_special_num(char *s) {
 	return ret;
 } /* get_special_num() */
 
-function *get_func(char *val) {
+static function *get_func(char *val) {
 	/* get the word version of the function */
 	function *ret = NULL;
 
@@ -708,7 +737,7 @@ function *get_func(char *val) {
 	return ret;
 } /* get_func() */
 
-void synge_strtofr(synge_t *num, char *str, char **endptr) {
+static void synge_strtofr(synge_t *num, char *str, char **endptr) {
 	/* NOTE: Signing is now dealt using operators, so ignore signops */
 	if(issignop(str)) {
 		*endptr = str;
@@ -758,7 +787,7 @@ void synge_strtofr(synge_t *num, char *str, char **endptr) {
 	}
 } /* synge_strtofr() */
 
-bool isnum(char *string) {
+static bool isnum(char *string) {
 	/* get variable word */
 	char *endptr = NULL, *s = get_word(string, SYNGE_WORD_CHARS, &endptr);
 	endptr = NULL;
@@ -775,10 +804,8 @@ bool isnum(char *string) {
 	return ret;
 } /* isnum() */
 
-error_code set_variable(char *str, synge_t val) {
+static error_code set_variable(char *str, synge_t val) {
 	assert(synge_started == true, "synge must be initialised");
-
-	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
 	/* make a new copy of the variable to save */
@@ -797,13 +824,11 @@ error_code set_variable(char *str, synge_t val) {
 	ohm_insert(variable_list, s, strlen(s) + 1, tosave, sizeof(synge_t));
 
 	free(s);
-	return ret;
+	return to_error_code(SUCCESS, -1);
 } /* set_variable() */
 
-error_code set_function(char *str, char *exp) {
+static error_code set_function(char *str, char *exp) {
 	assert(synge_started == true, "synge must be initialised");
-
-	error_code ret = to_error_code(SUCCESS, -1);
 	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
 	/* save the function */
@@ -811,10 +836,10 @@ error_code set_function(char *str, char *exp) {
 	ohm_insert(expression_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
 
 	free(s);
-	return ret;
+	return to_error_code(SUCCESS, -1);
 } /* set_function() */
 
-error_code del_word(char *s, int pos) {
+static error_code del_word(char *s, int pos) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* word types */
@@ -858,7 +883,7 @@ error_code del_word(char *s, int pos) {
 	return to_error_code(SUCCESS, -1);
 } /* del_word() */
 
-char *get_expression_level(char *p, char end) {
+static char *get_expression_level(char *p, char end) {
 	int num_paren = 0, len = 0;
 	char *ret = NULL;
 
@@ -893,7 +918,7 @@ char *get_expression_level(char *p, char end) {
 	return ret;
 } /* get_expression_level() */
 
-error_code synge_tokenise_string(char *string, stack **infix_stack) {
+static error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
 
 	debug("--\nTokenise\n--\n");
@@ -1199,7 +1224,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	return to_error_code(SUCCESS, -1);
 } /* synge_tokenise_string() */
 
-bool op_precedes(s_type op1, s_type op2) {
+static bool op_precedes(s_type op1, s_type op2) {
 	/* returns whether or not op2 should precede op1 */
 	switch(op2) {
 		case ifop:
@@ -1227,7 +1252,7 @@ bool op_precedes(s_type op1, s_type op2) {
 } /* op_precedes() */
 
 /* my implementation of Dijkstra's really cool shunting-yard algorithm */
-error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
+static error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 	stack *op_stack = malloc(sizeof(stack));
 
 	debug("--\nParse\n--\n");
@@ -1370,7 +1395,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 } /* infix_to_rpnstack() */
 
 /* functions' whose input needs to be in radians */
-char *angle_infunc_list[] = {
+static char *angle_infunc_list[] = {
 	"sin",
 	"cos",
 	"tan",
@@ -1378,7 +1403,7 @@ char *angle_infunc_list[] = {
 };
 
 /* convert from set mode to radians */
-void settings_to_rad(synge_t out, synge_t in) {
+static void settings_to_rad(synge_t out, synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
 			deg_to_rad(out, in, SYNGE_ROUND);
@@ -1393,7 +1418,7 @@ void settings_to_rad(synge_t out, synge_t in) {
 } /* settings_to_rad() */
 
 /* functions' whose output is in radians */
-char *angle_outfunc_list[] = {
+static char *angle_outfunc_list[] = {
 	"asin",
 	"acos",
 	"atan",
@@ -1401,7 +1426,7 @@ char *angle_outfunc_list[] = {
 };
 
 /* convert radians to set mode */
-void rad_to_settings(synge_t out, synge_t in) {
+static void rad_to_settings(synge_t out, synge_t in) {
 	switch(active_settings.mode) {
 		case degrees:
 			rad_to_deg(out, in, SYNGE_ROUND);
@@ -1415,7 +1440,7 @@ void rad_to_settings(synge_t out, synge_t in) {
 	}
 } /* rad_to_settings() */
 
-error_code eval_word(char *str, int pos, synge_t *result) {
+static error_code eval_word(char *str, int pos, synge_t *result) {
 	if(ohm_search(variable_list, str, strlen(str) + 1)) {
 		synge_t *value = ohm_search(variable_list, str, strlen(str) + 1);
 		mpfr_set(*result, *value, SYNGE_ROUND);
@@ -1449,7 +1474,7 @@ error_code eval_word(char *str, int pos, synge_t *result) {
 	return to_error_code(SUCCESS, -1);
 } /* eval_word() */
 
-error_code eval_expression(char *exp, char *caller, int pos, synge_t *result) {
+static error_code eval_expression(char *exp, char *caller, int pos, synge_t *result) {
 	error_code ret = synge_internal_compute_string(exp, result, caller, pos);
 
 	/* error was encountered */
@@ -1466,7 +1491,7 @@ error_code eval_expression(char *exp, char *caller, int pos, synge_t *result) {
 }
 
 /* evaluate an rpn stack */
-error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
+static error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 	stack *evalstack = malloc(sizeof(stack));
 	init_stack(evalstack);
 
@@ -2378,7 +2403,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 	return to_error_code(SUCCESS, -1);
 } /* synge_eval_rpnstack() */
 
-char *get_trace(link_t *link) {
+static char *get_trace(link_t *link) {
 	char *ret = str_dup(""), *current = NULL;
 	link_iter *ii = link_iter_init(link);
 
@@ -2400,7 +2425,7 @@ char *get_trace(link_t *link) {
 	return ret;
 } /* get_trace() */
 
-char *get_error_type(error_code error) {
+static char *get_error_type(error_code error) {
 	switch(error.code) {
 		case DIVIDE_BY_ZERO:
 		case MODULO_BY_ZERO:
@@ -2436,7 +2461,7 @@ char *get_error_type(error_code error) {
 	return "IHaveNoIdea";
 } /* get_error_type() */
 
-char *synge_error_msg(error_code error) {
+__EXPORT char *synge_error_msg(error_code error) {
 	char *msg = NULL;
 
 	/* get correct printf string */
@@ -2542,7 +2567,7 @@ char *synge_error_msg(error_code error) {
 	return error_msg_container;
 } /* get_error_msg() */
 
-char *synge_error_msg_pos(int code, int pos) {
+__EXPORT char *synge_error_msg_pos(int code, int pos) {
 	return synge_error_msg(to_error_code(code, pos));
 } /* get_error_msg_pos() */
 
@@ -2552,7 +2577,7 @@ enum {
 	FUNCTION
 };
 
-int synge_call_type(char *caller) {
+static int synge_call_type(char *caller) {
 	char first = *caller;
 	char last = *(caller + strlen(caller) - 1);
 
@@ -2568,7 +2593,7 @@ int synge_call_type(char *caller) {
 	return FUNCTION;
 } /* synge_call_type() */
 
-error_code synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
+__EXPORT error_code synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* "dynamically" resize hashmap to keep efficiency up */
@@ -2714,15 +2739,15 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 } /* synge_internal_compute_string() */
 
 /* wrapper for above function */
-error_code synge_compute_string(char *expression, synge_t *result) {
+__EXPORT error_code synge_compute_string(char *expression, synge_t *result) {
 	return synge_internal_compute_string(expression, result, SYNGE_MAIN, 0);
 } /* synge_compute_string() */
 
-synge_settings synge_get_settings(void) {
+__EXPORT synge_settings synge_get_settings(void) {
 	return active_settings;
 } /* get_synge_settings() */
 
-void synge_set_settings(synge_settings new_settings) {
+__EXPORT void synge_set_settings(synge_settings new_settings) {
 	active_settings = new_settings;
 
 	/* sanitise precision */
@@ -2730,19 +2755,19 @@ void synge_set_settings(synge_settings new_settings) {
 		active_settings.precision = SYNGE_MAX_PRECISION;
 } /* set_synge_settings() */
 
-function *synge_get_function_list(void) {
+__EXPORT function *synge_get_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
-ohm_t *synge_get_variable_list(void) {
+__EXPORT ohm_t *synge_get_variable_list(void) {
 	return variable_list;
 } /* synge_get_variable_list() */
 
-ohm_t *synge_get_expression_list(void) {
+__EXPORT ohm_t *synge_get_expression_list(void) {
 	return expression_list;
 } /* synge_get_expression_list() */
 
-word *synge_get_constant_list(void) {
+__EXPORT word *synge_get_constant_list(void) {
 	word *ret = malloc(len(constant_list) * sizeof(word));
 
 	unsigned int i;
@@ -2754,12 +2779,14 @@ word *synge_get_constant_list(void) {
 	return ret;
 } /* synge_get_constant_list() */
 
-void synge_seed(unsigned int seed) {
+__EXPORT void synge_seed(unsigned int seed) {
 	assert(synge_started == true, "synge must be initialised");
 	gmp_randseed_ui(synge_state, seed);
 } /* synge_seed() */
 
-void synge_start(void) {
+__EXPORT void synge_start(void) {
+	assert(synge_started == false, "synge mustn't be initialised");
+
 	variable_list = ohm_init(2, NULL);
 	expression_list = ohm_init(2, NULL);
 	traceback_list = link_init();
@@ -2773,7 +2800,7 @@ void synge_start(void) {
 	synge_started = true;
 } /* synge_end() */
 
-void synge_end(void) {
+__EXPORT void synge_end(void) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* mpfr_free variables */
@@ -2794,7 +2821,7 @@ void synge_end(void) {
 	synge_started = false;
 } /* synge_end() */
 
-void synge_reset_traceback(void) {
+__EXPORT void synge_reset_traceback(void) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* free previous traceback and allocate new one */

@@ -41,6 +41,9 @@
  *        -h, --help			Print help information
  */
 
+#include <synge.h>
+#include <definitions.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,9 +51,6 @@
 
 #include <time.h>
 #include <unistd.h>
-
-#include <synge.h>
-#include <definitions.h>
 
 #ifndef __SYNGE_GIT_VERSION__
 #	define __SYNGE_GIT_VERSION__ ""

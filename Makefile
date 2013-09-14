@@ -37,7 +37,9 @@ ifeq ($(OS), Windows_NT)
 	SY_OS		= windows
 else
 	COLOUR		= 1
-	SHR_CFLAGS	= -Werror
+	WARNINGS	= -Werror
+
+	CORE_CFLAGS	= -fPIC
 
 	CLI_CFLAGS	= `pkg-config --cflags libedit`
 	CLI_LFLAGS	= `pkg-config --libs libedit`
@@ -112,11 +114,11 @@ EVAL_IDIR	= $(INCLUDE_DIR)/eval
 # Test directories
 TEST_DIR	= tests
 
-WARNINGS	= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
+WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
 
 SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
 
-CORE_CFLAGS	+= -fPIC
+CORE_CFLAGS	+= -D__BUILD_LIB__
 CORE_SFLAGS += -shared
 
 CLI_CFLAGS	+=
@@ -124,7 +126,7 @@ GTK_CFLAGS	+= `pkg-config --cflags gtk+-2.0`
 EVAL_CFLAGS	+=
 
 SHR_LFLAGS	+= -lm -lgmp -lmpfr -L. -l$(LIB_CORE)
-CORE_LFLAGS	+=
+CORE_LFLAGS	+= -lm -lgmp -lmpfr
 CLI_LFLAGS	+=
 GTK_LFLAGS	+= `pkg-config --libs gtk+-2.0 gmodule-2.0`
 EVAL_LFLAGS	+=
@@ -175,13 +177,13 @@ $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
-	$(CC) $(CORE_SFLAGS) -o $(NAME_CORE) *.o
+	$(CC) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
 	strip $(NAME_CORE)
 	make -B $(OS_POST)
 	rm *.o
 
 # Compile "production" command-line wrapper
-$(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+$(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
@@ -194,7 +196,7 @@ $(NAME_CLI): $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_POST)
 
 # Compile "production" gui wrapper
-$(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
+$(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
 	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
@@ -208,7 +210,7 @@ $(NAME_GTK): $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_POST)
 
 # Compile "production" simple eval wrapper
-$(NAME_EVAL): $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
+$(NAME_EVAL): $(NAME_CORE) $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
@@ -268,7 +270,7 @@ debug-lib: $(CORE_SRC) $(CORE_DEPS)
 	rm *.o
 
 # Compile "debug" command-line wrapper
-debug-cli: $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
+debug-cli: $(NAME_CORE) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
@@ -281,7 +283,7 @@ debug-cli: $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_POST)
 
 # Compile "debug" gui wrapper
-debug-gtk: $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
+debug-gtk: $(NAME_CORE) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
 	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
@@ -295,7 +297,7 @@ debug-gtk: $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_POST)
 
 # Compile "debug" simple eval wrapper
-debug-eval: $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
+debug-eval: $(NAME_CORE) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \

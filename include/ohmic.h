@@ -23,6 +23,17 @@
 #ifndef __OHMIC_H__
 #define __OHMIC_H__
 
+/* define symbol exports */
+#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#	ifdef __BUILD_LIB__
+#		define __EXPORT __declspec(dllexport)
+#	else
+#		define __EXPORT __declspec(dllimport)
+#	endif
+#else
+#	define __EXPORT
+#endif
+
 /* opaque structures */
 typedef struct ohm_node ohm_node;
 typedef struct ohm_t ohm_t;
@@ -43,31 +54,31 @@ typedef struct ohm_iter {
 } ohm_iter;
 
 /* basic hashmap functionality */
-ohm_t *ohm_init(int, int (*)(void *, size_t));
-void ohm_free(ohm_t *);
+__EXPORT ohm_t *ohm_init(int, int (*)(void *, size_t));
+__EXPORT void ohm_free(ohm_t *);
 
-void *ohm_search(ohm_t *, void *, size_t);
+__EXPORT void *ohm_search(ohm_t *, void *, size_t);
 
-void *ohm_insert(ohm_t *, void *, size_t, void *, size_t);
-int ohm_remove(ohm_t *, void *, size_t);
+__EXPORT void *ohm_insert(ohm_t *, void *, size_t, void *, size_t);
+__EXPORT int ohm_remove(ohm_t *, void *, size_t);
 
-ohm_t *ohm_resize(ohm_t *, int);
+__EXPORT ohm_t *ohm_resize(ohm_t *, int);
 
 /* functions to iterate (correctly) through the hashmap */
-ohm_iter ohm_iter_init(ohm_t *);
-void ohm_iter_inc(ohm_iter *);
+__EXPORT ohm_iter ohm_iter_init(ohm_t *);
+__EXPORT void ohm_iter_inc(ohm_iter *);
 
 /* functions to copy, duplicate and merge hashmaps */
-ohm_t *ohm_dup(ohm_t *);
-void ohm_cpy(ohm_t *, ohm_t *);
+__EXPORT ohm_t *ohm_dup(ohm_t *);
+__EXPORT void ohm_cpy(ohm_t *, ohm_t *);
 
-void ohm_merge(ohm_t *, ohm_t *);
+__EXPORT void ohm_merge(ohm_t *, ohm_t *);
 
 /* functions to get items from opaque structures */
-int ohm_count(ohm_t *hm);
-int ohm_size(ohm_t *hm);
+__EXPORT int ohm_count(ohm_t *hm);
+__EXPORT int ohm_size(ohm_t *hm);
 
 /* default hashing function (modulo of djb2 hash -- not reccomended) */
-int ohm_hash(void *, size_t);
+__EXPORT int ohm_hash(void *, size_t);
 
 #endif /* __OHMIC_H__ */

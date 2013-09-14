@@ -30,6 +30,9 @@
 #define _BSD_SOURCE
 #define _XOPEN_SOURCE
 
+#include <synge.h>
+#include <definitions.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,9 +47,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ctype.h>
-
-#include <synge.h>
-#include <definitions.h>
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
