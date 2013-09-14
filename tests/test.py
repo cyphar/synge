@@ -409,6 +409,8 @@ CASES = [
 	(["0s45"],						[error_get("token", 2)],	0,	0,		"Unknown Base Error	"),
 	(["0jk45"],						[error_get("token", 2)],	0,	0,		"Unknown Base Error	"),
 
+	(["@5"],						[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),
+	(["rand(@3)"],					[error_get("token", 6)],	0,	0,		"Unknown Token Error	"),
 	(["does_not_exist"],			[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),
 	(["fake_function()"],			[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),
 	(["fake_function()+23"],		[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),

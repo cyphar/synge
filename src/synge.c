@@ -1152,7 +1152,7 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			tmpoffset = strlen(functionp->name); /* update iterator to correct offset */
 			free(funcword);
 		}
-		else if(strlen(word) > 0) {
+		else if(word && strlen(word) > 0) {
 			/* is it a variable or user function? */
 			if(top_stack(*infix_stack)) {
 				/* make variables act more like numbers (and more like variables) */
