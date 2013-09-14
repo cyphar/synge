@@ -27,6 +27,9 @@
 #	define UNIX
 #endif
 
+#include <synge.h>
+#include <definitions.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,10 +38,6 @@
 
 #include <time.h>
 #include <unistd.h>
-
-#include <synge.h>
-#include <version.h>
-#include <definitions.h>
 
 #include "xmlui.h" /* generated header to bake the gtk_builder xml string */
 
