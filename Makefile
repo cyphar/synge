@@ -85,15 +85,18 @@ EXEC_EVAL	= $(NAME_EVAL)$(EXEC_SUFFIX)
 
 RES_DIR		= res
 
+RC_CORE		= $(RES_DIR)/$(LIB_CORE).rc
 RC_CLI		= $(RES_DIR)/$(NAME_CLI).rc
 RC_GTK		= $(RES_DIR)/$(NAME_GTK).rc
 RC_EVAL		= $(RES_DIR)/$(NAME_EVAL).rc
 
+ICON_CORE	= $(RES_DIR)/$(LIB_CORE)dll.o
 ICON_CLI	= $(RES_DIR)/$(NAME_CLI).o
 ICON_GTK	= $(RES_DIR)/$(NAME_GTK).o
 ICON_EVAL	= $(RES_DIR)/$(NAME_EVAL).o
 
 ifeq ($(OS), Windows_NT)
+	LINK_CORE	+= $(ICON_CORE)
 	LINK_CLI	+= $(ICON_CLI)
 	LINK_GTK	+= $(ICON_GTK)
 	LINK_EVAL	+= $(ICON_EVAL)
@@ -142,7 +145,7 @@ CLI_DEPS	+=
 GTK_DEPS	+= $(wildcard $(GTK_SDIR)/*.h) $(GTK_SDIR)/ui.glade $(GTK_SDIR)/bakeui.py
 EVAL_DEPS	+=
 
-TO_CLEAN	= $(NAME_CORE) $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
+TO_CLEAN	= $(NAME_CORE) $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CORE) $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
 
 VALGRIND	= valgrind --leak-check=full --show-reachable=yes
 PREFIX		?= /usr
@@ -177,7 +180,7 @@ $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
-	$(CC) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
+	$(CC) $(LINK_CORE) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
 	strip $(NAME_CORE)
 	make -B $(OS_POST)
 	rm *.o
@@ -258,14 +261,14 @@ debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 # Compile "debug" core library
 debug-lib: $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
+	$(CC) $(SHR_CFLAGS) $(LINK_CORE) $(CORE_CFLAGS) \
 		-c $(CORE_SRC) -g -O0 -D__SYNGE_DEBUG__ \
 		-D__SYNGE_GIT_VERSION__='"$(GIT_VERSION)"' \
 		-D__SYNGE_SAFE__="$(SAFE)" \
 		-D__SYNGE_COLOUR__="$(COLOUR)" \
 		-D__SYNGE_CHEEKY__="$(CHEEKY)" \
 		$(WARNINGS)
-	$(CC) $(CORE_SFLAGS) -g -O0 -o $(NAME_CORE) *.o
+	$(CC) $(LINK_CORE) *.o -g -O0 -o $(NAME_CORE) $(CORE_SFLAGS)
 	make -B $(OS_POST)
 	rm *.o
 
@@ -386,6 +389,7 @@ xmlui:
 
 # Windows pre-compilation (make resource files)
 windows-pre: $(RC_CLI) $(RC_GTK) $(RC_EVAL)
+	windres $(RC_CORE) -I$(INCLUDE_DIR)/ -o $(ICON_CORE)
 	windres $(RC_CLI)  -I$(INCLUDE_DIR)/ -o $(ICON_CLI)
 	windres $(RC_GTK)  -I$(INCLUDE_DIR)/ -o $(ICON_GTK)
 	windres $(RC_EVAL) -I$(INCLUDE_DIR)/ -o $(ICON_EVAL)
