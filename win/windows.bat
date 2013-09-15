@@ -114,6 +114,7 @@ xcopy /s /y /r /i "lib"   "%INSTALL_DIR%\lib"
 xcopy /s /y /r /i "share" "%INSTALL_DIR%\share"
 
 echo Installing Synge ...
+copy "synge.dll" "%BIN%\synge.dll"
 copy "synge-cli.exe" "%BIN%\synge-cli.exe"
 copy "synge-cli-colour.exe" "%BIN%\synge-cli-colour.exe"
 copy "synge-gtk.exe" "%BIN%\synge-gtk.exe"
