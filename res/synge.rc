@@ -1,4 +1,4 @@
-/* Synge-Eval: A simple evaluation wrapper for Synge
+/* Synge-Cli: A command-line wrapper for Synge
  * Copyright (C) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -23,10 +23,9 @@
 #include <winver.h>
 #include <version.h>
 
-1 ICON "res/synge-eval.ico"
 1 VERSIONINFO
 FILEVERSION		B__SYNGE_VERSION__
-PRODUCTVERSION	B__SYNGE_EVAL_VERSION__
+PRODUCTVERSION	B__SYNGE_VERSION__
 FILEOS			VOS_NT
 FILETYPE		VFT_APP
 {
@@ -36,11 +35,11 @@ FILETYPE		VFT_APP
     {
       VALUE "Comments",			"http://code.cyphar.com/synge"
       VALUE "CompanyName",		"Cyphar"
-      VALUE "FileDescription",	"Synge Scriptable Calculator"
+      VALUE "FileDescription",	"Synge Core Library"
       VALUE "FileVersion",		__SYNGE_VERSION__
       VALUE "LegalCopyright",	"(C) 2013 Cyphar (MIT Licensed)"
-      VALUE "ProductName",		"Synge-Eval"
-      VALUE "ProductVersion",	__SYNGE_EVAL_VERSION__
+      VALUE "ProductName",		"Synge"
+      VALUE "ProductVersion",	__SYNGE_VERSION__
     }
   }
 

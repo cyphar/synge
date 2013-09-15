@@ -25,21 +25,21 @@
 
 1 ICON "res/synge-gtk.ico"
 1 VERSIONINFO
-FILEVERSION	B__SYNGE_VERSION__
+FILEVERSION		B__SYNGE_VERSION__
 PRODUCTVERSION	B__SYNGE_GTK_VERSION__
-FILEOS		VOS_NT
-FILETYPE	VFT_APP
+FILEOS			VOS_NT
+FILETYPE		VFT_APP
 {
   BLOCK "StringFileInfo"
   {
     BLOCK "040904B0"
     {
-      VALUE "Comments",		"http://code.cyphar.com/synge"
-      VALUE "CompanyName",	"Cyphar"
+      VALUE "Comments",			"http://code.cyphar.com/synge"
+      VALUE "CompanyName",		"Cyphar"
       VALUE "FileDescription",	"Synge GUI Calculator"
-      VALUE "FileVersion",	__SYNGE_VERSION__
+      VALUE "FileVersion",		__SYNGE_VERSION__
       VALUE "LegalCopyright",	"(C) 2013 Cyphar (MIT Licensed)"
-      VALUE "ProductName",	"Synge-GTK"
+      VALUE "ProductName",		"Synge-GTK"
       VALUE "ProductVersion",	__SYNGE_GTK_VERSION__
     }
   }
