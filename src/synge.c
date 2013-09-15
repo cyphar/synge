@@ -65,7 +65,6 @@
 #define SYNGE_TRACEBACK_FUNCTION	"  Function %s, at %d\n"
 
 /* in-place macros */
-#define strlower(str)			do { char *p = str; for(; *p; ++p) *p = tolower(*p); } while(0)
 #define assert(cond, reason)	do { if(!(cond)) { fprintf(stderr, "synge: assertion '%s' (%s) failed\n", reason, #cond); abort(); }} while(0)
 
 /* useful macros */
@@ -595,8 +594,6 @@ static char *get_word(char *string, char *list, char **endptr) {
 	memcpy(ret, string, i);
 	ret[i] = '\0';
 
-	/* make the word lowercase -- everything is case insensitive */
-	strlower(ret);
 	return ret;
 } /* get_word() */
 
@@ -606,7 +603,7 @@ static bool contains_word(char *string, char *word, char *list) {
 
 	do {
 		/* word found */
-		if(!strncasecmp(p, word, len))
+		if(!strncmp(p, word, len))
 			return true;
 
 		/* "backup" pointer */

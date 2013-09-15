@@ -424,6 +424,9 @@ CASES = [
 	(["1%(2-(2^2/2))"],				[error_get("zeromod", 2)],	0,	0,		"Modulo by Zero Error	"),
 	(["1%(cos(45) - sin(45))"],		[error_get("zeromod", 2)],	deg,	0,		"Modulo by Zero Error	"),
 
+	(["a=1", "ANS",                 "A"],
+	 ["1",   error_get("token", 1), error_get("token", 1)],		0,	0,		"Case Sensitive Error	"),
+
 	(["1+(1"],						[error_get("lparen", 3)],	0,	0,		"Parenthesis Error	"),
 	(["1+((1"],						[error_get("lparen", 4)],	0,	0,		"Parenthesis Error	"),
 
