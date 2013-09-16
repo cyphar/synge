@@ -1,6 +1,6 @@
 List of known bugs and limitations:
 
-  -
+  - -0xZZ, 0b54 or similar don't cause any BaseErrors (there isn't even a base error defined)
 
 List of "bugs" which are not to be fixed:
 
