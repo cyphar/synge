@@ -162,8 +162,8 @@ int strcasecmp(char *s1, char *s2) {
 		s2++;
 	}
 
-	return tolower(*(char *) s1) - tolower(*(char *) s2);
-}
+	return tolower(*s1) - tolower(*s2);
+} /* strcasecmp() */
 
 int strncasecmp(char *s1, char *s2, size_t n) {
 	if (n == 0)
@@ -176,9 +176,8 @@ int strncasecmp(char *s1, char *s2, size_t n) {
 		s2++;
 	}
 
-	return tolower(*(char *) s1) - tolower(*(char *) s2);
-}
-
+	return tolower(*s1) - tolower(*s2);
+} /* strncasecmp() */
 #endif
 
 static void synge_clear(void *tofree) {
@@ -679,7 +678,7 @@ static char *str_dup(char *s) {
 	return ret;
 } /* str_dup() */
 
-__EXPORT int synge_get_precision(synge_t num) {
+int synge_get_precision(synge_t num) {
 	/* use the current settings' precision if given */
 	if(active_settings.precision >= 0)
 		return active_settings.precision;
@@ -2458,7 +2457,7 @@ static char *get_error_type(error_code error) {
 	return "IHaveNoIdea";
 } /* get_error_type() */
 
-__EXPORT char *synge_error_msg(error_code error) {
+char *synge_error_msg(error_code error) {
 	char *msg = NULL;
 
 	/* get correct printf string */
@@ -2564,7 +2563,7 @@ __EXPORT char *synge_error_msg(error_code error) {
 	return error_msg_container;
 } /* get_error_msg() */
 
-__EXPORT char *synge_error_msg_pos(int code, int pos) {
+char *synge_error_msg_pos(int code, int pos) {
 	return synge_error_msg(to_error_code(code, pos));
 } /* get_error_msg_pos() */
 
@@ -2590,7 +2589,7 @@ static int synge_call_type(char *caller) {
 	return FUNCTION;
 } /* synge_call_type() */
 
-__EXPORT error_code synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
+error_code synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* "dynamically" resize hashmap to keep efficiency up */
@@ -2736,15 +2735,15 @@ __EXPORT error_code synge_internal_compute_string(char *string, synge_t *result,
 } /* synge_internal_compute_string() */
 
 /* wrapper for above function */
-__EXPORT error_code synge_compute_string(char *expression, synge_t *result) {
+error_code synge_compute_string(char *expression, synge_t *result) {
 	return synge_internal_compute_string(expression, result, SYNGE_MAIN, 0);
 } /* synge_compute_string() */
 
-__EXPORT synge_settings synge_get_settings(void) {
+synge_settings synge_get_settings(void) {
 	return active_settings;
 } /* get_synge_settings() */
 
-__EXPORT void synge_set_settings(synge_settings new_settings) {
+void synge_set_settings(synge_settings new_settings) {
 	active_settings = new_settings;
 
 	/* sanitise precision */
@@ -2752,19 +2751,19 @@ __EXPORT void synge_set_settings(synge_settings new_settings) {
 		active_settings.precision = SYNGE_MAX_PRECISION;
 } /* set_synge_settings() */
 
-__EXPORT function *synge_get_function_list(void) {
+function *synge_get_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
-__EXPORT ohm_t *synge_get_variable_list(void) {
+ohm_t *synge_get_variable_list(void) {
 	return variable_list;
 } /* synge_get_variable_list() */
 
-__EXPORT ohm_t *synge_get_expression_list(void) {
+ohm_t *synge_get_expression_list(void) {
 	return expression_list;
 } /* synge_get_expression_list() */
 
-__EXPORT word *synge_get_constant_list(void) {
+word *synge_get_constant_list(void) {
 	word *ret = malloc(len(constant_list) * sizeof(word));
 
 	unsigned int i;
@@ -2776,12 +2775,12 @@ __EXPORT word *synge_get_constant_list(void) {
 	return ret;
 } /* synge_get_constant_list() */
 
-__EXPORT void synge_seed(unsigned int seed) {
+void synge_seed(unsigned int seed) {
 	assert(synge_started == true, "synge must be initialised");
 	gmp_randseed_ui(synge_state, seed);
 } /* synge_seed() */
 
-__EXPORT void synge_start(void) {
+void synge_start(void) {
 	assert(synge_started == false, "synge mustn't be initialised");
 
 	variable_list = ohm_init(2, NULL);
@@ -2797,7 +2796,7 @@ __EXPORT void synge_start(void) {
 	synge_started = true;
 } /* synge_end() */
 
-__EXPORT void synge_end(void) {
+void synge_end(void) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* mpfr_free variables */
@@ -2818,7 +2817,7 @@ __EXPORT void synge_end(void) {
 	synge_started = false;
 } /* synge_end() */
 
-__EXPORT void synge_reset_traceback(void) {
+void synge_reset_traceback(void) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* free previous traceback and allocate new one */
