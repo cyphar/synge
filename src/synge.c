@@ -608,7 +608,7 @@ static bool contains_word(char *string, char *word, char *list) {
 
 		/* "backup" pointer */
 		cur = p;
-	} while(cur != (p = get_word_ptr(p, list)) || *(++p));
+	} while((p = get_word_ptr(p, list)) != cur || *(p++) != '\0');
 
 	/* word not found */
 	return false;

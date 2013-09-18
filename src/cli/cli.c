@@ -366,7 +366,7 @@ void cli_exec(char *str) {
 	/* run the command */
 	int ret = system(str);
 
-#ifdef UNIX
+#ifdef _UNIX
 	ret /= 256; /* system in *nix seems to multiply the real return value by 256 */
 #endif
 
@@ -470,7 +470,7 @@ int main(int argc, char **argv) {
 	mpfr_init2(result, SYNGE_PRECISION);
 
 	error_code ecode;
-#ifdef UNIX
+#ifdef _UNIX
 	/* Local stuff for libedit */
 	EditLine *cli_el;
 	History *cli_history;
@@ -489,7 +489,7 @@ int main(int argc, char **argv) {
 	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 
 	while(true) {
-#ifdef UNIX
+#ifdef _UNIX
 		cur_str = (char *) el_gets(cli_el, &count); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 #else
@@ -539,17 +539,17 @@ int main(int argc, char **argv) {
 				}
 			}
 
-#ifdef UNIX
+#ifdef _UNIX
 			/* add input to history */
 			history(cli_history, &cli_ev, H_ENTER, cur_str);
 #endif
 		}
-#ifdef WINDOWS
+#ifdef _WINDOWS
 		free(cur_str);
 #endif
 	}
 
-#ifdef UNIX
+#ifdef _UNIX
 	/* free up memory */
 	history_end(cli_history);
 	el_end(cli_el);
