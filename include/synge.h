@@ -47,8 +47,15 @@
 #	define false 0
 #endif
 
-/* define symbol exports */
+/* define os */
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#	define _WINDOWS
+#else
+#	define _UNIX
+#endif
+
+/* define symbol exports */
+#ifdef _WINDOWS
 #	ifdef __BUILD_LIB__
 #		define __EXPORT __declspec(dllexport)
 #	else

@@ -20,13 +20,6 @@
  * SOFTWARE.
  */
 
-/* detect windows or unix */
-#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
-#	define WINDOWS
-#else
-#	define UNIX
-#endif
-
 #include <synge.h>
 #include <definitions.h>
 
@@ -41,7 +34,7 @@
 
 #include "xmlui.h" /* generated header to bake the gtk_builder xml string */
 
-#ifdef __WIN32
+#ifdef _WINDOWS
 #	define __EXPORT_SYMBOL __declspec(dllexport)
 #else
 #	define __EXPORT_SYMBOL

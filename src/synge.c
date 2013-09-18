@@ -153,7 +153,7 @@ static void cheeky(char *format, ...) {
 } /* cheeky() */
 
 /* for windows, define strcasecmp and strncasecmp */
-#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#ifdef _WINDOWS
 int strcasecmp(char *s1, char *s2) {
 	while (tolower(*s1) == tolower(*s2)) {
 		if (*s1 == '\0' || *s2 == '\0')
@@ -557,11 +557,12 @@ static char *get_word_ptr(char *string, char *list) {
 	int lenstr = strlen(string), lenlist = strlen(list);
 
 	/* go through string */
-	int i, j, found;
+	int i;
 	for(i = 0; i < lenstr; i++) {
-		found = false;
+		bool found = false;
 
 		/* check current character against allowed character "list" */
+		int j;
 		for(j = 0; j < lenlist; j++) {
 			/* match found */
 			if(string[i] == list[j]) {
