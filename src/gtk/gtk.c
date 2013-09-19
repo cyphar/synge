@@ -266,7 +266,7 @@ int main(int argc, char **argv) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
 	gtk_builder_connect_signals(builder, NULL);
 
-#ifdef UNIX
+#ifdef _UNIX
 	/* hint that the gui should be floating -- windows does stupid things with this hint */
 	gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DIALOG);
 	gtk_window_set_type_hint(GTK_WINDOW(func_window), GDK_WINDOW_TYPE_HINT_DIALOG);
