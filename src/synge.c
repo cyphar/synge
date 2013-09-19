@@ -144,7 +144,7 @@ static void debug(char *format, ...) {
 } /* debug() */
 
 static void cheeky(char *format, ...) {
-#if defined(__SYNGE_CHEEKY__) && __SYNGE_CHEEKY__ > 0
+#if defined(__SYNGE_CHEEKY__) && __SYNGE_CHEEKY__
 	va_list ap;
 	va_start(ap, format);
 	synge_vfprintf(stderr, format, ap);
@@ -557,19 +557,14 @@ static char *get_word_ptr(char *string, char *list) {
 	int lenstr = strlen(string), lenlist = strlen(list);
 
 	/* go through string */
-	int i;
+	int i, j, found = true;
 	for(i = 0; i < lenstr; i++) {
-		bool found = false;
+		found = false;
 
 		/* check current character against allowed character "list" */
-		int j;
-		for(j = 0; j < lenlist; j++) {
-			/* match found */
-			if(string[i] == list[j]) {
+		for(j = 0; j < lenlist && !found; j++)
+			if(string[i] == list[j])
 				found = true;
-				break;
-			}
-		}
 
 		/* current character not in string -- end of word */
 		if(!found)
