@@ -372,13 +372,13 @@ static function func_list[] = {
 	{"sqrt",	"sqrt(x)",		"Square root of x",									mpfr_sqrt},
 	{"cbrt",	"cbrt(x)",		"Cubic root of x",									mpfr_cbrt},
 
-	{"floor",	"floor(x)",		"Largest integer not greater than x",				mpfr_floor},
 	{"round",	"round(x)",		"Closest integer to x",								mpfr_round},
 	{"ceil",	"ceil(x)",		"Smallest integer not smaller than x",				mpfr_ceil},
+	{"floor",	"floor(x)",		"Largest integer not greater than x",				mpfr_floor},
 
-	{"log10",	"log10(x)",		"Base 10 logarithm of x",							mpfr_log10},
 	{"log",		"log(x)",		"Base 2 logarithm of x",							mpfr_log2},
 	{"ln",		"ln(x)",		"Base e logarithm of x",							mpfr_log},
+	{"log10",	"log10(x)",		"Base 10 logarithm of x",							mpfr_log10},
 
 	{"rand",	"rand(x)",		"Generate a pseudo-random number between 0 and x",	sy_rand},
 	{"randi",	"randi(x)",		"Generate a pseudo-random integer between 0 and x",	sy_int_rand},
@@ -396,19 +396,19 @@ static function func_list[] = {
 	{"grad_to_deg",	"grad_to_deg(x)",	"Convert x gradians to degrees",   			grad_to_deg},
 	{"grad_to_rad",	"grad_to_rad(x)",	"Convert x gradians to radians",   			grad_to_rad},
 
-	{"asinh",	"asinh(x)",		"Inverse hyperbolic sine of x",						mpfr_asinh},
-	{"acosh",	"acosh(x)",		"Inverse hyperbolic cosine of x",					mpfr_acosh},
-	{"atanh",	"atanh(x)",		"Inverse hyperbolic tangent of x",					mpfr_atanh},
 	{"sinh",	"sinh(x)",		"Hyperbolic sine of x",								mpfr_sinh},
 	{"cosh",	"cosh(x)",		"Hyperbolic cosine of x",							mpfr_cosh},
 	{"tanh",	"tanh(x)",		"Hyperbolic tangent of x",							mpfr_tanh},
+	{"asinh",	"asinh(x)",		"Inverse hyperbolic sine of x",						mpfr_asinh},
+	{"acosh",	"acosh(x)",		"Inverse hyperbolic cosine of x",					mpfr_acosh},
+	{"atanh",	"atanh(x)",		"Inverse hyperbolic tangent of x",					mpfr_atanh},
 
-	{"asin",	"asin(x)",		"Inverse sine of x",								mpfr_asin},
-	{"acos",	"acos(x)",		"Inverse cosine of x",								mpfr_acos},
-	{"atan",	"atan(x)",		"Inverse tangent of x",								mpfr_atan},
 	{"sin",		"sin(x)",		"Sine of x",										mpfr_sin},
 	{"cos",		"cos(x)",		"Cosine of x",										mpfr_cos},
 	{"tan",		"tan(x)",		"Tangent of x",										mpfr_tan},
+	{"asin",	"asin(x)",		"Inverse sine of x",								mpfr_asin},
+	{"acos",	"acos(x)",		"Inverse cosine of x",								mpfr_acos},
+	{"atan",	"atan(x)",		"Inverse tangent of x",								mpfr_atan},
 	{NULL,		NULL,			NULL,												NULL}
 };
 
