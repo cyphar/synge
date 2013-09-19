@@ -37,6 +37,7 @@ else:
 	ansi_error = ansi_warn = ansi_good = ansi_reset = ""
 
 errors = {
+		"base"		: "Invalid base character",
 		"zerodiv"	: "Cannot divide by zero",
 		"zeromod"	: "Cannot modulo by zero",
 		"lparen"	: "Missing closing bracket for opening bracket",
@@ -408,6 +409,9 @@ CASES = [
 
 	(["0s45"],						[error_get("token", 2)],	0,	0,		"Unknown Base Error	"),
 	(["0jk45"],						[error_get("token", 2)],	0,	0,		"Unknown Base Error	"),
+	(["0b5"],						[error_get("base", 1)],		0,	0,		"Base Character Error	"),
+	(["0xZ"],						[error_get("base", 1)],		0,	0,		"Base Character Error	"),
+	(["0o8"],						[error_get("base", 1)],		0,	0,		"Base Character Error	"),
 
 	(["@5"],						[error_get("token", 1)],	0,	0,		"Unknown Token Error	"),
 	(["rand(@3)"],					[error_get("token", 6)],	0,	0,		"Unknown Token Error	"),
