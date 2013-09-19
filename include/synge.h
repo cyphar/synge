@@ -70,6 +70,7 @@ typedef mpfr_t synge_t;
 typedef struct {
 	enum {
 		SUCCESS,
+		BASE_CHAR,
 		DIVIDE_BY_ZERO,
 		MODULO_BY_ZERO,
 		UNMATCHED_LEFT_PARENTHESIS,
