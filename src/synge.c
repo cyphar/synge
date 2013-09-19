@@ -734,54 +734,76 @@ static function *get_func(char *val) {
 	return ret;
 } /* get_func() */
 
-static void synge_strtofr(synge_t *num, char *str, char **endptr) {
+static bool valid_base_char(char digit, int base) {
+	char valid_digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+	int i;
+	for(i = 0; i < base; i++)
+		if(digit == valid_digits[i])
+			return true;
+
+	return false;
+} /* valid_base_char() */
+
+static error_code synge_strtofr(synge_t *num, char *str, char **endptr) {
 	/* NOTE: Signing is now dealt using operators, so ignore signops */
 	if(issignop(str)) {
 		*endptr = str;
-		return;
+		return to_error_code(SUCCESS, -1);
 	}
+
+	int base = 10;
 
 	/* all special bases begin with 0_ but 0. doesn't count */
 	if(strlen(str) <= 2 || *str != '0' || issignop(str + 1) || issignop(str + 2)) {
 		/* default to decimal */
-		mpfr_strtofr(*num, str, endptr, 10, SYNGE_ROUND);
-		return;
+		mpfr_strtofr(*num, str, endptr, base, SYNGE_ROUND);
+		return to_error_code(SUCCESS, -1);
+	} else {
+		/* go past the first 0 */
+		str++;
+		switch(*str) {
+			case 'x':
+				/* hexadecimal */
+				str++;
+				base = 16;
+				break;
+			case 'd':
+				/* decimal */
+				str++;
+				base = 10;
+				break;
+			case 'b':
+				/* binary */
+				str++;
+				base = 2;
+				break;
+			case 'o':
+				/* octal */
+				str++;
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+				/* just a leading zero -> octal */
+				base = 8;
+				break;
+			default:
+				str--;
+				base = 10;
+				break;
+		}
 	}
 
-	/* go past the first 0 */
-	str++;
-	switch(*str) {
-		case 'x':
-			/* hexadecimal */
-			mpfr_strtofr(*num, str + 1, endptr, 16, SYNGE_ROUND);
-			break;
-		case 'd':
-			/* decimal */
-			mpfr_strtofr(*num, str + 1, endptr, 10, SYNGE_ROUND);
-			break;
-		case 'b':
-			/* binary */
-			mpfr_strtofr(*num, str + 1, endptr, 2, SYNGE_ROUND);
-			break;
-		case 'o':
-			/* octal */
-			str++;
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-			/* just a leading zero -> octal */
-			mpfr_strtofr(*num, str, endptr, 8, SYNGE_ROUND);
-			break;
-		default:
-			/* default to decimal */
-			mpfr_strtofr(*num, --str, endptr, 10, SYNGE_ROUND);
-			return;
-	}
+	if(!valid_base_char(*str, base))
+		return to_error_code(BASE_CHAR, -1);
+
+	mpfr_strtofr(*num, str, endptr, base, SYNGE_ROUND);
+	return to_error_code(SUCCESS, -1);
 } /* synge_strtofr() */
 
 static bool isnum(char *string) {
@@ -792,11 +814,11 @@ static bool isnum(char *string) {
 	/* get synge_t number from string */
 	synge_t tmp;
 	mpfr_init2(tmp, SYNGE_PRECISION);
-	synge_strtofr(&tmp, string, &endptr);
+	error_code tmpcode = synge_strtofr(&tmp, string, &endptr);
 	mpfr_clears(tmp, NULL);
 
 	/* all cases where word is a number */
-	int ret = ((s && get_special_num(s).name) || string != endptr);
+	int ret = ((s && get_special_num(s).name) || string != endptr || tmpcode.code == BASE_CHAR);
 	free(s);
 	return ret;
 } /* isnum() */
@@ -950,7 +972,14 @@ static error_code synge_tokenise_string(char *string, stack **infix_stack) {
 			else {
 				/* set value */
 				char *endptr = NULL;
-				synge_strtofr(num, string + i, &endptr);
+				error_code tmpcode = synge_strtofr(num, string + i, &endptr);
+
+				if(!synge_is_success_code(tmpcode.code)) {
+					mpfr_clear(*num);
+					free(num);
+					return to_error_code(tmpcode.code, pos);
+				}
+
 				tmpoffset = endptr - (string + i); /* update iterator to correct offset */
 			}
 
@@ -2424,6 +2453,9 @@ static char *get_trace(link_t *link) {
 
 static char *get_error_type(error_code error) {
 	switch(error.code) {
+		case BASE_CHAR:
+			return "BaseError";
+			break;
 		case DIVIDE_BY_ZERO:
 		case MODULO_BY_ZERO:
 		case NUM_OVERFLOW:
@@ -2463,6 +2495,9 @@ char *synge_error_msg(error_code error) {
 
 	/* get correct printf string */
 	switch(error.code) {
+		case BASE_CHAR:
+			msg = "Invalid base character";
+			break;
 		case DIVIDE_BY_ZERO:
 			cheeky("The 11th Commandment: Thou shalt not divide by zero.\n");
 			msg = "Cannot divide by zero";
