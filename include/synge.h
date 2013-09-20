@@ -168,6 +168,14 @@ __EXPORT void synge_end(void); /* run at program termination -- memory WILL leak
 
 __EXPORT void synge_reset_traceback(void); /* reset the traceback list */
 
+typedef struct {
+	char *version; /* version in the form "maj.min.rev" */
+	char *revision; /* git revision (empty if production version) */
+	char *compiled; /* time and date of compilation */
+} synge_v;
+
+__EXPORT synge_v synge_get_version(void); /* get a structure containing the relevant version information of the synge core */
+
 /* for windows, we need to define strcasecmp and strncasecmp */
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
 typedef long off_t;
