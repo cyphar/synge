@@ -735,7 +735,7 @@ static bool valid_base_char(char digit, int base) {
 
 	int i;
 	for(i = 0; i < base; i++)
-		if(digit == valid_digits[i])
+		if(toupper(digit) == toupper(valid_digits[i]))
 			return true;
 
 	return false;
