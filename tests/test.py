@@ -196,9 +196,13 @@ CASES = [
 	(["-0xA0"],						["-160"],			0,	0,		"Hexadecimal		"),
 
 	(["0xDEADBEEF + 0xA"],			["3735928569"],		0,	0,		"Hex Addition		"),
+	(["0xdEaDbEeF + 0xa"],			["3735928569"],		0,	0,		"Hex Addition		"),
 	(["0xDEADBEEF - 0xA"],			["3735928549"],		0,	0,		"Hex Subtraction		"),
+	(["0xdeadbeeF - 0xa"],			["3735928549"],		0,	0,		"Hex Subtraction		"),
 	(["0xA0 * 0xA"],				["1600"],			0,	0,		"Hex Multiplication	"),
+	(["0xa0 * 0xa"],				["1600"],			0,	0,		"Hex Multiplication	"),
 	(["0xA0 / 0xA"],				["16"],				0,	0,		"Hex Division		"),
+	(["0xa0 / 0xa"],				["16"],				0,	0,		"Hex Division		"),
 
 	(["0b11"],						["3"],				0,	0,		"Binary			"),
 	(["+0b11"],						["3"],				0,	0,		"Binary			"),
