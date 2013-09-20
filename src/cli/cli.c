@@ -65,10 +65,6 @@
 #	define ANSI_CLEAR	""
 #endif
 
-#ifndef __SYNGE_GIT_VERSION__
-#	define __SYNGE_GIT_VERSION__ ""
-#endif
-
 #define OUTPUT_PADDING		""
 #define ERROR_PADDING		""
 
@@ -88,16 +84,19 @@ typedef struct __cli_command__ {
 } cli_command;
 
 void cli_version(void) {
+	synge_v core = synge_get_version();
+
 	char *revision = "";
 	if(strlen(__SYNGE_GIT_VERSION__) == 40)
 		revision = "Revision:    " __SYNGE_GIT_VERSION__ "\n";
 
 	printf(	"%s"
-		"Synge:       %s\n"
-		"Synge-Cli:   %s\n"
-		"%s"
-		"Compiled:    %s, %s\n"
-		"%s", ANSI_INFO, __SYNGE_VERSION__, __SYNGE_CLI_VERSION__, revision, __TIME__, __DATE__, ANSI_CLEAR);
+			"Synge:       %s\n"
+			"Synge-Cli:   %s\n"
+			"%s"
+			"Compiled:    %s, %s\n"
+			"%s", ANSI_INFO, core.version, __SYNGE_CLI_VERSION__, revision, __TIME__, __DATE__, ANSI_CLEAR);
+
 } /* cli_version() */
 
 void cli_license(void) {

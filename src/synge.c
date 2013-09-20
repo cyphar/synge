@@ -28,9 +28,10 @@
 #include <string.h>
 #include <strings.h>
 
-#include "stack.h"
 #include "synge.h"
 #include "internal.h"
+#include "version.h"
+#include "stack.h"
 #include "ohmic.h"
 #include "linked.h"
 
@@ -2866,3 +2867,13 @@ void synge_reset_traceback(void) {
 
 	free(tmp);
 } /* synge_reset_traceback() */
+
+synge_v synge_get_version(void) {
+	synge_v ret;
+
+	ret.version = __SYNGE_VERSION__;
+	ret.revision = __SYNGE_GIT_VERSION__;
+	ret.compiled = __TIME__ ", " __DATE__;
+
+	return ret;
+} /* synge_version() */

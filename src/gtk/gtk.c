@@ -20,6 +20,8 @@
  * SOFTWARE.
  */
 
+#define _BSD_SOURCE
+
 #include <synge.h>
 #include <definitions.h>
 
@@ -40,11 +42,8 @@
 #	define __EXPORT_SYMBOL
 #endif
 
-#ifndef __SYNGE_GIT_VERSION__
-#	define __SYNGE_GIT_VERSION__ ""
-#endif
-
 #define GUI_MAX_PRECISION 10
+#define lenprintf(format, ...) (snprintf(NULL, 0, format, __VA_ARGS__))
 
 enum {
 	FUNCL_COLUMN_NAME,
@@ -272,16 +271,26 @@ int main(int argc, char **argv) {
 	gtk_window_set_type_hint(GTK_WINDOW(func_window), GDK_WINDOW_TYPE_HINT_DIALOG);
 #endif
 
+	synge_v core = synge_get_version();
 	char *comments = NULL;
+	int len = lenprintf("Core: %s\nGUI: %s", core.version, __SYNGE_GTK_VERSION__);
 
-	/* git commit information is always 40 chars long */
-	if(strlen(__SYNGE_GIT_VERSION__) != 40)
-		comments = "Core: " __SYNGE_VERSION__ "\n" "GUI: " __SYNGE_GTK_VERSION__;
-	else
-		comments = "Core: " __SYNGE_VERSION__ "\n" "GUI: " __SYNGE_GTK_VERSION__ "\n" "Revision: " __SYNGE_GIT_VERSION__;
+	if(strlen(__SYNGE_GIT_VERSION__) == 40) {
+		/* add git revision */
+		len += lenprintf("\nRevision: %s", __SYNGE_GIT_VERSION__);
+
+		/* format the version information */
+		comments = malloc(len + 1);
+		sprintf(comments, "Core: %s\nGUI: %s\nRevision: %s", core.version, __SYNGE_GTK_VERSION__, __SYNGE_GIT_VERSION__);
+	} else {
+		/* format the version information */
+		comments = malloc(len + 1);
+		sprintf(comments, "Core: %s\nGUI: %s", core.version, __SYNGE_GTK_VERSION__);
+	}
 
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), comments);
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n" SYNGE_WARRANTY);
+	free(comments);
 
 	gtk_widget_show(GTK_WIDGET(window));
 	gtk_main();
