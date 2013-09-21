@@ -60,8 +60,10 @@ static bool valid_base_char(char digit, int base) {
 	return false;
 } /* valid_base_char() */
 
+#define isstrop(str) (get_op(str).tp != op_none)
+
 static error_code synge_strtofr(synge_t *num, char *str, char **endptr) {
-	/* NOTE: Signing is now dealt using operators, so ignore signops */
+	/* NOTE: all signops are operators now, so ignore them here */
 	if(issignop(str)) {
 		*endptr = str;
 		return to_error_code(SUCCESS, -1);
@@ -70,7 +72,7 @@ static error_code synge_strtofr(synge_t *num, char *str, char **endptr) {
 	int base = 10;
 
 	/* all special bases begin with 0_ but 0. doesn't count */
-	if(strlen(str) <= 2 || *str != '0' || issignop(str + 1) || issignop(str + 2)) {
+	if(strlen(str) <= 2 || *str != '0' || isstrop(str + 1) || isstrop(str + 2)) {
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, base, SYNGE_ROUND);
 		return to_error_code(SUCCESS, -1);
