@@ -20,4 +20,9 @@
  * SOFTWARE.
  */
 
+#ifndef __XMLUI_H__
+#define __XMLUI_H__
+
 #define __SYNGE_GTK_XML_UI__ "STRING_REPLACED_DURING_COMPILE_TIME"
+
+#endif
