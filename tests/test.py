@@ -194,6 +194,7 @@ CASES = [
 	(["0xA0"],						["160"],			0,	0,		"Hexadecimal		"),
 	(["+0xA0"],						["160"],			0,	0,		"Hexadecimal		"),
 	(["-0xA0"],						["-160"],			0,	0,		"Hexadecimal		"),
+	(["a=x=3", "0x*a"],				["3", "0"],			0,	0,		"Convoluted Hexadecimal	"),
 
 	(["0xDEADBEEF + 0xA"],			["3735928569"],		0,	0,		"Hex Addition		"),
 	(["0xdEaDbEeF + 0xa"],			["3735928569"],		0,	0,		"Hex Addition		"),
