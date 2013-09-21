@@ -5,11 +5,55 @@ Synge
 A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
 
 ## Features ##
-* Multiple Precision Numbers (using MPFR)
+* Multiple Precision Numbers (using MPFR + GMP)
+  - Correct to 64 decimal places
+  - No IEEE 754 rounding errors
 * Scientific Functions
+  - `abs(...)`
+  - `sqrt(...)`
+  - `cbrt(...)`
+  - `round(...)`
+  - `ceil(...)`
+  - `floor(...)`
+  - `log(...)`
+  - `ln(...)`
+  - `log10(...)`
+  - `rand(...)`
+  - `randi(...)`
+  - `fact(...)`
+  - `series(...)`
+  - `assert(...)`
+  - `deg_to_rad(...)`
+  - `deg_to_grad(...)`
+  - `rad_to_deg(...)`
+  - `rad_to_grad(...)`
+  - `grad_to_deg(...)`
+  - `grad_to_rad(...)`
+  - `sinh(...)`
+  - `cosh(...)`
+  - `tanh(...)`
+  - `asinh(...)`
+  - `acosh(...)`
+  - `atanh(...)`
+  - `sin(...)`
+  - `cos(...)`
+  - `tan(...)`
+  - `asin(...)`
+  - `acos(...)`
+  - `atan(...)`
+* Shortcut Conditional Expressions
+  - `true ? 42 : 1` (`42`)
+  - `false ? 1/0 : 3` (`3`, no error)
 * Mathematical Constants
+  - `pi`
+  - `e`
+  - `phi`
+  - `true`
+  - `false`
 * Recursive User Functions
+  - `f := f + 1`
 * Variables
+  - `a = 42`
 * Simple Programming API
 * Detailed Traceback Errors
 * Dynamic Scoping
@@ -28,7 +72,7 @@ Factorial:
 * `f := (x > 0) ? x-- * f : 1` (recursively generate result)
 
 Traceback:
-* `f := 1/0`
+* `f := 1/0` (will not print an error)
 * `f`
 
 ```
@@ -40,9 +84,9 @@ MathError: Cannot divide by zero @ 2
 
 Dynamic Scoping:
 * `f := a=3`
-* `::a` (undef a)
-* `f`
-* `a` (def'd within f)
+* `::a` (delete a)
+* `f` (define a within f)
+* `a`
 
 ## License ##
 Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in both open source and propretary projects (provided the license conditions are met).
