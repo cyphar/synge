@@ -52,7 +52,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#define __SYNGE_EVAL_HELP__ "./synge-eval expression[s] [-m mode] [-RVh]\n" \
+#define SYNGE_EVAL_HELP "./synge-eval expression[s] [-m mode] [-RVh]\n" \
 "\n" \
 "Run the expression through Synge, using the given settings, and defaults otherwise.\n" \
 "\n" \
@@ -97,17 +97,17 @@ void bake_args(int argc, char ***argv) {
 			synge_v core = synge_get_version();
 
 			char *revision = "";
-			if(strlen(__SYNGE_GIT_VERSION__) == 40)
-				revision = "Revision:    " __SYNGE_GIT_VERSION__ "\n";
+			if(strlen(SYNGE_GIT_VERSION) == 40)
+				revision = "Revision:    " SYNGE_GIT_VERSION "\n";
 
 			printf(	"Synge:       %s\n"
 					"Synge-Eval:  %s\n"
 					"%s"
-					"Compiled:    %s, %s\n", core.version, __SYNGE_EVAL_VERSION__, revision, __TIME__, __DATE__);
+					"Compiled:    %s, %s\n", core.version, SYNGE_EVAL_VERSION, revision, __TIME__, __DATE__);
 			exit(0);
 		}
 		else if(!strcmp((*argv)[i], "-h") || !strcmp((*argv)[i], "-help") || !strcmp((*argv)[i], "--help")) {
-			printf(__SYNGE_EVAL_HELP__ "\n");
+			printf(SYNGE_EVAL_HELP "\n");
 			exit(0);
 		}
 	}

@@ -24,24 +24,24 @@
 #define __SYNGE_VERSION_H__
 
 /* core version */
-#define __SYNGE_VERSION__ 		"1.5.0"  /* ANSI string */
-#define B__SYNGE_VERSION__ 		 1,5,0,0 /* binary (for resources) */
+#define SYNGE_VERSION 			"1.5.0"  /* ANSI string */
+#define BSYNGE_VERSION 			 1,5,0,0 /* binary (for resources) */
 
 /* cli version */
-#define __SYNGE_CLI_VERSION__ 		"1.1.2"  /* ANSI string */
-#define B__SYNGE_CLI_VERSION__ 		 1,1,2,0 /* binary (for resources) */
+#define SYNGE_CLI_VERSION 		"1.1.2"  /* ANSI string */
+#define BSYNGE_CLI_VERSION 		 1,1,2,0 /* binary (for resources) */
 
 /* gtk version */
-#define __SYNGE_GTK_VERSION__ 		"1.0.2 [CONCEPT]" /* ANSI string */
-#define B__SYNGE_GTK_VERSION__ 		 1,0,2,0	  /* binary (for resources) */
+#define SYNGE_GTK_VERSION 		"1.0.2 [CONCEPT]" /* ANSI string */
+#define BSYNGE_GTK_VERSION 		 1,0,2,0	  /* binary (for resources) */
 
 /* eval version */
-#define __SYNGE_EVAL_VERSION__ 		"1.0.2"	 /* ANSI string */
-#define B__SYNGE_EVAL_VERSION__ 	 1,0,2,0 /* binary (for resources) */
+#define SYNGE_EVAL_VERSION 		"1.0.2"	 /* ANSI string */
+#define BSYNGE_EVAL_VERSION 	 1,0,2,0 /* binary (for resources) */
 
 /* git_version == "" if production */
-#ifndef __SYNGE_GIT_VERSION__
-#	define __SYNGE_GIT_VERSION__ ""
+#ifndef SYNGE_GIT_VERSION
+#	define SYNGE_GIT_VERSION ""
 #endif
 
 #endif /* __SYNGE_VERSION_H__ */

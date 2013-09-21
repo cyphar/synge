@@ -185,7 +185,7 @@ __EXPORT_SYMBOL void gui_populate_function_list(void) {
 	int i;
 	for(i = 0; tmp_function_list[i].name != NULL; i++) {
 		gtk_list_store_append(func_store, &iter);
-#ifdef __DEBUG__
+#ifdef DEBUG
 		printf("Adding to function list: \"%s\" -> \"%s\"\n", tmp_function_list[i].prototype, tmp_function_list[i].description);
 #endif
 		gtk_list_store_set(func_store, &iter,
@@ -208,7 +208,7 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 		if(strchr(value, '('))
 			*(strchr(value, '(') + 1) = '\0';
 
-#ifdef __DEBUG__
+#ifdef DEBUG
 		g_print("selected expression is: %s\n", value);
 		printf("'%s' => %d\n", value, (int) strlen(value));
 #endif
@@ -240,8 +240,8 @@ int main(int argc, char **argv) {
 
 	builder = gtk_builder_new();
 
-#ifdef __SYNGE_GTK_XML_UI__
-	gtk_builder_add_from_string(builder, __SYNGE_GTK_XML_UI__, -1, NULL);
+#ifdef SYNGE_GTK_XML_UI
+	gtk_builder_add_from_string(builder, SYNGE_GTK_XML_UI, -1, NULL);
 #else
 	if(!gtk_builder_add_from_file(builder, "synge-gtk.glade", NULL)) {
 		printf("Couldn't open synge-gtk.glade\n");
@@ -273,19 +273,19 @@ int main(int argc, char **argv) {
 
 	synge_v core = synge_get_version();
 	char *comments = NULL;
-	int len = lenprintf("Core: %s\nGUI: %s", core.version, __SYNGE_GTK_VERSION__);
+	int len = lenprintf("Core: %s\nGUI: %s", core.version, SYNGE_GTK_VERSION);
 
-	if(strlen(__SYNGE_GIT_VERSION__) == 40) {
+	if(strlen(SYNGE_GIT_VERSION) == 40) {
 		/* add git revision */
-		len += lenprintf("\nRevision: %s", __SYNGE_GIT_VERSION__);
+		len += lenprintf("\nRevision: %s", SYNGE_GIT_VERSION);
 
 		/* format the version information */
 		comments = malloc(len + 1);
-		sprintf(comments, "Core: %s\nGUI: %s\nRevision: %s", core.version, __SYNGE_GTK_VERSION__, __SYNGE_GIT_VERSION__);
+		sprintf(comments, "Core: %s\nGUI: %s\nRevision: %s", core.version, SYNGE_GTK_VERSION, SYNGE_GIT_VERSION);
 	} else {
 		/* format the version information */
 		comments = malloc(len + 1);
-		sprintf(comments, "Core: %s\nGUI: %s", core.version, __SYNGE_GTK_VERSION__);
+		sprintf(comments, "Core: %s\nGUI: %s", core.version, SYNGE_GTK_VERSION);
 	}
 
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), comments);

@@ -33,7 +33,7 @@
 #include "linked.h"
 
 void print_stack(stack *s) {
-#ifdef __SYNGE_DEBUG__
+#ifdef SYNGE_DEBUG
 	int i, size = stack_size(s);
 	for(i = 0; i < size; i++) {
 		s_content tmp = s->content[i];
@@ -58,7 +58,7 @@ void print_stack(stack *s) {
 } /* print_stack() */
 
 void debug(char *format, ...) {
-#ifdef __SYNGE_DEBUG__
+#ifdef SYNGE_DEBUG
 	va_list ap;
 	va_start(ap, format);
 	synge_vfprintf(stderr, format, ap);
@@ -67,7 +67,7 @@ void debug(char *format, ...) {
 } /* debug() */
 
 void cheeky(char *format, ...) {
-#if defined(__SYNGE_CHEEKY__) && __SYNGE_CHEEKY__
+#if defined(SYNGE_CHEEKY) && SYNGE_CHEEKY
 	va_list ap;
 	va_start(ap, format);
 	synge_vfprintf(stderr, format, ap);

@@ -28,6 +28,13 @@
 #include "ohmic.h"
 #include "linked.h"
 
+/* use theta symbol for angles if appropriate */
+#if defined(SYNGE_UTF8_STRINGS) && !SYNGE_UTF8_STRINGS
+#	define SYNGE_THETA "x"
+#else
+#	define SYNGE_THETA "θ"
+#endif
+
 /* global state variables */
 int synge_started = false;
 gmp_randstate_t synge_state;
@@ -112,47 +119,47 @@ static int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
 
 /* builtin function names, prototypes, descriptions and function pointers */
 function func_list[] = {
-	{"abs",		"abs(x)",		"Absolute value of x",								mpfr_abs},
-	{"sqrt",	"sqrt(x)",		"Square root of x",									mpfr_sqrt},
-	{"cbrt",	"cbrt(x)",		"Cubic root of x",									mpfr_cbrt},
+	{"abs",		"abs(n)",		"Absolute value of n",												mpfr_abs},
+	{"sqrt",	"sqrt(n)",		"Square root of n",													mpfr_sqrt},
+	{"cbrt",	"cbrt(n)",		"Cubic root of n",													mpfr_cbrt},
 
-	{"round",	"round(x)",		"Closest integer to x",								mpfr_round},
-	{"ceil",	"ceil(x)",		"Smallest integer not smaller than x",				mpfr_ceil},
-	{"floor",	"floor(x)",		"Largest integer not greater than x",				mpfr_floor},
+	{"round",	"round(n)",		"Round n away from 0",												mpfr_round},
+	{"ceil",	"ceil(n)",		"Round n toward positive infinity",									mpfr_ceil},
+	{"floor",	"floor(n)",		"Round n toward negative infinity",									mpfr_floor},
 
-	{"log",		"log(x)",		"Base 2 logarithm of x",							mpfr_log2},
-	{"ln",		"ln(x)",		"Base e logarithm of x",							mpfr_log},
-	{"log10",	"log10(x)",		"Base 10 logarithm of x",							mpfr_log10},
+	{"log",		"log(n)",		"Base 2 logarithm of n",											mpfr_log2},
+	{"ln",		"ln(n)",		"Natural logarithm of n",											mpfr_log},
+	{"log10",	"log10(n)",		"Base 10 logarithm of n",											mpfr_log10},
 
-	{"rand",	"rand(x)",		"Generate a pseudo-random number between 0 and x",	sy_rand},
-	{"randi",	"randi(x)",		"Generate a pseudo-random integer between 0 and x",	sy_int_rand},
+	{"rand",	"rand(n)",		"Generate a random number between 0 and n",							sy_rand},
+	{"randi",	"randi(n)",		"Generate a random integer between 0 and n",						sy_int_rand},
 
-	{"fact",	"fact(x)",		"Factorial of round(x)",							sy_factorial},
-	{"series",	"series(x)",	"Gives addition of all integers up to x",			sy_series},
-	{"assert",	"assert(x)",	"Returns 0 is x is 0, and returns 1 otherwise",		sy_assert},
+	{"fact",	"fact(n)",		"Factorial of the integer n",										sy_factorial},
+	{"series",	"series(n)",	"Gives sum of all integers up to n",								sy_series},
+	{"assert",	"assert(n)",	"Returns 0 if x is false-ish, 1 otherwise",							sy_assert},
 
-	{"deg_to_rad",	"deg_to_rad(x)",	"Convert x degrees to radians",   			deg_to_rad},
-	{"deg_to_grad",	"deg_to_grad(x)",	"Convert x degrees to gradians",   			deg_to_grad},
+	{"deg_to_rad",	"deg_to_rad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " degrees to radians",  	deg_to_rad},
+	{"deg_to_grad",	"deg_to_grad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " degrees to gradians", 	deg_to_grad},
 
-	{"rad_to_deg",	"rad_to_deg(x)",	"Convert x radians to degrees",   			rad_to_deg},
-	{"rad_to_grad",	"rad_to_grad(x)",	"Convert x radians to gradians",   			rad_to_grad},
+	{"rad_to_deg",	"rad_to_deg(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " radians to degrees",  	rad_to_deg},
+	{"rad_to_grad",	"rad_to_grad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " radians to gradians", 	rad_to_grad},
 
-	{"grad_to_deg",	"grad_to_deg(x)",	"Convert x gradians to degrees",   			grad_to_deg},
-	{"grad_to_rad",	"grad_to_rad(x)",	"Convert x gradians to radians",   			grad_to_rad},
+	{"grad_to_deg",	"grad_to_deg(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " gradians to degrees",  grad_to_deg},
+	{"grad_to_rad",	"grad_to_rad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " gradians to radians",  grad_to_rad},
 
-	{"sinh",	"sinh(x)",		"Hyperbolic sine of x",								mpfr_sinh},
-	{"cosh",	"cosh(x)",		"Hyperbolic cosine of x",							mpfr_cosh},
-	{"tanh",	"tanh(x)",		"Hyperbolic tangent of x",							mpfr_tanh},
-	{"asinh",	"asinh(x)",		"Inverse hyperbolic sine of x",						mpfr_asinh},
-	{"acosh",	"acosh(x)",		"Inverse hyperbolic cosine of x",					mpfr_acosh},
-	{"atanh",	"atanh(x)",		"Inverse hyperbolic tangent of x",					mpfr_atanh},
+	{"sinh",	"sinh(" SYNGE_THETA ")",		"Hyperbolic sine of " SYNGE_THETA "",				mpfr_sinh},
+	{"cosh",	"cosh(" SYNGE_THETA ")",		"Hyperbolic cosine of " SYNGE_THETA "",				mpfr_cosh},
+	{"tanh",	"tanh(" SYNGE_THETA ")",		"Hyperbolic tangent of " SYNGE_THETA "",			mpfr_tanh},
+	{"asinh",	"asinh(" SYNGE_THETA ")",		"Inverse hyperbolic sine of " SYNGE_THETA "",		mpfr_asinh},
+	{"acosh",	"acosh(" SYNGE_THETA ")",		"Inverse hyperbolic cosine of " SYNGE_THETA "",		mpfr_acosh},
+	{"atanh",	"atanh(" SYNGE_THETA ")",		"Inverse hyperbolic tangent of " SYNGE_THETA "",	mpfr_atanh},
 
-	{"sin",		"sin(x)",		"Sine of x",										mpfr_sin},
-	{"cos",		"cos(x)",		"Cosine of x",										mpfr_cos},
-	{"tan",		"tan(x)",		"Tangent of x",										mpfr_tan},
-	{"asin",	"asin(x)",		"Inverse sine of x",								mpfr_asin},
-	{"acos",	"acos(x)",		"Inverse cosine of x",								mpfr_acos},
-	{"atan",	"atan(x)",		"Inverse tangent of x",								mpfr_atan},
+	{"sin",		"sin(" SYNGE_THETA ")",			"Sine of " SYNGE_THETA "",							mpfr_sin},
+	{"cos",		"cos(" SYNGE_THETA ")",			"Cosine of " SYNGE_THETA "",						mpfr_cos},
+	{"tan",		"tan(" SYNGE_THETA ")",			"Tangent of " SYNGE_THETA "",						mpfr_tan},
+	{"asin",	"asin(" SYNGE_THETA ")",		"Inverse sine of " SYNGE_THETA "",					mpfr_asin},
+	{"acos",	"acos(" SYNGE_THETA ")",		"Inverse cosine of " SYNGE_THETA "",				mpfr_acos},
+	{"atan",	"atan(" SYNGE_THETA ")",		"Inverse tangent of " SYNGE_THETA "",				mpfr_atan},
 	{NULL,		NULL,			NULL,												NULL}
 };
 

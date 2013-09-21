@@ -541,8 +541,8 @@ void synge_reset_traceback(void) {
 synge_v synge_get_version(void) {
 	synge_v ret;
 
-	ret.version = __SYNGE_VERSION__;
-	ret.revision = __SYNGE_GIT_VERSION__;
+	ret.version = SYNGE_VERSION;
+	ret.revision = SYNGE_GIT_VERSION;
 	ret.compiled = __TIME__ ", " __DATE__;
 
 	return ret;
