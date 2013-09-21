@@ -24,8 +24,8 @@
 #include <version.h>
 
 1 VERSIONINFO
-FILEVERSION		B__SYNGE_VERSION__
-PRODUCTVERSION	B__SYNGE_VERSION__
+FILEVERSION		BSYNGE_VERSION
+PRODUCTVERSION	BSYNGE_VERSION
 FILEOS			VOS_NT
 FILETYPE		VFT_APP
 {
@@ -36,10 +36,10 @@ FILETYPE		VFT_APP
       VALUE "Comments",			"http://code.cyphar.com/synge"
       VALUE "CompanyName",		"Cyphar"
       VALUE "FileDescription",	"Synge Core Library"
-      VALUE "FileVersion",		__SYNGE_VERSION__
+      VALUE "FileVersion",		SYNGE_VERSION
       VALUE "LegalCopyright",	"(C) 2013 Cyphar (MIT Licensed)"
       VALUE "ProductName",		"Synge"
-      VALUE "ProductVersion",	__SYNGE_VERSION__
+      VALUE "ProductVersion",	SYNGE_VERSION
     }
   }
 

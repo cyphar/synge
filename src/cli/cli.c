@@ -43,15 +43,15 @@
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
-#ifndef __SYNGE_COLOUR__
+#ifndef SYNGE_COLOUR
 #	ifdef _UNIX
-#		define __SYNGE_COLOUR__ true
+#		define SYNGE_COLOUR true
 #	else
-#		define __SYNGE_COLOUR__ false
+#		define SYNGE_COLOUR false
 #	endif
 #endif
 
-#if __SYNGE_COLOUR__
+#if SYNGE_COLOUR
 #	define ANSI_ERROR	"\x1b[1;31m"
 #	define ANSI_GOOD	"\x1b[1;32m"
 #	define ANSI_INFO	"\x1b[1;37m"
@@ -70,14 +70,14 @@
 
 #define CLI_COMMAND_PREFIX	':'
 
-#define CLI_BANNER	"Synge-Cli " __SYNGE_CLI_VERSION__ "\n" \
+#define CLI_BANNER	"Synge-Cli " SYNGE_CLI_VERSION "\n" \
 			"Copyright (C) 2013 Cyphar\n" \
 			"This free software is licensed under the terms of the MIT License and is provided with ABSOLUTELY NO WARRANTY\n" \
 			"For more information, type ':version', ':license' and ':warranty'\n"
 
 #define FLUSH_INPUT() do { while(getchar() != '\n'); } while(0) /* flush input buffer */
 
-typedef struct __cli_command__ {
+typedef struct cli_command {
 	char *name;
 	void (*exec)();
 	bool whole;
@@ -87,15 +87,15 @@ void cli_version(void) {
 	synge_v core = synge_get_version();
 
 	char *revision = "";
-	if(strlen(__SYNGE_GIT_VERSION__) == 40)
-		revision = "Revision:    " __SYNGE_GIT_VERSION__ "\n";
+	if(strlen(SYNGE_GIT_VERSION) == 40)
+		revision = "Revision:    " SYNGE_GIT_VERSION "\n";
 
 	printf(	"%s"
 			"Synge:       %s\n"
 			"Synge-Cli:   %s\n"
 			"%s"
 			"Compiled:    %s, %s\n"
-			"%s", ANSI_INFO, core.version, __SYNGE_CLI_VERSION__, revision, __TIME__, __DATE__, ANSI_CLEAR);
+			"%s", ANSI_INFO, core.version, SYNGE_CLI_VERSION, revision, __TIME__, __DATE__, ANSI_CLEAR);
 
 } /* cli_version() */
 
@@ -341,7 +341,7 @@ void cli_exec(char *str) {
 		str++;
 	}
 
-#if defined(__SYNGE_SAFE__) && __SYNGE_SAFE__ > 0
+#if defined(SYNGE_SAFE) && SYNGE_SAFE > 0
 	int ch;
 	do {
 		/* print warning */
