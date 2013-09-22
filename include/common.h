@@ -187,8 +187,13 @@ typedef struct operator {
 	} tp;
 } operator;
 
-void print_stack(stack *);
-void debug(char *, ...);
+
+#define debug(...) do { _debug("%s: ", __func__); _debug(__VA_ARGS__); } while(0)
+void _debug(char *, ...);
+
+#define print_stack(stack) _print_stack((char *) __func__, stack)
+void _print_stack(char *, stack *);
+
 void cheeky(char *, ...);
 error_code to_error_code(int, int);
 

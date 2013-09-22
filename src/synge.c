@@ -358,7 +358,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	free(to_add);
 
 	debug("depth %d with caller %s\n", depth, caller);
-	debug(" - expression '%s'\n", string);
+	debug("expression '%s'\n", string);
 
 	/* initialise all local variables */
 	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));

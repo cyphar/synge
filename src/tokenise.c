@@ -178,7 +178,7 @@ static char *get_expression_level(char *p, char end) {
 error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
 
-	debug("--\nTokenise\n--\n");
+	_debug("--\nTokenise\n--\n");
 	debug("Input: %s\n", string);
 
 	init_stack(*infix_stack);
