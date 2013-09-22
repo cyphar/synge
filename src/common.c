@@ -32,9 +32,11 @@
 #include "ohmic.h"
 #include "linked.h"
 
-void print_stack(stack *s) {
+void _print_stack(char *fname, stack *s) {
 #ifdef SYNGE_DEBUG
 	int i, size = stack_size(s);
+	fprintf(stderr, "%s: ", fname);
+
 	for(i = 0; i < size; i++) {
 		s_content tmp = s->content[i];
 
@@ -53,18 +55,20 @@ void print_stack(stack *s) {
 				break;
 		}
 	}
-	fprintf(stderr, "\n");
-#endif
-} /* print_stack() */
 
-void debug(char *format, ...) {
+	fprintf(stderr, "\n");
+	fflush(stderr);
+#endif
+} /* _print_stack() */
+
+void _debug(char *format, ...) {
 #ifdef SYNGE_DEBUG
 	va_list ap;
 	va_start(ap, format);
 	synge_vfprintf(stderr, format, ap);
 	va_end(ap);
 #endif
-} /* debug() */
+} /* _debug() */
 
 void cheeky(char *format, ...) {
 #if defined(SYNGE_CHEEKY) && SYNGE_CHEEKY

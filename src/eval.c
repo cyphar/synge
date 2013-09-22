@@ -228,7 +228,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 	stack *evalstack = malloc(sizeof(stack));
 	init_stack(evalstack);
 
-	debug("--\nEvaluate\n--\n");
+	_debug("--\nEvaluate\n--\n");
 
 	int i, tmp = 0, size = stack_size(*rpn);
 	synge_t *result = NULL, arg[3];
