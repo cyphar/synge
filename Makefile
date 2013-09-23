@@ -128,7 +128,7 @@ GTK_CFLAGS	+= `pkg-config --cflags gtk+-2.0`
 EVAL_CFLAGS	+=
 
 SHR_LFLAGS	+= -lm -lgmp -lmpfr -L. -l$(LIB_CORE)
-CORE_LFLAGS	+= -lm -lgmp -lmpfr
+CORE_LFLAGS	+=
 CLI_LFLAGS	+=
 GTK_LFLAGS	+= `pkg-config --libs gtk+-2.0 gmodule-2.0`
 EVAL_LFLAGS	+=
