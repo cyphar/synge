@@ -33,7 +33,7 @@
 #include <math.h>
 
 #ifdef _UNIX
-#	include <histedit.h> /* readline replacement */
+#	include "rawline.h" /* readline replacement */
 #endif
 
 #include <time.h>
@@ -68,6 +68,7 @@
 #define OUTPUT_PADDING		""
 #define ERROR_PADDING		""
 
+#define CLI_PROMPT			">>> "
 #define CLI_COMMAND_PREFIX	':'
 
 #define CLI_BANNER	"Synge-Cli " SYNGE_CLI_VERSION "\n" \
@@ -412,14 +413,10 @@ void sfree(char **pp) {
 	}
 } /* sfree() */
 
-char *cli_get_prompt(void *e) {
-	return ">>> ";
-} /* cli_get_prompt() */
-
 /* for some reason, this code (when run on Windows) has
  * history and line editing automatically added */
 char *cli_fallback_prompt(int *count) {
-	printf("%s", cli_get_prompt(NULL));
+	printf("%s", CLI_PROMPT);
 	fflush(stdout);
 
 	char *input = NULL, ch;
@@ -464,32 +461,21 @@ int main(int argc, char **argv) {
 	cli_default_settings();
 
 	char *cur_str = NULL;
-	int count;
 	synge_t result;
 	mpfr_init2(result, SYNGE_PRECISION);
 
 	error_code ecode;
 #ifdef _UNIX
-	/* Local stuff for libedit */
-	EditLine *cli_el;
-	History *cli_history;
-	HistEvent cli_ev;
-
-	cli_el = el_init(argv[0], stdin, stdout, stderr);
-	el_set(cli_el, EL_PROMPT, &cli_get_prompt);
-	el_set(cli_el, EL_EDITOR, "emacs");
-
-	/* Initialize the history */
-	cli_history = history_init();
-	history(cli_history, &cli_ev, H_SETSIZE, 800);
-	el_set(cli_el, EL_HIST, history, cli_history);
+	/* rawline stuff */
+	raw_t *cli_raw = raw_new("exit");
+	raw_hist(cli_raw, true, 1000);
 #endif
 	/* print banner (cli_banner has a leading newline)*/
 	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 
 	while(true) {
 #ifdef _UNIX
-		cur_str = (char *) el_gets(cli_el, &count); /* get input */
+		cur_str = raw_input(cli_raw, CLI_PROMPT); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 #else
 		cur_str = cli_fallback_prompt(&count);
@@ -540,7 +526,7 @@ int main(int argc, char **argv) {
 
 #ifdef _UNIX
 			/* add input to history */
-			history(cli_history, &cli_ev, H_ENTER, cur_str);
+			raw_hist_add(cli_raw);
 #endif
 		}
 #ifdef _WINDOWS
@@ -550,8 +536,7 @@ int main(int argc, char **argv) {
 
 #ifdef _UNIX
 	/* free up memory */
-	history_end(cli_history);
-	el_end(cli_el);
+	raw_free(cli_raw);
 #else
 	free(cur_str);
 #endif
