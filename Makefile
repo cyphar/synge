@@ -39,10 +39,8 @@ else
 	COLOUR		= 1
 	WARNINGS	= -Werror
 
+	CLI_SRC		= $(CLI_SDIR)/rawline.c
 	CORE_CFLAGS	= -fPIC
-
-	CLI_CFLAGS	= `pkg-config --cflags libedit`
-	CLI_LFLAGS	= `pkg-config --libs libedit`
 
 	EXEC_PREFIX	=./
 	EXEC_SUFFIX	=
@@ -137,7 +135,7 @@ EVAL_LFLAGS	+=
 
 SHR_SRC		+= $(wildcard $(SRC_DIR)/*.c)
 CORE_SRC	+= $(wildcard $(SRC_DIR)/*.c)
-CLI_SRC		+= $(wildcard $(CLI_SDIR)/*.c)
+CLI_SRC		+= $(CLI_SDIR)/cli.c
 GTK_SRC		+= $(wildcard $(GTK_SDIR)/*.c)
 EVAL_SRC	+= $(wildcard $(EVAL_SDIR)/*.c)
 

@@ -1,0 +1,660 @@
+/* rawline: A small line editing library
+ * Copyright (c) 2013 Cyphar
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * 1. The above copyright notice and this permission notice shall be included in
+ *    all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <string.h>
+
+#include "rawline.h"
+
+#if !defined(assert)
+#	define assert(cond) do { if(!cond) { fprintf(stderr, "rawline: %s: condition '%s' failed\n", __func__, #cond); abort(); } } while(0)
+#endif
+
+/* Convert bool-ish ints to bools. */
+#define tobool(b) (!!b)
+
+/* VT100 control codes used by rawline. It is assumed the code using these printf-style
+ * control code formats knows the amount of args (or things to be subbed in), so we don't
+ * need to use functions for these. */
+
+#define C_BELL				"\x7"
+
+/* direction(n) -> move by <n> steps in direction */
+#define C_CUR_MOVE_COL		"\x1b[%dG" /* CHA -- Move to absolute column <n> */
+
+/* clear() -> clear the line as specified */
+#define C_LN_CLEAR_END		"\x1b[0K" /* EL(0) -- Clear from cursor to EOL */
+
+/* Structures used both externally and internally by rawline. External structures end with _t
+ * and are typedef'd. Internal structures begin with a single '_' and aren't *ever* typedef'd. */
+
+struct _raw_str {
+	char *str; /* string representation */
+	int len; /* length of string (no more strlen!) */
+};
+
+struct _raw_line {
+	struct _raw_str *prompt; /* prompt "string" */
+	struct _raw_str *line; /* input line */
+	int cursor; /* cursor position in line (relative to end of prompt) */
+};
+
+struct _raw_term {
+	int fd; /* terminal file descriptor */
+	bool mode; /* is the terminal in raw mode? */
+	struct termios original; /* original terminal settings */
+};
+
+struct _raw_hist {
+	char **history; /* entire history (stored in reverse, where history[0] is the latest history item) */
+	char *original; /* original input (position history[-1]) */
+
+	int len; /* size of history */
+	int max; /* maximum size of history */
+	int index; /* history index of current line (-1 if line not in history) */
+};
+
+struct _raw_set {
+	bool history; /* is history enabled? */
+	/* ... */
+};
+
+typedef struct raw_t {
+	bool safe; /* has everything been allocated? */
+
+	struct _raw_line *line; /* current line state */
+	struct _raw_set *settings; /* settings of line editing */
+	struct _raw_term *term; /* terminal state / settings */
+	struct _raw_hist *hist; /* history data */
+
+	char *atexit; /* the line to return if input is abruptly exited (if NULL, delete current character [if possible] else return current input) */
+	char *buffer; /* "output buffer", used to hold latest line to keep all memory management in rawline */
+} raw_t;
+
+/* Internal Error Types */
+enum {
+	SUCCESS, /* no errors to report */
+	SILENT, /* ignorable error */
+	BELL /* ring the terminal bell. */
+};
+
+/* Static functions only used internally. These functions are never exposed outside of the library,
+ * and are not required to be used by external programs. They should never be used by anything outside
+ * of this library, because they contain very specific functionality not required for everyday use. */
+
+static char *_raw_strdup(char *str) {
+	if(!str)
+		return NULL;
+
+	int len = strlen(str);
+
+	char *ret = malloc(len + 1);
+	memcpy(ret, str, len);
+
+	ret[len] = '\0';
+	return ret;
+} /* _raw_strdup() */
+
+static void _raw_error(int err) {
+	switch(err) {
+		case BELL:
+			printf(C_BELL);
+			fflush(stdout);
+		case SUCCESS:
+		case SILENT:
+		default:
+			break;
+	}
+} /* _raw_error() */
+
+/* Raw mode is a mode where the terminal will give EVERY character with 0 timeout, no buffering and no
+ * console output. It also disables signal characters, the conversion of characters or output control.
+ * Essentially, undo all of the hard work of terminal developers and send the terminal back in time,
+ * to the 1960s. ;) */
+
+static void _raw_mode(raw_t *raw, bool state) {
+	assert(raw->safe);
+
+	/* get original settings */
+	struct termios new;
+	new = raw->term->original;
+
+	if(state) {
+		/* input modes: disable(break | CR to NL | parity | strip | control) */
+		new.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+
+		/* output modes: disable(post processing) */
+		new.c_oflag &= ~OPOST;
+
+		/* control modes: enable(8bit chars) */
+		new.c_cflag |= CS8;
+
+		/* local modes: disable(echoing | buffered io | extended functions | signals) */
+		new.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+
+		/* control chars: ensure that we get *every* byte, with no timeout. waiting is for suckers. */
+		new.c_cc[VMIN] = 1; /* one char only */
+		new.c_cc[VTIME] = 0; /* don't wait */
+	}
+
+	/* set new settings and flush out terminal */
+	tcsetattr(0, TCSAFLUSH, &new);
+	raw->term->mode = state;
+} /* _raw_mode() */
+
+static int _raw_del_char(raw_t *raw) {
+	assert(raw->safe);
+
+	/* deletion is invalid if there is no input string
+	 * or the cursor is past the end of the input */
+	if(!raw->line->line->len || raw->line->cursor >= raw->line->line->len)
+		return BELL;
+
+	/* update len and make shorthand variables */
+	raw->line->line->len--;
+	int cur = raw->line->cursor, len = raw->line->line->len;
+
+	/* create a copy of the string */
+	char *cpy = malloc(len + 1);
+
+	/* delete char */
+	memcpy(cpy, raw->line->line->str, cur); /* copy before cursor */
+	memcpy(cpy + cur, raw->line->line->str + cur + 1, len - cur); /* copy after cursor */
+	cpy[len] = '\0';
+
+	/* copy over copy to correct line */
+	raw->line->line->str = realloc(raw->line->line->str, len + 1);
+	memcpy(raw->line->line->str, cpy, len + 1);
+	free(cpy);
+
+	if(raw->line->cursor > raw->line->line->len)
+		raw->line->cursor = raw->line->line->len;
+
+	return SUCCESS;
+} /* _raw_del_char() */
+
+static int _raw_backspace(raw_t *raw) {
+	assert(raw->safe);
+
+	/* backspace is invalid if there is no input
+	 * or the cursor is at the start of the string */
+	if(!raw->line->line->len || raw->line->cursor < 1)
+		return BELL;
+
+	/* move cursor one to the left and do a delete */
+	raw->line->cursor--;
+	return _raw_del_char(raw);
+} /* _raw_backspace() */
+
+#define _raw_delete(raw) _raw_del_char(raw)
+
+static int _raw_add_char(raw_t *raw, char ch) {
+	assert(raw->safe);
+
+	/* update len and make shorthand variables */
+	raw->line->line->len++;
+	int cur = raw->line->cursor, len = raw->line->line->len;
+
+	/* create a copy of the string */
+	char *cpy = malloc(len + 1);
+
+	/* add char */
+	memcpy(cpy, raw->line->line->str, cur); /* copy before cursor */
+	cpy[cur] = ch;
+
+	memcpy(cpy + cur + 1, raw->line->line->str + cur, len - cur - 1); /* copy after cursor */
+	cpy[len] = '\0';
+
+	/* copy over copy to correct line */
+	raw->line->line->str = realloc(raw->line->line->str, len + 1);
+	memcpy(raw->line->line->str, cpy, len + 1);
+	free(cpy);
+
+	/* update cursor */
+	raw->line->cursor++;
+	return SUCCESS;
+} /* _raw_add_char() */
+
+#define _raw_insert(raw, ch) _raw_add_char(raw, ch)
+
+static int _raw_move_cur(raw_t *raw, int offset) {
+	assert(raw->safe);
+
+	int new_cursor = raw->line->cursor + offset;
+
+	/* movement is invalid if cursor position would be before string
+	 * or more than one past the end of the string. */
+	if(new_cursor < 0 || new_cursor > raw->line->line->len)
+		return SILENT;
+
+	raw->line->cursor += offset;
+	return SUCCESS;
+} /* _raw_move_cur() */
+
+#define _raw_left(raw) _raw_move_cur(raw, -1)
+#define _raw_right(raw) _raw_move_cur(raw, 1)
+
+static void _raw_redraw(raw_t *raw, bool change) {
+	assert(raw->safe);
+
+	/* redraw input string */
+	if(change) {
+		printf(C_CUR_MOVE_COL, raw->line->prompt->len + 1);
+		printf(C_LN_CLEAR_END);
+		printf("%s", raw->line->line->str);
+	}
+
+	/* update the cursor position */
+	printf(C_CUR_MOVE_COL, raw->line->cursor + raw->line->prompt->len + 1);
+	fflush(stdout);
+} /* _raw_redraw() */
+
+static struct _raw_hist *_raw_hist_new(int size) {
+	struct _raw_hist *hist = malloc(sizeof(struct _raw_hist));
+
+	hist->max = size;
+	hist->len = 0;
+	hist->index = -1;
+
+	hist->history = malloc(sizeof(char *) * hist->max);
+	hist->original = NULL;
+
+	return hist;
+} /* _raw_hist_new() */
+
+static void _raw_set_line(raw_t *raw, char *str, int cursor) {
+	assert(raw->safe);
+
+	int len = strlen(str);
+
+	/* copy over the string to line */
+	raw->line->line->str = realloc(raw->line->line->str, len + 1);
+	memcpy(raw->line->line->str, str, len);
+	raw->line->line->str[len] = '\0';
+
+	/* update len and cursor */
+	raw->line->line->len = len;
+	raw->line->cursor = cursor;
+
+	/* if the given cursor position is illogical, move it to start */
+	if(raw->line->cursor < 0 || raw->line->cursor > len)
+		raw->line->cursor = 0;
+} /* _raw_set_line() */
+
+static void _raw_hist_free(struct _raw_hist *hist) {
+	int i;
+	for(i = 0; i < hist->len; i++)
+		free(hist->history[i]);
+
+	free(hist->history);
+
+	hist->len = 0;
+	hist->max = 0;
+
+	free(hist->original);
+} /* _raw_hist_free() */
+
+static void _raw_hist_add_str(raw_t *raw, char *str) {
+	assert(raw->safe);
+	assert(raw->settings->history);
+
+	/* A circular buffer would be the _correct_ way to implement this, however that
+	 * would unnecesarily complicate the code. Besides, memmove(3) is magical. */
+
+	/* free the last item in the history (if the history is full) */
+	if(raw->hist->len >= raw->hist->max)
+		free(raw->hist->history[raw->hist->max - 1]);
+
+	if(raw->hist->index < 0) {
+		/* memmove(3) the entire history */
+		memmove(raw->hist->history + 1, raw->hist->history, sizeof(char *) * (raw->hist->max - 1));
+		raw->hist->index++;
+
+		/* update length */
+		raw->hist->len++;
+		if(raw->hist->len > raw->hist->max)
+			raw->hist->len = raw->hist->max;
+
+		raw->hist->history[0] = NULL;
+	}
+
+	/* modify (or add) history item */
+	if(raw->hist->index >= 0)
+		free(raw->hist->history[raw->hist->index]);
+	raw->hist->history[raw->hist->index] = _raw_strdup(str);
+} /* _raw_hist_add_str() */
+
+#define _RAW_HIST_PREV 1
+#define _RAW_HIST_NEXT -1
+
+static int _raw_hist_move(raw_t *raw, int move) {
+	assert(raw->safe);
+	assert(raw->settings->history);
+
+	/* movement is invalid if movement will be "out of bounds" on the array */
+	if(raw->hist->index + move < -1 || raw->hist->index + move >= raw->hist->len)
+		return BELL;
+
+	/* copy over the line before getting the history */
+	if(raw->hist->index < 0) {
+		free(raw->hist->original);
+		raw->hist->original = _raw_strdup(raw->line->line->str);
+	}
+
+	/* free current line data */
+	free(raw->line->line->str);
+	raw->hist->index += move;
+
+	if(raw->hist->index < 0)
+		/* get original line */
+		raw->line->line->str = _raw_strdup(raw->hist->original);
+	else
+		/* move position and copy over the history entry */
+		raw->line->line->str = _raw_strdup(raw->hist->history[raw->hist->index]);
+
+	raw->line->line->len = strlen(raw->line->line->str);
+	return SUCCESS;
+} /* _raw_hist_move() */
+
+/* Functions exposed to external use. These functions are the only functions which outside programs
+ * will ever need to use. They handle *ALL* memory management, and rawline structures aren't to be
+ * allocated by the user and are opaque. */
+
+raw_t *raw_new(char *atexit) {
+	/* alloc main structure */
+	raw_t *raw = malloc(sizeof(raw_t));
+
+	/* set up blank input line */
+	raw->line = malloc(sizeof(struct _raw_line));
+	raw->line->prompt = malloc(sizeof(struct _raw_str));
+	raw->line->line = malloc(sizeof(struct _raw_str));
+
+	/* set the line to "" */
+	raw->line->line->str = _raw_strdup("");
+	raw->line->line->len = 0;
+	raw->line->cursor = 0;
+
+	/* set up standard settings */
+	raw->settings = malloc(sizeof(struct _raw_set));
+	raw->settings->history = false;
+
+	/* set up terminal settings */
+	raw->term = malloc(sizeof(struct _raw_term));
+	raw->term->fd = STDIN_FILENO;
+	raw->term->mode = false;
+	tcgetattr(0, &raw->term->original);
+
+	/* history is off by default */
+	raw->hist = NULL;
+
+	/* input needs to be from a terminal */
+	assert(isatty(raw->term->fd));
+
+	/* everything else */
+	raw->buffer = NULL;
+	raw->safe = true;
+	raw->atexit = _raw_strdup(atexit);
+
+	return raw;
+} /* raw_new() */
+
+void raw_hist(raw_t *raw, bool set, int size) {
+	assert(raw->safe);
+	assert(raw->settings->history != tobool(set));
+
+	raw->settings->history = tobool(set);
+
+	if(set) {
+		raw->hist = _raw_hist_new(size);
+	}
+	else {
+		raw->settings->history = false;
+		_raw_hist_free(raw->hist);
+		free(raw->hist);
+	}
+} /* raw_hist() */
+
+void raw_hist_add_str(raw_t *raw, char *str) {
+	assert(raw->safe);
+	assert(raw->settings->history);
+
+	_raw_hist_add_str(raw, str);
+} /* raw_hist_add_str() */
+
+void raw_hist_add(raw_t *raw) {
+	assert(raw->safe);
+	assert(raw->settings->history);
+	assert(raw->buffer);
+
+	_raw_hist_add_str(raw, raw->buffer);
+} /* raw_hist_add() */
+
+void raw_free(raw_t *raw) {
+	assert(raw->safe);
+
+	/* completely clear out line */
+	free(raw->line->line->str);
+	free(raw->line->line);
+	free(raw->line->prompt);
+	free(raw->line);
+
+	/* clear out history */
+	if(raw->settings->history) {
+		raw->settings->history = false;
+		_raw_hist_free(raw->hist);
+		free(raw->hist);
+	}
+
+	/* clear out settings */
+	free(raw->settings);
+
+	/* clear out terminal settings */
+	free(raw->term);
+
+	/* clear out everything else */
+	free(raw->buffer);
+	free(raw->atexit);
+	raw->safe = false;
+
+	/* finally, free the structure itself */
+	free(raw);
+} /* raw_free() */
+
+char *raw_input(raw_t *raw, char *prompt) {
+	assert(raw->safe);
+
+	/* erase old line information */
+	_raw_set_line(raw, "", 0);
+	if(raw->settings->history)
+		raw->hist->index = -1;
+
+	/* get prompt string and print it */
+	raw->line->prompt->str = prompt;
+	raw->line->prompt->len = strlen(raw->line->prompt->str);
+
+	/* make a copy of the history */
+	struct _raw_hist *hist = NULL;
+
+	if(raw->settings->history) {
+		hist = _raw_hist_new(raw->hist->max);
+
+		int i;
+		for(i = 0; i < raw->hist->len; i++)
+			hist->history[i] = _raw_strdup(raw->hist->history[i]);
+
+		hist->len = raw->hist->len;
+	}
+
+	printf("%s", raw->line->prompt->str);
+	fflush(stdout);
+
+	/* set up state */
+	int enter = false;
+
+	/* enable raw mode */
+	_raw_mode(raw, true);
+
+	do {
+		int err = SUCCESS, move = false;
+
+		/* get first char */
+		char ch;
+		read(raw->term->fd, &ch, 1);
+
+		/* simple printable chars */
+		if(ch > 31 && ch < 127) {
+			err = _raw_insert(raw, ch);
+		}
+		else {
+			switch(ch) {
+				case 3: /* ctrl-c */
+					/* disable raw mode */
+					_raw_mode(raw, false);
+
+					/* free temporary history */
+					if(raw->settings->history) {
+						_raw_hist_free(hist);
+						free(hist);
+					}
+
+					/* raise the expected signal (return NULL to seal the deal [if there is a handler]) */
+					raise(SIGINT);
+					return NULL;
+				case 4: /* ctrl-d */
+					if(raw->atexit) {
+						/* copy over abrupt input and act as enter */
+						_raw_set_line(raw, raw->atexit, 0);
+						enter = true;
+					}
+
+					/* act as combined delete and enter */
+					else if(_raw_del_char(raw) != SUCCESS)
+						/* cursor is at end, act like an enter */
+						enter = true;
+					break;
+				case 13: /* enter */
+					enter = true;
+					break;
+				case 127: /* ctrl-h (sometimes used as backspace) */
+				case 8: /* backspace */
+					err = _raw_backspace(raw);
+					break;
+				case 27: /* escape (start of sequence) */
+					{
+						/* get next two chars from the sequence */
+						char seq[2];
+						if(read(raw->term->fd, seq, 2) < 0)
+							/* no extra characters */
+							break;
+
+						/* valid start of escape sequence */
+						if(seq[0] == 91) {
+							switch(seq[1]) {
+								case 68:
+									/* left arrow */
+									move = true;
+									err = _raw_left(raw);
+									break;
+								case 67:
+									/* right arrow */
+									move = true;
+									err = _raw_right(raw);
+									break;
+								case 65: /* up arrow */
+								case 66: /* down arrow */
+									if(raw->settings->history) {
+										int dir = seq[1] == 65 ? _RAW_HIST_PREV : _RAW_HIST_NEXT;
+										err = _raw_hist_move(raw, dir);
+										raw->line->cursor = raw->line->line->len;
+									}
+									else {
+										err = BELL;
+									}
+									break;
+								case 49:
+								case 50:
+								case 51:
+								case 52:
+								case 53:
+								case 54:
+									/* extended escape */
+									{
+										/* read next two byes of extended escape sequence */
+										char eseq[2];
+										if(read(raw->term->fd, eseq, 2) < 0)
+											/* no extra characters */
+											break;
+
+										if(seq[1] == 51 && eseq[0] == 126)
+											/* delete */
+											err = _raw_delete(raw);
+									}
+									break;
+								default:
+									err = BELL;
+									break;
+							}
+						}
+					}
+					break;
+				default:
+					err = BELL;
+					break;
+			}
+		}
+
+		/* was there an error? if so, act on it and don't update anything */
+		if(err != SUCCESS) {
+			_raw_error(err);
+			continue;
+		}
+
+		/* redraw input */
+		_raw_redraw(raw, !move);
+
+		/* add current line status to temporary history */
+		_raw_hist_add_str(raw, raw->line->line->str);
+	} while(!enter);
+
+	/* disable raw mode */
+	_raw_mode(raw, false);
+
+	/* print the enter newline */
+	printf("\n");
+
+	/* free "temporary" history and point raw-> to it */
+	if(raw->settings->history) {
+		_raw_hist_free(raw->hist);
+		free(raw->hist);
+		raw->hist = hist;
+	}
+
+	/* copy over input to buffer */
+	free(raw->buffer);
+	raw->buffer = _raw_strdup(raw->line->line->str);
+
+	/* return buffer */
+	return raw->buffer;
+} /* raw_input() */
