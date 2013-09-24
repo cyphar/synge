@@ -216,7 +216,7 @@ int grad_to_rad(synge_t, synge_t, mpfr_rnd_t);
 int rad_to_deg(synge_t, synge_t, mpfr_rnd_t);
 int rad_to_grad(synge_t, synge_t, mpfr_rnd_t);
 
-error_code synge_tokenise_string(char *, stack **);
+error_code synge_lex_string(char *, stack **);
 error_code synge_infix_parse(stack **, stack **);
 error_code synge_eval_rpnstack(stack **, synge_t *);
 error_code synge_internal_compute_string(char *, synge_t *, char *, int);

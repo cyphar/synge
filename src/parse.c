@@ -62,7 +62,7 @@ static bool op_precedes(s_type op1, s_type op2) {
 error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 	stack *op_stack = malloc(sizeof(stack));
 
-	_debug("--\nParse\n--\n");
+	_debug("--\nParser\n--\n");
 
 	init_stack(op_stack);
 	init_stack(*rpn_stack);

@@ -175,10 +175,10 @@ static char *get_expression_level(char *p, char end) {
 	return ret;
 } /* get_expression_level() */
 
-error_code synge_tokenise_string(char *string, stack **infix_stack) {
+error_code synge_lex_string(char *string, stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
 
-	_debug("--\nTokenise\n--\n");
+	_debug("--\nLexer\n--\n");
 	debug("Input: %s\n", string);
 
 	init_stack(*infix_stack);
@@ -485,4 +485,4 @@ error_code synge_tokenise_string(char *string, stack **infix_stack) {
 	/* debugging */
 	print_stack(*infix_stack);
 	return to_error_code(SUCCESS, -1);
-} /* synge_tokenise_string() */
+} /* synge_lex_string() */

@@ -367,7 +367,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	error_code ecode = to_error_code(SUCCESS, -1);
 
 	/* generate infix stack */
-	if((ecode = synge_tokenise_string(string, &infix_stack)).code == SUCCESS)
+	if((ecode = synge_lex_string(string, &infix_stack)).code == SUCCESS)
 		/* convert to postfix (or RPN) stack */
 		if((ecode = synge_infix_parse(&infix_stack, &rpn_stack)).code == SUCCESS)
 			/* evaluate postfix (or RPN) stack */
