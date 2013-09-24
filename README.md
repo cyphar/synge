@@ -73,11 +73,12 @@ Factorial:
 
 Traceback:
 * `f := 1/0` (will not print an error)
-* `f`
+* `true ? f : 0`
 
 ```
 Synge Traceback (most recent call last):
-  Function <main>, at 0
+  Module <main>
+  <if> condition, at 6
   Function f, at 1
 MathError: Cannot divide by zero @ 2
 ```
