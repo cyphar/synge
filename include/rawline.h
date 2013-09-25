@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#ifndef __RAWLINE_H__
-#define __RAWLINE_H__
+#ifndef RAWLINE_H
+#define RAWLINE_H
 
 #include <termios.h>
 

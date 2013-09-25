@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#ifndef __SYNGE_STACK_H__
-#define __SYNGE_STACK_H__
+#ifndef SYNGE_STACK_H
+#define SYNGE_STACK_H
 
 /* stack types */
 
@@ -58,4 +58,4 @@ void ufree_stackm(stack **s, ...);
 
 #define stack_size(x) ((x)->top + 1)
 
-#endif /* __SYNGE_STACK_H__ */
+#endif /* SYNGE_STACK_H */

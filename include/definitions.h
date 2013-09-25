@@ -22,8 +22,8 @@
 
 #include "version.h"
 
-#ifndef __SYNGE_DEF_H__
-#define __SYNGE_DEF_H__
+#ifndef SYNGE_DEF_H
+#define SYNGE_DEF_H
 
 #define SYNGE_CLI_LICENSE	"Synge-Cli: A command-line wrapper for Synge\n" \
 				SYNGE_LICENSE
@@ -52,4 +52,4 @@
 			"OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n" \
 			"SOFTWARE.\n"
 
-#endif /* __SYNGE_DEF_H__ */
+#endif /* SYNGE_DEF_H */

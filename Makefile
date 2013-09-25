@@ -120,7 +120,7 @@ WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-var
 
 SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
 
-CORE_CFLAGS	+= -D__BUILD_LIB__
+CORE_CFLAGS	+= -DBUILD_LIB
 CORE_SFLAGS += -shared
 
 CLI_CFLAGS	+=
