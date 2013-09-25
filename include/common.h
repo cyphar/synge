@@ -203,7 +203,6 @@ operator get_op(char *);
 special_number get_special_num(char *);
 
 void synge_clear(void *);
-char *get_word_ptr(char *, char *);
 char *get_word(char *, char *, char **);
 bool contains_word(char *, char *, char *);
 char *trim_spaces(char *);

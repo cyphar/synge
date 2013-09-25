@@ -123,42 +123,20 @@ special_number get_special_num(char *s) {
 	return ret;
 } /* get_special_num() */
 
-char *get_word_ptr(char *string, char *list) {
-	int lenstr = strlen(string), lenlist = strlen(list);
-
-	/* go through string */
-	int i, j, found = true;
-	for(i = 0; i < lenstr; i++) {
-		found = false;
-
-		/* check current character against allowed character "list" */
-		for(j = 0; j < lenlist && !found; j++)
-			if(string[i] == list[j])
-				found = true;
-
-		/* current character not in string -- end of word */
-		if(!found)
-			break;
-	}
-
-	/* found end of word */
-	return string + i;
-} /* get_word_ptr() */
-
 char *get_word(char *string, char *list, char **endptr) {
 	/* get word pointer */
-	*endptr = get_word_ptr(string, list);
-	int i = *endptr - string;
+	int len = strspn(string, list);
 
 	/* no word found */
-	if(!i)
+	if(!len)
 		return NULL;
 
 	/* copy over the word */
-	char *ret = malloc(i + 1);
-	memcpy(ret, string, i);
-	ret[i] = '\0';
+	char *ret = malloc(len + 1);
+	memcpy(ret, string, len);
+	ret[len] = '\0';
 
+	*endptr = string + len;
 	return ret;
 } /* get_word() */
 
@@ -173,7 +151,7 @@ bool contains_word(char *string, char *word, char *list) {
 
 		/* "backup" pointer */
 		cur = p;
-	} while((p = get_word_ptr(p, list)) != cur || *(p++) != '\0');
+	} while((p += strspn(p, list)) != cur || *(p++) != '\0');
 
 	/* word not found */
 	return false;
