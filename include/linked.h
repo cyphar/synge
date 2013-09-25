@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#ifndef __LINKED_H__
-#define __LINKED_H__
+#ifndef LINKED_H
+#define LINKED_H
 
 /* opaque structures */
 typedef struct link_t link_t;

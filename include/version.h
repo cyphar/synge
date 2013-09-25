@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#ifndef __SYNGE_VERSION_H__
-#define __SYNGE_VERSION_H__
+#ifndef SYNGE_VERSION_H
+#define SYNGE_VERSION_H
 
 /* core version */
 #define SYNGE_VERSION 			"1.5.0"  /* ANSI string */
@@ -44,4 +44,4 @@
 #	define SYNGE_GIT_VERSION ""
 #endif
 
-#endif /* __SYNGE_VERSION_H__ */
+#endif /* SYNGE_VERSION_H */

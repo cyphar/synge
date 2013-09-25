@@ -20,12 +20,12 @@
  * SOFTWARE.
  */
 
-#ifndef __OHMIC_H__
-#define __OHMIC_H__
+#ifndef OHMIC_H
+#define OHMIC_H
 
 /* define symbol exports */
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
-#	ifdef __BUILD_LIB__
+#	ifdef BUILD_LIB
 #		define __EXPORT __declspec(dllexport)
 #	else
 #		define __EXPORT __declspec(dllimport)
@@ -81,4 +81,4 @@ __EXPORT int ohm_size(ohm_t *hm);
 /* default hashing function (modulo of djb2 hash -- not reccomended) */
 __EXPORT int ohm_hash(void *, size_t);
 
-#endif /* __OHMIC_H__ */
+#endif /* OHMIC_H */

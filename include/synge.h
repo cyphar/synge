@@ -26,8 +26,8 @@
 
 #include "ohmic.h"
 
-#ifndef __SYNGE_H__
-#define __SYNGE_H__
+#ifndef SYNGE_H
+#define SYNGE_H
 
 #define SYNGE_FORMAT		"Rf"
 #define SYNGE_PRECISION		1024
@@ -56,7 +56,7 @@
 
 /* define symbol exports */
 #ifdef _WINDOWS
-#	ifdef __BUILD_LIB__
+#	ifdef BUILD_LIB
 #		define __EXPORT __declspec(dllexport)
 #	else
 #		define __EXPORT __declspec(dllimport)
@@ -185,4 +185,4 @@ __EXPORT int strcasecmp(char *, char *);
 __EXPORT int strncasecmp(char *, char *, size_t);
 #endif
 
-#endif /* __SYNGE_H__ */
+#endif /* SYNGE_H */
