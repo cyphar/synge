@@ -96,14 +96,12 @@ void bake_args(int argc, char ***argv) {
 		else if(!strcmp((*argv)[i], "-V") || !strcmp((*argv)[i], "-version") || !strcmp((*argv)[i], "--version")) {
 			synge_v core = synge_get_version();
 
-			char *revision = "";
-			if(strlen(SYNGE_GIT_VERSION) == 40)
-				revision = "Revision:    " SYNGE_GIT_VERSION "\n";
-
 			printf(	"Synge:       %s\n"
 					"Synge-Eval:  %s\n"
-					"%s"
-					"Compiled:    %s, %s\n", core.version, SYNGE_EVAL_VERSION, revision, __TIME__, __DATE__);
+#if defined(SYNGE_REVISION)
+					"Revision:    " SYNGE_REVISION "\n"
+#endif /* SYNGE_REVISION */
+					"Compiled:    %s, %s\n", core.version, SYNGE_EVAL_VERSION, __TIME__, __DATE__);
 			exit(0);
 		}
 		else if(!strcmp((*argv)[i], "-h") || !strcmp((*argv)[i], "-help") || !strcmp((*argv)[i], "--help")) {

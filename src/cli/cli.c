@@ -82,16 +82,14 @@ typedef struct cli_command {
 void cli_version(void) {
 	synge_v core = synge_get_version();
 
-	char *revision = "";
-	if(strlen(SYNGE_GIT_VERSION) == 40)
-		revision = "Revision:    " SYNGE_GIT_VERSION "\n";
-
 	printf(	"%s"
 			"Synge:       %s\n"
 			"Synge-Cli:   %s\n"
-			"%s"
+#if defined(SYNGE_REVISION)
+			"Revision:    " SYNGE_REVISION "\n"
+#endif
 			"Compiled:    %s, %s\n"
-			"%s", ANSI_INFO, core.version, SYNGE_CLI_VERSION, revision, __TIME__, __DATE__, ANSI_CLEAR);
+			"%s", ANSI_INFO, core.version, SYNGE_CLI_VERSION, __TIME__, __DATE__, ANSI_CLEAR);
 
 } /* cli_version() */
 

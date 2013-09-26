@@ -33,7 +33,7 @@ ifeq ($(OS), Windows_NT)
 	CORE_PREFIX	=
 	CORE_SUFFIX	=.dll
 
-	GIT_VERSION	=
+	REVISION	=
 	SY_OS		= windows
 else
 	COLOUR		= 1
@@ -48,7 +48,7 @@ else
 	CORE_PREFIX	=lib
 	CORE_SUFFIX	=.so
 
-	GIT_VERSION	= $(shell git rev-parse --verify HEAD)
+	REVISION	= $(shell git rev-parse --verify HEAD)
 	SY_OS		= unix
 endif
 
@@ -61,15 +61,15 @@ PYTHON		= python3
 # OPTIONAL FLAGS #
 ##################
 
-GIT_V		?= 1
+REV			?= 1
 BAKE		?= 1
 DEBUG		?= 0
 SAFE		?= 0
 CHEEKY		?= 0
 UTF8		?= 1
 
-ifeq ($(GIT_V), 1)
-	SYNGE_FLAGS	+= -DSYNGE_GIT_VERSION='"$(GIT_VERSION)"'
+ifeq ($(REV), 1)
+	SYNGE_FLAGS	+= -DSYNGE_REVISION='"$(REVISION)"'
 endif
 
 ifeq ($(BAKE), 1)
@@ -196,10 +196,10 @@ all:
 
 # Compile "final" core and wrappers (w/o git-version)
 final:
-	make $(NAME_CORE) GIT_V=0
-	make $(NAME_CLI) GIT_V=0
-	make $(NAME_GTK) GIT_V=0
-	make $(NAME_EVAL) GIT_V=0
+	make $(NAME_CORE) REV=0
+	make $(NAME_CLI)  REV=0
+	make $(NAME_GTK)  REV=0
+	make $(NAME_EVAL) REV=0
 
 # Compile "production" core library
 $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)

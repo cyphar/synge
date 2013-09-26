@@ -39,9 +39,4 @@
 #define SYNGE_EVAL_VERSION 		"1.0.2"	 /* ANSI string */
 #define BSYNGE_EVAL_VERSION 	 1,0,2,0 /* binary (for resources) */
 
-/* git_version == "" if production */
-#if !defined(SYNGE_GIT_VERSION)
-#	define SYNGE_GIT_VERSION ""
-#endif /* !SYNGE_GIT_VERSION */
-
 #endif /* SYNGE_VERSION_H */

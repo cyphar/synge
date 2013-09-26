@@ -272,21 +272,16 @@ int main(int argc, char **argv) {
 #endif /* _UNIX */
 
 	synge_v core = synge_get_version();
-	char *comments = NULL;
-	int len = lenprintf("Core: %s\nGUI: %s", core.version, SYNGE_GTK_VERSION);
-
-	if(strlen(SYNGE_GIT_VERSION) == 40) {
-		/* add git revision */
-		len += lenprintf("\nRevision: %s", SYNGE_GIT_VERSION);
-
-		/* format the version information */
-		comments = malloc(len + 1);
-		sprintf(comments, "Core: %s\nGUI: %s\nRevision: %s", core.version, SYNGE_GTK_VERSION, SYNGE_GIT_VERSION);
-	} else {
-		/* format the version information */
-		comments = malloc(len + 1);
-		sprintf(comments, "Core: %s\nGUI: %s", core.version, SYNGE_GTK_VERSION);
-	}
+	char *template = "Core: %s\n"
+					 "GUI: %s\n"
+#if defined(SYNGE_REVISION)
+					 "Revision: " SYNGE_REVISION;
+#else
+					 "Production Version";
+#endif /* SYNGE_REVISION */
+	int len = lenprintf(template, core.version, SYNGE_GTK_VERSION);
+	char *comments = malloc(len);
+	sprintf(comments, template, core.version, SYNGE_GTK_VERSION);
 
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), comments);
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n" SYNGE_WARRANTY);
