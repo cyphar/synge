@@ -52,6 +52,12 @@ else
 	SY_OS		= unix
 endif
 
+XCC		 = $(CC)
+
+ifeq ($(strip $(XCC)),)
+	XCC		?= cc
+endif
+
 OS_PRE		= $(SY_OS)-pre
 OS_POST		= $(SY_OS)-post
 
@@ -67,6 +73,11 @@ DEBUG		?= 0
 SAFE		?= 0
 CHEEKY		?= 0
 UTF8		?= 1
+OPTIM		?= 0
+
+ifeq ($(OPTIM), 1)
+	XCC += -O2
+endif
 
 ifeq ($(REV), 1)
 	SYNGE_FLAGS	+= -DSYNGE_REVISION='"$(REVISION)"'
@@ -101,7 +112,7 @@ endif
 # CONSTANTS SECTION #
 #####################
 
-CC			?= cc
+XCC			+= -pipe
 EXEC_BASE	= synge
 LIB_CORE	= $(EXEC_BASE)
 
@@ -150,7 +161,7 @@ TEST_DIR	= tests
 
 WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
 
-SHR_CFLAGS	+= -pipe -ansi -I$(INCLUDE_DIR)/
+SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
 
 CORE_CFLAGS	+= -DBUILD_LIB
 CORE_SFLAGS += -shared
@@ -204,11 +215,11 @@ final:
 # Compile "production" core library
 $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
+	$(XCC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
 		-c $(CORE_SRC) $(CORE_LFLAGS) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	$(CC) $(LINK_CORE) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
+	$(XCC) $(LINK_CORE) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
 	strip $(NAME_CORE)
 	make -B $(OS_POST)
 	rm *.o
@@ -216,7 +227,7 @@ $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 # Compile "production" command-line wrapper
 $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(XCC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
@@ -227,7 +238,7 @@ $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(XCC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
@@ -237,7 +248,7 @@ $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 # Compile "production" simple eval wrapper
 $(NAME_EVAL): $(NAME_CORE) $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(XCC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
@@ -280,18 +291,18 @@ debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 # Compile "debug" core library
 debug-lib: $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(SHR_CFLAGS) $(LINK_CORE) $(CORE_CFLAGS) \
+	$(XCC) $(SHR_CFLAGS) $(LINK_CORE) $(CORE_CFLAGS) \
 		-c $(CORE_SRC) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	$(CC) $(LINK_CORE) *.o -g -O0 -o $(NAME_CORE) $(CORE_SFLAGS)
+	$(XCC) $(LINK_CORE) *.o -g -O0 -o $(NAME_CORE) $(CORE_SFLAGS)
 	make -B $(OS_POST)
 	rm *.o
 
 # Compile "debug" command-line wrapper
 debug-cli: $(NAME_CORE) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
+	$(XCC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
@@ -301,7 +312,7 @@ debug-cli: $(NAME_CORE) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 debug-gtk: $(NAME_CORE) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
-	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
+	$(XCC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
@@ -310,7 +321,7 @@ debug-gtk: $(NAME_CORE) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 # Compile "debug" simple eval wrapper
 debug-eval: $(NAME_CORE) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
-	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
+	$(XCC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
