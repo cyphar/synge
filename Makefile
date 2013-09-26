@@ -220,7 +220,7 @@ $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	$(XCC) $(LINK_CORE) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
-	strip $(NAME_CORE)
+	if [ -n $(DEBUG) ]; then strip $(NAME_CORE); fi
 	make -B $(OS_POST)
 	rm *.o
 
@@ -231,7 +231,7 @@ $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	strip $(EXEC_CLI)
+	if [ -n $(DEBUG) ]; then strip $(EXEC_CLI); fi
 	make -B $(OS_POST)
 
 # Compile "production" gui wrapper
@@ -242,7 +242,7 @@ $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	strip $(EXEC_GTK)
+	if [ -n $(DEBUG) ]; then strip $(EXEC_GTK); fi
 	make -B $(OS_POST)
 
 # Compile "production" simple eval wrapper
@@ -252,7 +252,7 @@ $(NAME_EVAL): $(NAME_CORE) $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	strip $(EXEC_EVAL)
+	if [ -n $(DEBUG) ]; then strip $(EXEC_EVAL); fi
 	make -B $(OS_POST)
 
 ################
@@ -276,56 +276,6 @@ mtest: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 	else \
 		LD_LIBRARY_PATH=. $(PYTHON) $(TEST_DIR)/test.py "$(VALGRIND) $(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
 	fi
-
-#################
-# DEBUG SECTION #
-#################
-
-# Compile "debug" core and wrappers
-debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
-	make debug-lib
-	make debug-cli
-	make debug-gtk
-	make debug-eval
-
-# Compile "debug" core library
-debug-lib: $(CORE_SRC) $(CORE_DEPS)
-	make -B $(OS_PRE)
-	$(XCC) $(SHR_CFLAGS) $(LINK_CORE) $(CORE_CFLAGS) \
-		-c $(CORE_SRC) \
-		$(SYNGE_FLAGS) \
-		$(WARNINGS)
-	$(XCC) $(LINK_CORE) *.o -g -O0 -o $(NAME_CORE) $(CORE_SFLAGS)
-	make -B $(OS_POST)
-	rm *.o
-
-# Compile "debug" command-line wrapper
-debug-cli: $(NAME_CORE) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
-	make -B $(OS_PRE)
-	$(XCC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
-		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
-		$(SYNGE_FLAGS) \
-		$(WARNINGS)
-	make -B $(OS_POST)
-
-# Compile "debug" gui wrapper
-debug-gtk: $(NAME_CORE) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
-	make -B $(OS_PRE)
-	make -B xmlui
-	$(XCC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
-		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
-		$(SYNGE_FLAGS) \
-		$(WARNINGS)
-	make -B $(OS_POST)
-
-# Compile "debug" simple eval wrapper
-debug-eval: $(NAME_CORE) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
-	make -B $(OS_PRE)
-	$(XCC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
-		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
-		$(SYNGE_FLAGS) \
-		$(WARNINGS)
-	make -B $(OS_POST)
 
 ###################
 # INSTALL SECTION #
