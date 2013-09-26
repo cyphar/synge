@@ -32,8 +32,11 @@
 #include <strings.h>
 #include <math.h>
 
-#ifdef _UNIX
-#	include "rawline.h" /* readline replacement */
+/* My self-contained readline alternative. *nix-only (for now)
+ * You can get the code at https://github.com/cyphar/rawline. */
+
+#if defined(_UNIX)
+#	include "rawline.h"
 #endif
 
 #include <time.h>
@@ -43,15 +46,7 @@
 
 #define length(x) (sizeof(x) / sizeof(x[0]))
 
-#ifndef SYNGE_COLOUR
-#	ifdef _UNIX
-#		define SYNGE_COLOUR true
-#	else
-#		define SYNGE_COLOUR false
-#	endif
-#endif
-
-#if SYNGE_COLOUR
+#if defined(SYNGE_COLOUR) || defined(_UNIX)
 #	define ANSI_ERROR	"\x1b[1;31m"
 #	define ANSI_GOOD	"\x1b[1;32m"
 #	define ANSI_INFO	"\x1b[1;37m"
@@ -63,7 +58,7 @@
 #	define ANSI_INFO	""
 #	define ANSI_OUTPUT	""
 #	define ANSI_CLEAR	""
-#endif
+#endif /* SYNGE_COLOUR || _UNIX */
 
 #define OUTPUT_PADDING		""
 #define ERROR_PADDING		""
@@ -342,7 +337,7 @@ void cli_exec(char *str) {
 		str++;
 	}
 
-#if defined(SYNGE_SAFE) && SYNGE_SAFE > 0
+#if defined(SYNGE_SAFE)
 	int ch;
 	do {
 		/* print warning */
@@ -362,13 +357,14 @@ void cli_exec(char *str) {
 	/* user said no - gtfo */
 	if(tolower(ch) == 'n')
 		return;
-#endif
+#endif /* SYNGE_SAFE */
+
 	/* run the command */
 	int ret = system(str);
 
-#ifdef _UNIX
+#if defined(_UNIX)
 	ret /= 256; /* system in *nix seems to multiply the real return value by 256 */
-#endif
+#endif /* _UNIX */
 
 	/* an error occured */
 	if(ret)
@@ -465,21 +461,22 @@ int main(int argc, char **argv) {
 	mpfr_init2(result, SYNGE_PRECISION);
 
 	error_code ecode;
-#ifdef _UNIX
+#if defined(_UNIX)
 	/* rawline stuff */
 	raw_t *cli_raw = raw_new("exit");
 	raw_hist(cli_raw, true, 1000);
-#endif
+#endif /* _UNIX */
+
 	/* print banner (cli_banner has a leading newline)*/
 	printf("%s%s%s\n", ANSI_INFO, CLI_BANNER, ANSI_CLEAR);
 
 	while(true) {
-#ifdef _UNIX
+#if defined(_UNIX)
 		cur_str = raw_input(cli_raw, CLI_PROMPT); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 #else
 		cur_str = cli_fallback_prompt(&count);
-#endif
+#endif /* _UNIX */
 
 		if(cur_str && !cli_str_empty(cur_str)) {
 
@@ -524,22 +521,22 @@ int main(int argc, char **argv) {
 				}
 			}
 
-#ifdef _UNIX
+#if defined(_UNIX)
 			/* add input to history */
 			raw_hist_add(cli_raw);
-#endif
+#endif /* _UNIX */
 		}
-#ifdef _WINDOWS
+#if defined(_WINDOWS)
 		free(cur_str);
-#endif
+#endif /* _WINDOWS */
 	}
 
-#ifdef _UNIX
 	/* free up memory */
+#if defined(_UNIX)
 	raw_free(cli_raw);
 #else
 	free(cur_str);
-#endif
+#endif /* _UNIX */
 	mpfr_clears(result, NULL);
 	synge_end();
 	return 0;

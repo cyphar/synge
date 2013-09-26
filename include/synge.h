@@ -45,25 +45,25 @@
 #	define bool int
 #	define true 1
 #	define false 0
-#endif
+#endif /* !bool */
 
 /* define os */
 #if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
 #	define _WINDOWS
 #else
 #	define _UNIX
-#endif
+#endif /* _WIN16 || _WIN32 || _WIN64 */
 
 /* define symbol exports */
-#ifdef _WINDOWS
-#	ifdef BUILD_LIB
+#if defined(_WINDOWS)
+#	if defined(BUILD_LIB)
 #		define __EXPORT __declspec(dllexport)
 #	else
 #		define __EXPORT __declspec(dllimport)
 #	endif
 #else
 #	define __EXPORT
-#endif
+#endif /* _WINDOWS */
 
 typedef mpfr_t synge_t;
 
@@ -177,7 +177,7 @@ typedef struct {
 __EXPORT synge_v synge_get_version(void); /* get a structure containing the relevant version information of the synge core */
 
 /* for windows, we need to define strcasecmp and strncasecmp */
-#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
+#if defined(_WINDOWS)
 typedef long off_t;
 typedef long off64_t;
 

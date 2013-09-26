@@ -61,9 +61,41 @@ PYTHON		= python3
 # OPTIONAL FLAGS #
 ##################
 
+GIT_V		?= 1
+BAKE		?= 1
+DEBUG		?= 0
 SAFE		?= 0
 CHEEKY		?= 0
 UTF8		?= 1
+
+ifeq ($(GIT_V), 1)
+	SYNGE_FLAGS	+= -DSYNGE_GIT_VERSION='"$(GIT_VERSION)"'
+endif
+
+ifeq ($(BAKE), 1)
+	SYNGE_FLAGS += -DSYNGE_BAKE
+endif
+
+ifeq ($(DEBUG), 1)
+	SYNGE_FLAGS += -DSYNGE_DEBUG
+	SHR_CFLAGS += -g -O0
+endif
+
+ifeq ($(SAFE), 1)
+	SYNGE_FLAGS += -DSYNGE_SAFE
+endif
+
+ifeq ($(COLOUR), 1)
+	SYNGE_FLAGS	+= -DSYNGE_COLOUR
+endif
+
+ifeq ($(CHEEKY), 1)
+	SYNGE_FLAGS += -DSYNGE_CHEEKY
+endif
+
+ifeq ($(UTF8), 1)
+	SYNGE_FLAGS += -DSYNGE_UTF8_STRINGS
+endif
 
 #####################
 # CONSTANTS SECTION #
@@ -118,7 +150,7 @@ TEST_DIR	= tests
 
 WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
 
-SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
+SHR_CFLAGS	+= -pipe -ansi -I$(INCLUDE_DIR)/
 
 CORE_CFLAGS	+= -DBUILD_LIB
 CORE_SFLAGS += -shared
@@ -164,21 +196,17 @@ all:
 
 # Compile "final" core and wrappers (w/o git-version)
 final:
-	make $(NAME_CORE) GIT_VERSION=
-	make $(NAME_CLI) GIT_VERSION=
-	make $(NAME_GTK) GIT_VERSION=
-	make $(NAME_EVAL) GIT_VERSION=
+	make $(NAME_CORE) GIT_V=0
+	make $(NAME_CLI) GIT_V=0
+	make $(NAME_GTK) GIT_V=0
+	make $(NAME_EVAL) GIT_V=0
 
 # Compile "production" core library
 $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
 		-c $(CORE_SRC) $(CORE_LFLAGS) \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	$(CC) $(LINK_CORE) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
 	strip $(NAME_CORE)
@@ -190,11 +218,7 @@ $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	strip $(EXEC_CLI)
 	make -B $(OS_POST)
@@ -205,11 +229,7 @@ $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B xmlui
 	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	strip $(EXEC_GTK)
 	make -B $(OS_POST)
@@ -219,11 +239,7 @@ $(NAME_EVAL): $(NAME_CORE) $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	strip $(EXEC_EVAL)
 	make -B $(OS_POST)
@@ -265,12 +281,8 @@ debug: $(SHR_SRC) $(CLI_SRC) $(GTK_SRC) $(SHR_DEPS) $(CLI_DEPS) $(GTK_DEPS)
 debug-lib: $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(SHR_CFLAGS) $(LINK_CORE) $(CORE_CFLAGS) \
-		-c $(CORE_SRC) -g -O0 -DSYNGE_DEBUG \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		-c $(CORE_SRC) \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	$(CC) $(LINK_CORE) *.o -g -O0 -o $(NAME_CORE) $(CORE_SFLAGS)
 	make -B $(OS_POST)
@@ -281,12 +293,7 @@ debug-cli: $(NAME_CORE) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
-		-g -O0 -DSYNGE_DEBUG \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	make -B $(OS_POST)
 
@@ -296,12 +303,7 @@ debug-gtk: $(NAME_CORE) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B xmlui
 	$(CC) $(GTK_SRC) $(LINK_GTK) $(SHR_LFLAGS) $(GTK_LFLAGS) \
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
-		-g -O0 -DSYNGE_DEBUG \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	make -B $(OS_POST)
 
@@ -310,12 +312,7 @@ debug-eval: $(NAME_CORE) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(CC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
-		-g -O0 -DSYNGE_DEBUG \
-		-DSYNGE_GIT_VERSION='"$(GIT_VERSION)"' \
-		-DSYNGE_SAFE="$(SAFE)" \
-		-DSYNGE_COLOUR="$(COLOUR)" \
-		-DSYNGE_CHEEKY="$(CHEEKY)" \
-		-DSYNGE_UTF8_STRINGS="$(UTF8)" \
+		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	make -B $(OS_POST)
 

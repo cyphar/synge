@@ -37,7 +37,7 @@
 #include "linked.h"
 
 /* for windows, define strcasecmp and strncasecmp */
-#ifdef _WINDOWS
+#if defined(_WINDOWS)
 int strcasecmp(char *s1, char *s2) {
 	while (tolower(*s1) == tolower(*s2)) {
 		if (*s1 == '\0' || *s2 == '\0')
@@ -62,7 +62,7 @@ int strncasecmp(char *s1, char *s2, size_t n) {
 
 	return tolower(*s1) - tolower(*s2);
 } /* strncasecmp() */
-#endif
+#endif /* _WINDOWS */
 
 int synge_get_precision(synge_t num) {
 	/* use the current settings' precision if given */
