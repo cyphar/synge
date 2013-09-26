@@ -542,7 +542,13 @@ synge_v synge_get_version(void) {
 	synge_v ret;
 
 	ret.version = SYNGE_VERSION;
-	ret.revision = SYNGE_GIT_VERSION;
+
+#if defined(SYNGE_REVISION)
+	ret.revision = SYNGE_REVISION;
+#else
+	ret.revision = "<unknown>";
+#endif /* SYNGE_REVISION */
+
 	ret.compiled = __TIME__ ", " __DATE__;
 
 	return ret;
