@@ -33,7 +33,7 @@
 #include "linked.h"
 
 void _print_stack(char *fname, stack *s) {
-#ifdef SYNGE_DEBUG
+#if defined(SYNGE_DEBUG)
 	int i, size = stack_size(s);
 	fprintf(stderr, "%s: ", fname);
 
@@ -58,25 +58,25 @@ void _print_stack(char *fname, stack *s) {
 
 	fprintf(stderr, "\n");
 	fflush(stderr);
-#endif
+#endif /* SYNGE_DEBUG */
 } /* _print_stack() */
 
 void _debug(char *format, ...) {
-#ifdef SYNGE_DEBUG
+#if defined(SYNGE_DEBUG)
 	va_list ap;
 	va_start(ap, format);
 	synge_vfprintf(stderr, format, ap);
 	va_end(ap);
-#endif
+#endif /* SYNGE_DEBUG */
 } /* _debug() */
 
 void cheeky(char *format, ...) {
-#if defined(SYNGE_CHEEKY) && SYNGE_CHEEKY
+#if defined(SYNGE_CHEEKY)
 	va_list ap;
 	va_start(ap, format);
 	synge_vfprintf(stderr, format, ap);
 	va_end(ap);
-#endif
+#endif /* SYNGE_CHEEKY */
 } /* cheeky() */
 
 synge_t *num_dup(synge_t num) {

@@ -29,10 +29,10 @@
 #include "linked.h"
 
 /* use theta symbol for angles if appropriate */
-#if defined(SYNGE_UTF8_STRINGS) && !SYNGE_UTF8_STRINGS
-#	define SYNGE_THETA "x"
-#else
+#if defined(SYNGE_UTF8_STRINGS)
 #	define SYNGE_THETA "θ"
+#else
+#	define SYNGE_THETA "x"
 #endif
 
 /* global state variables */

@@ -36,11 +36,11 @@
 
 #include "xmlui.h" /* generated header to bake the gtk_builder xml string */
 
-#ifdef _WINDOWS
+#if defined(_WINDOWS)
 #	define __EXPORT_SYMBOL __declspec(dllexport)
 #else
 #	define __EXPORT_SYMBOL
-#endif
+#endif /* _WINDOWS */
 
 #define GUI_MAX_PRECISION 10
 #define lenprintf(format, ...) (snprintf(NULL, 0, format, __VA_ARGS__))
@@ -185,9 +185,9 @@ __EXPORT_SYMBOL void gui_populate_function_list(void) {
 	int i;
 	for(i = 0; tmp_function_list[i].name != NULL; i++) {
 		gtk_list_store_append(func_store, &iter);
-#ifdef DEBUG
+#if defined(SYNGE_DEBUG)
 		printf("Adding to function list: \"%s\" -> \"%s\"\n", tmp_function_list[i].prototype, tmp_function_list[i].description);
-#endif
+#endif /* SYNGE_DEBUG */
 		gtk_list_store_set(func_store, &iter,
 				FUNCL_COLUMN_NAME, tmp_function_list[i].prototype,
 				FUNCL_COLUMN_DESCRIPTION, tmp_function_list[i].description,
@@ -208,10 +208,10 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 		if(strchr(value, '('))
 			*(strchr(value, '(') + 1) = '\0';
 
-#ifdef DEBUG
+#if defined(SYNGE_DEBUG)
 		g_print("selected expression is: %s\n", value);
 		printf("'%s' => %d\n", value, (int) strlen(value));
-#endif
+#endif /* SYNGE_DEBUG */
 
 		char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + strlen(value) + 1) * sizeof(char));
 		sprintf(newstr, "%s%s", gtk_entry_get_text(GTK_ENTRY(input)), value);
@@ -240,14 +240,14 @@ int main(int argc, char **argv) {
 
 	builder = gtk_builder_new();
 
-#ifdef SYNGE_GTK_XML_UI
+#if defined(SYNGE_BAKE) && defined(SYNGE_GTK_XML_UI)
 	gtk_builder_add_from_string(builder, SYNGE_GTK_XML_UI, -1, NULL);
 #else
 	if(!gtk_builder_add_from_file(builder, "synge-gtk.glade", NULL)) {
 		printf("Couldn't open synge-gtk.glade\n");
 		exit(0);
 	}
-#endif
+#endif /* SYNGE_BAKE && SYNGE_GIT_XML_UI */
 
 	input = gtk_builder_get_object(builder, "input");
 	output = gtk_builder_get_object(builder, "output");
@@ -265,11 +265,11 @@ int main(int argc, char **argv) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
 	gtk_builder_connect_signals(builder, NULL);
 
-#ifdef _UNIX
+#if defined(_UNIX)
 	/* hint that the gui should be floating -- windows does stupid things with this hint */
 	gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DIALOG);
 	gtk_window_set_type_hint(GTK_WINDOW(func_window), GDK_WINDOW_TYPE_HINT_DIALOG);
-#endif
+#endif /* _UNIX */
 
 	synge_v core = synge_get_version();
 	char *comments = NULL;
