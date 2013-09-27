@@ -212,7 +212,13 @@ final:
 	make $(NAME_GTK)  REV=0
 	make $(NAME_EVAL) REV=0
 
-# Compile "production" core library
+debug:
+	make $(NAME_CORE) DEBUG=1
+	make $(NAME_CLI)  DEBUG=1
+	make $(NAME_GTK)  DEBUG=1
+	make $(NAME_EVAL) DEBUG=1
+
+# Compile core library
 $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
 	$(XCC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
@@ -224,7 +230,7 @@ $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_POST)
 	rm *.o
 
-# Compile "production" command-line wrapper
+# Compile command-line wrapper
 $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(XCC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
@@ -234,7 +240,7 @@ $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	if [ -n $(DEBUG) ]; then strip $(EXEC_CLI); fi
 	make -B $(OS_POST)
 
-# Compile "production" gui wrapper
+# Compile gui wrapper
 $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
@@ -245,7 +251,7 @@ $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	if [ -n $(DEBUG) ]; then strip $(EXEC_GTK); fi
 	make -B $(OS_POST)
 
-# Compile "production" simple eval wrapper
+# Compile simple eval wrapper
 $(NAME_EVAL): $(NAME_CORE) $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(XCC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
