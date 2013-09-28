@@ -75,6 +75,12 @@ static error_code set_function(char *str, char *exp) {
 	assert(synge_started == true, "synge must be initialised");
 	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
+	/* SYNGE_PREV_EXPRESSION is immutable */
+	if(!strcmp(s, SYNGE_PREV_EXPRESSION)) {
+		free(s);
+		return to_error_code(INVALID_LEFT_OPERAND, -1);
+	}
+
 	/* save the function */
 	ohm_remove(variable_list, s, strlen(s) + 1); /* remove word from variable list (fake dynamic typing) */
 	ohm_insert(expression_list, s, strlen(s) + 1, exp, strlen(exp) + 1);
@@ -311,7 +317,16 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 							set_variable(tmpstr, arg[0]);
 							break;
 						case op_func_set:
-							set_function(tmpstr, tmpexp);
+							ecode[0] = set_function(tmpstr, tmpexp);
+
+							/* check if an error occured in the funcion definition */
+							if(!synge_is_success_code(ecode[0].code)) {
+								free(tmpstr);
+								free(tmpexp);
+								free_stackm(&evalstack, rpn);
+								mpfr_clears(arg[0], arg[1], arg[2], NULL);
+								return to_error_code(ecode[0].code, pos);
+							}
 							break;
 						default:
 							free(tmpstr);
