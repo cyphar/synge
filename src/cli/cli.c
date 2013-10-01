@@ -409,7 +409,7 @@ void sfree(char **pp) {
 
 /* for some reason, this code (when run on Windows) has
  * history and line editing automatically added */
-char *cli_fallback_prompt(int *count) {
+char *cli_fallback_prompt(void) {
 	printf("%s", CLI_PROMPT);
 	fflush(stdout);
 
@@ -424,7 +424,6 @@ char *cli_fallback_prompt(int *count) {
 	input = realloc(input, ++len);
 	input[len - 1] = '\0';
 
-	*count = len;
 	return input;
 } /* fallback_prompt() */
 
@@ -473,7 +472,7 @@ int main(int argc, char **argv) {
 		cur_str = raw_input(cli_raw, CLI_PROMPT); /* get input */
 		if(strchr(cur_str, '\n')) *strchr(cur_str, '\n') = '\0';
 #else
-		cur_str = cli_fallback_prompt(&count);
+		cur_str = cli_fallback_prompt();
 #endif /* _UNIX */
 
 		if(cur_str && !cli_str_empty(cur_str)) {
