@@ -24,8 +24,8 @@
 #define SYNGE_VERSION_H
 
 /* core version */
-#define SYNGE_VERSION 			"1.5.0"  /* ANSI string */
-#define BSYNGE_VERSION 			 1,5,0,0 /* binary (for resources) */
+#define SYNGE_VERSION 			"1.5.1"  /* ANSI string */
+#define BSYNGE_VERSION 			 1,5,1,0 /* binary (for resources) */
 
 /* cli version */
 #define SYNGE_CLI_VERSION 		"1.1.2"  /* ANSI string */
