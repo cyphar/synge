@@ -25,6 +25,8 @@
 
 ifeq ($(OS), Windows_NT)
 	COLOUR		= 0
+
+	CORE_LFLAGS	= -lm -lgmp -lmpfr
 	GTK_LFLAGS	= -mwindows
 
 	EXEC_PREFIX	=
