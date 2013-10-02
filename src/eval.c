@@ -52,6 +52,12 @@ static error_code set_variable(char *str, synge_t val) {
 	assert(synge_started == true, "synge must be initialised");
 	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
+	/* SYNGE_PREV_EXPRESSION is immutable */
+	if(!strcmp(s, SYNGE_PREV_EXPRESSION)) {
+		free(s);
+		return to_error_code(INVALID_LEFT_OPERAND, -1);
+	}
+
 	/* make a new copy of the variable to save */
 	synge_t tosave;
 	mpfr_init2(tosave, SYNGE_PRECISION);
@@ -314,27 +320,23 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					/* set variable or function */
 					switch(get_op(stackp.val).tp) {
 						case op_var_set:
-							set_variable(tmpstr, arg[0]);
+							ecode[0] = set_variable(tmpstr, arg[0]);
 							break;
 						case op_func_set:
 							ecode[0] = set_function(tmpstr, tmpexp);
-
-							/* check if an error occured in the funcion definition */
-							if(!synge_is_success_code(ecode[0].code)) {
-								free(tmpstr);
-								free(tmpexp);
-								free_stackm(&evalstack, rpn);
-								mpfr_clears(arg[0], arg[1], arg[2], NULL);
-								return to_error_code(ecode[0].code, pos);
-							}
 							break;
 						default:
-							free(tmpstr);
-							free(tmpexp);
-							free_stackm(&evalstack, rpn);
-							mpfr_clears(arg[0], arg[1], arg[2], NULL);
-							return to_error_code(INVALID_LEFT_OPERAND, pos);
+							ecode[0] = to_error_code(UNKNOWN_ERROR, pos);
 							break;
+					}
+
+					/* check if an error occured in the definitions */
+					if(!synge_is_success_code(ecode[0].code)) {
+						free(tmpstr);
+						free(tmpexp);
+						free_stackm(&evalstack, rpn);
+						mpfr_clears(arg[0], arg[1], arg[2], NULL);
+						return to_error_code(ecode[0].code, pos);
 					}
 
 					free(tmpexp);
