@@ -22,7 +22,7 @@ A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
   - `randi(...)`
   - `fact(...)`
   - `series(...)`
-  - `assert(...)`
+  - `bool(...)`
   - `deg_to_rad(...)`
   - `deg_to_grad(...)`
   - `rad_to_deg(...)`
