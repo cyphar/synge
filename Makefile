@@ -24,6 +24,7 @@
 #######################
 
 ifeq ($(OS), Windows_NT)
+	UTF8		= 0
 	COLOUR		= 0
 
 	CORE_LFLAGS	= -lm -lgmp -lmpfr
@@ -38,7 +39,9 @@ ifeq ($(OS), Windows_NT)
 	REVISION	=
 	SY_OS		= windows
 else
+	UTF8		= 1
 	COLOUR		= 1
+
 	WARNINGS	= -Werror
 
 	CLI_SRC		= $(CLI_SDIR)/rawline.c
@@ -74,7 +77,6 @@ BAKE		?= 1
 DEBUG		?= 0
 SAFE		?= 0
 CHEEKY		?= 0
-UTF8		?= 1
 OPTIM		?= 0
 
 ifeq ($(OPTIM), 1)
