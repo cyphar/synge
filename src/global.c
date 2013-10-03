@@ -56,7 +56,7 @@ synge_settings active_settings = {
 	dynamic /* precision */
 };
 
-static int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
+static int synge_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* A = rand() -- 0 <= rand() < 1 */
 	synge_t random;
 	mpfr_init2(random, SYNGE_PRECISION);
@@ -68,21 +68,21 @@ static int sy_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* free memory */
 	mpfr_clears(random, NULL);
 	return 0;
-} /* sy_rand() */
+} /* synge_rand() */
 
-static int sy_int_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
+static int synge_int_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
 	mpfr_floor(number, number);
 
 	/* get random number */
-	sy_rand(to, number, round);
+	synge_rand(to, number, round);
 
 	/* round output */
 	mpfr_round(to, to);
 	return 0;
-} /* sy_int_rand() */
+} /* synge_int_rand() */
 
-static int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
+static int synge_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	/* round input */
 	synge_t number;
 	mpfr_init2(number, SYNGE_PRECISION);
@@ -99,9 +99,9 @@ static int sy_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	mpfr_copysign(to, to, num, round);
 	mpfr_clears(number, NULL);
 	return 0;
-} /* sy_factorial() */
+} /* synge_factorial() */
 
-static int sy_series(synge_t to, synge_t number, mpfr_rnd_t round) {
+static int synge_series(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
 	mpfr_floor(number, number);
 
@@ -111,11 +111,11 @@ static int sy_series(synge_t to, synge_t number, mpfr_rnd_t round) {
 	mpfr_mul(to, to, number, round);
 	mpfr_div_si(to, to, 2, round);
 	return 0;
-} /* sy_series() */
+} /* synge_series() */
 
-static int sy_assert(synge_t to, synge_t check, mpfr_rnd_t round) {
+static int synge_bool(synge_t to, synge_t check, mpfr_rnd_t round) {
 	return mpfr_set_si(to, iszero(check) ? 0 : 1, round);
-} /* sy_assert */
+} /* synge_bool() */
 
 /* builtin function names, prototypes, descriptions and function pointers */
 function func_list[] = {
@@ -131,12 +131,12 @@ function func_list[] = {
 	{"ln",		"ln(n)",		"Natural logarithm of n",											mpfr_log},
 	{"log10",	"log10(n)",		"Base 10 logarithm of n",											mpfr_log10},
 
-	{"rand",	"rand(n)",		"Generate a random number between 0 and n",							sy_rand},
-	{"randi",	"randi(n)",		"Generate a random integer between 0 and n",						sy_int_rand},
+	{"rand",	"rand(n)",		"Generate a random number between 0 and n",							synge_rand},
+	{"randi",	"randi(n)",		"Generate a random integer between 0 and n",						synge_int_rand},
 
-	{"fact",	"fact(n)",		"Factorial of the integer n",										sy_factorial},
-	{"series",	"series(n)",	"Gives sum of all integers up to n",								sy_series},
-	{"assert",	"assert(n)",	"Returns 0 if x is false-ish, 1 otherwise",							sy_assert},
+	{"fact",	"fact(n)",		"Factorial of the integer n",										synge_factorial},
+	{"series",	"series(n)",	"Gives sum of all integers up to n",								synge_series},
+	{"bool",	"bool(n)",		"Returns 0 if x is false-ish, 1 otherwise",							synge_bool},
 
 	{"deg_to_rad",	"deg_to_rad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " degrees to radians",  	deg_to_rad},
 	{"deg_to_grad",	"deg_to_grad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " degrees to gradians", 	deg_to_grad},
@@ -262,7 +262,7 @@ static int synge_euler(synge_t num, mpfr_rnd_t round) {
 } /* synge_euler() */
 
 static int synge_life(synge_t num, mpfr_rnd_t round) {
-	cheeky("What do you get if you multiply six by nine? Fourty two.\n");
+	cheeky("How many paths must a man walk down?\n");
 	mpfr_set_si(num, 42, round);
 	return 0;
 } /* synge_life() */

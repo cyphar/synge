@@ -154,6 +154,7 @@ char *synge_error_msg(error_code error) {
 	/* get correct printf string */
 	switch(error.code) {
 		case BASE_CHAR:
+			cheeky("Base Z? Every base is base 10.");
 			msg = "Invalid base character";
 			break;
 		case DIVIDE_BY_ZERO:
@@ -165,9 +166,11 @@ char *synge_error_msg(error_code error) {
 			msg = "Cannot modulo by zero";
 			break;
 		case UNMATCHED_LEFT_PARENTHESIS:
+			cheeky("(an unmatched left parenthesis creates tension that will stay with you all day");
 			msg = "Missing closing bracket for opening bracket";
 			break;
 		case UNMATCHED_RIGHT_PARENTHESIS:
+			cheeky("Error: Smilies are not supported ;)");
 			msg = "Missing opening bracket for closing bracket";
 			break;
 		case UNKNOWN_TOKEN:
@@ -180,10 +183,8 @@ char *synge_error_msg(error_code error) {
 			msg = "Invalid right operand of assignment";
 			break;
 		case INVALID_DELETE:
+			cheeky("Error: delete(universe) is not a command.");
 			msg = "Invalid word to delete";
-			break;
-		case UNKNOWN_WORD:
-			msg = "Unknown word to delete";
 			break;
 		case FUNCTION_WRONG_ARGC:
 			msg = "Not enough arguments for function";
@@ -207,7 +208,7 @@ char *synge_error_msg(error_code error) {
 			msg = "Too many values in expression";
 			break;
 		case EMPTY_STACK:
-			cheeky("There's an expression missing here...\n");
+			cheeky("There's an expression missing here.\n");
 			msg = "Expression was empty";
 			break;
 		case UNDEFINED:
@@ -219,7 +220,7 @@ char *synge_error_msg(error_code error) {
 			msg = "Delved too deep";
 			break;
 		default:
-			cheeky("We dun goofed... :(\n");
+			cheeky("Synge dun goofed.\n");
 			msg = "An unknown error has occured";
 			break;
 	}
@@ -290,6 +291,9 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	if(ohm_count(variable_list) > ohm_size(variable_list))
 		variable_list = ohm_resize(variable_list, ohm_size(variable_list) * 2);
 
+	/* backup variable and function hashmaps are
+	 * used to "roll back" the maps to a known good
+	 * state if an error occurs */
 	ohm_t *backup_var = ohm_dup(variable_list);
 	ohm_t *backup_func = ohm_dup(expression_list);
 
@@ -307,12 +311,10 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	/* intiialise result to zero */
 	mpfr_set_si(*result, 0, SYNGE_ROUND);
 
-	/*
-	 * We have delved too greedily and too deep.
+	/* We have delved too greedily and too deeply.
 	 * We have awoken a creature in the darkness of recursion.
 	 * A creature of shadow, flame and segmentation faults.
-	 * YOU SHALL NOT PASS!
-	 */
+	 * YOU SHALL NOT PASS! */
 
 	static int depth = -1;
 	if(++depth >= SYNGE_MAX_DEPTH) {
@@ -325,6 +327,8 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 		}
 
 		ohm_free(backup_var);
+
+		cheeky("YOU SHALL NOT PASS!");
 		return to_error_code(TOO_DEEP, -1);
 	}
 
