@@ -90,7 +90,7 @@ Dynamic Scoping:
 * `a`
 
 ## License ##
-Synge is [MIT Licenced](http://opensource.org/licenses/mit-license), meaning that it can be used in both open source and propretary projects (provided the license conditions are met).
+Synge is [MIT Licenced](http://opensource.org/licenses/mit-license).
 ```
 Copyright (c) 2013 Cyphar
 
