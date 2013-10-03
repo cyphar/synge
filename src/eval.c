@@ -352,8 +352,8 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						free(tmpstr);
 						free_stackm(&evalstack, rpn);
 
-						/* when setting functions, we ignore any errors (and any errors with setting ...
-						 ... a variable would have already been reported) */
+						/* when setting functions, we ignore any errors
+						 * and any errors with setting a variable would have already been reported */
 						return to_error_code(ERROR_FUNC_ASSIGNMENT, pos);
 					}
 					push_valstack(result, number, true, synge_clear, pos, evalstack);
@@ -935,11 +935,11 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 							free_stackm(&evalstack, rpn);
 							return to_error_code(DIVIDE_BY_ZERO, pos);
 						}
+
 						mpfr_div(*result, arg[0], arg[1], SYNGE_ROUND);
 
-						if(tmp) {
+						if(tmp)
 							mpfr_trunc(*result, *result);
-						}
 						break;
 					case op_modulo:
 						if(iszero(arg[1])) {
@@ -949,6 +949,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 							free_stackm(&evalstack, rpn);
 							return to_error_code(MODULO_BY_ZERO, pos);
 						}
+
 						mpfr_fmod(*result, arg[0], arg[1], SYNGE_ROUND);
 						break;
 					case op_index:
@@ -1136,6 +1137,8 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 				break;
 		}
 	}
+
+	/* free temporary numbers */
 	mpfr_clears(arg[0], arg[1], arg[2], NULL);
 
 	/* if there is not one item on the stack, there are too many values on the stack */
