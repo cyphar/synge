@@ -198,6 +198,8 @@ PREFIX		?= /usr
 INSTALL_BIN	= $(PREFIX)/bin
 INSTALL_LIB = $(PREFIX)/lib
 
+.PHONY: all final xmlui debug clean install uninstall test mtest unix-pre unix-post windows-pre windows-post
+
 ######################
 # PRODUCTION SECTION #
 ######################
