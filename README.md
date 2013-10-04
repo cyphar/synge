@@ -23,12 +23,12 @@ A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
   - `fact(...)`
   - `series(...)`
   - `bool(...)`
-  - `deg_to_rad(...)`
-  - `deg_to_grad(...)`
-  - `rad_to_deg(...)`
-  - `rad_to_grad(...)`
-  - `grad_to_deg(...)`
-  - `grad_to_rad(...)`
+  - `deg2rad(...)`
+  - `deg2grad(...)`
+  - `rad2deg(...)`
+  - `rad2grad(...)`
+  - `grad2deg(...)`
+  - `grad2rad(...)`
   - `sinh(...)`
   - `cosh(...)`
   - `tanh(...)`
