@@ -101,7 +101,7 @@ static int synge_factorial(synge_t to, synge_t num, mpfr_rnd_t round) {
 	return 0;
 } /* synge_factorial() */
 
-static int synge_series(synge_t to, synge_t number, mpfr_rnd_t round) {
+static int synge_sum(synge_t to, synge_t number, mpfr_rnd_t round) {
 	/* round input */
 	mpfr_floor(number, number);
 
@@ -111,7 +111,7 @@ static int synge_series(synge_t to, synge_t number, mpfr_rnd_t round) {
 	mpfr_mul(to, to, number, round);
 	mpfr_div_si(to, to, 2, round);
 	return 0;
-} /* synge_series() */
+} /* synge_sum() */
 
 static int synge_bool(synge_t to, synge_t check, mpfr_rnd_t round) {
 	return mpfr_set_si(to, iszero(check) ? 0 : 1, round);
@@ -119,33 +119,33 @@ static int synge_bool(synge_t to, synge_t check, mpfr_rnd_t round) {
 
 /* builtin function names, prototypes, descriptions and function pointers */
 function func_list[] = {
-	{"abs",		"abs(n)",		"Absolute value of n",												mpfr_abs},
-	{"sqrt",	"sqrt(n)",		"Square root of n",													mpfr_sqrt},
-	{"cbrt",	"cbrt(n)",		"Cubic root of n",													mpfr_cbrt},
+	{"abs",		"abs(n)",						"Absolute value of n",								mpfr_abs},
+	{"sqrt",	"sqrt(n)",						"Square root of n",									mpfr_sqrt},
+	{"cbrt",	"cbrt(n)",						"Cubic root of n",									mpfr_cbrt},
 
-	{"round",	"round(n)",		"Round n away from 0",												mpfr_round},
-	{"ceil",	"ceil(n)",		"Round n toward positive infinity",									mpfr_ceil},
-	{"floor",	"floor(n)",		"Round n toward negative infinity",									mpfr_floor},
+	{"round",	"round(n)",						"Round n away from 0",								mpfr_round},
+	{"ceil",	"ceil(n)",						"Round n toward positive infinity",					mpfr_ceil},
+	{"floor",	"floor(n)",						"Round n toward negative infinity",					mpfr_floor},
 
-	{"log",		"log(n)",		"Base 2 logarithm of n",											mpfr_log2},
-	{"ln",		"ln(n)",		"Natural logarithm of n",											mpfr_log},
-	{"log10",	"log10(n)",		"Base 10 logarithm of n",											mpfr_log10},
+	{"log",		"log(n)",						"Base 2 logarithm of n",							mpfr_log2},
+	{"ln",		"ln(n)",						"Natural logarithm of n",							mpfr_log},
+	{"log10",	"log10(n)",						"Base 10 logarithm of n",							mpfr_log10},
 
-	{"rand",	"rand(n)",		"Generate a random number between 0 and n",							synge_rand},
-	{"randi",	"randi(n)",		"Generate a random integer between 0 and n",						synge_int_rand},
+	{"rand",	"rand(n)",						"Generate a random number between 0 and n",			synge_rand},
+	{"randi",	"randi(n)",						"Generate a random integer between 0 and n",		synge_int_rand},
 
-	{"fact",	"fact(n)",		"Factorial of the integer n",										synge_factorial},
-	{"series",	"series(n)",	"Gives sum of all integers up to n",								synge_series},
-	{"bool",	"bool(n)",		"Returns 0 if x is false-ish, 1 otherwise",							synge_bool},
+	{"fact",	"fact(n)",						"Factorial of the integer n",						synge_factorial},
+	{"sum",		"sum(n)",						"Gives sum of all integers up to n",				synge_sum},
+	{"bool",	"bool(n)",						"Returns 0 if x is falseish, 1 otherwise",			synge_bool},
 
-	{"deg_to_rad",	"deg_to_rad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " degrees to radians",  	deg_to_rad},
-	{"deg_to_grad",	"deg_to_grad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " degrees to gradians", 	deg_to_grad},
+	{"deg2rad",	"deg2rad(" SYNGE_THETA ")",		"Convert " SYNGE_THETA " degrees to radians",		deg_to_rad},
+	{"deg2grad","deg2grad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " degrees to gradians",		deg_to_grad},
 
-	{"rad_to_deg",	"rad_to_deg(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " radians to degrees",  	rad_to_deg},
-	{"rad_to_grad",	"rad_to_grad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " radians to gradians", 	rad_to_grad},
+	{"rad2deg",	"rad2deg(" SYNGE_THETA ")",		"Convert " SYNGE_THETA " radians to degrees",		rad_to_deg},
+	{"rad2grad","rad2grad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " radians to gradians",		rad_to_grad},
 
-	{"grad_to_deg",	"grad_to_deg(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " gradians to degrees",  grad_to_deg},
-	{"grad_to_rad",	"grad_to_rad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " gradians to radians",  grad_to_rad},
+	{"grad2deg","grad2deg(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " gradians to degrees",		grad_to_deg},
+	{"grad2rad","grad2rad(" SYNGE_THETA ")",	"Convert " SYNGE_THETA " gradians to radians",		grad_to_rad},
 
 	{"sinh",	"sinh(" SYNGE_THETA ")",		"Hyperbolic sine of " SYNGE_THETA "",				mpfr_sinh},
 	{"cosh",	"cosh(" SYNGE_THETA ")",		"Hyperbolic cosine of " SYNGE_THETA "",				mpfr_cosh},
