@@ -33,6 +33,7 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "xmlui.h" /* generated header to bake the gtk_builder xml string */
 
@@ -111,10 +112,12 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 } /* gui_compute_string() */
 
 __EXPORT_SYMBOL void gui_append_key(GtkWidget *widget, gpointer data) {
-	if(isout && !iserr) {
+	char ch = *gtk_button_get_label(GTK_BUTTON(widget));
+
+	if(isout && !iserr && isdigit(ch))
 		gtk_entry_set_text(GTK_ENTRY(input), "");
-		isout = iserr = false;
-	}
+
+	isout = iserr = false;
 
 	char *newstr = malloc((gtk_entry_get_text_length(GTK_ENTRY(input)) + strlen(gtk_button_get_label(GTK_BUTTON(widget))) + 1) * sizeof(char));
 	sprintf(newstr, "%s%s", gtk_entry_get_text(GTK_ENTRY(input)), gtk_button_get_label(GTK_BUTTON(widget)));
@@ -220,7 +223,11 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 		free(newstr);
 		g_free(value);
 	}
-} /* gui_populate_function_list() */
+
+	/* close the function window */
+	gtk_widget_hide(GTK_WIDGET(func_window));
+
+} /* gui_add_function_to_expression() */
 
 void gtk_default_settings(void) {
 	synge_settings new = synge_get_settings();
