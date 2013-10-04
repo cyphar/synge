@@ -23,7 +23,7 @@ There is a pre-built "installer" that has been written for windows. It pulls the
 executables and dependencies from a dropbox share. This is the prefered method for users.
 
 #### Pre-built ####
-This method requires an internet connection and a administrative privileges
+This method requires both an internet connection and administrative privileges.
 * Download the zip'd [repository](https://github.com/cyphar/synge/archive/master.zip)
 * Unzip it, and navigate to `win/`
 * Run `windows.bat`, and press `i` (or run `windows.bat -i`)
@@ -63,7 +63,7 @@ You need the following:
 * [libmpfr](http://www.mpfr.org/mpfr-current/#download)>=3.1.2 source
 * [python3](http://www.python.org/download/)>=3.3.2 (should be pre-installed)
 
-You first need to compile libedit, libgmp, libmpfr (in that order). These commands will produce **huge** amounts of errors (because OS X is very bad when it comes to compilation), but it *should* still work:
+You first need to compile libgmp, libmpfr (in that order). These commands will produce **huge** amounts of errors (because OS X is very bad when it comes to compilation), but it *should* still work:
 ```
 # GMP
 tar xvfz libgmp.tar.gz
