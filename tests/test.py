@@ -296,7 +296,7 @@ CASES = [
 	(["sinh(ln(2))"],				["0.75"],			0,	0,		"Hyperbolic Trigonometry	"),
 	(["e^asinh(0.75)"],				["2"],				0,	0,		"Hyperbolic Trigonometry	"),
 
-	(["deg_to_rad(180/pi)+rad_to_deg(pi)"],	["181"],		0,	0,		"Angle Conversion	"),
+	(["deg2rad(180/pi)+rad2deg(pi)"],	["181"],		0,	0,		"Angle Conversion	"),
 
 	(["2^2^2-15-14-12-11-10^5"],		["-100036"],	0,	0,		"Long Expression		"),
 	(["57-(-2)^2-floor(log10(23))"],	["52"],			0,	0,		"Long Expression		"),
