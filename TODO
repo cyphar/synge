@@ -1,7 +1,7 @@
 Things to fix/implement:
 
 ALL:
-+ Documentation
+* Convert documenatation to a man-like format
 * General code clean-up (especially evaluation code)
 
 SYNGE:
