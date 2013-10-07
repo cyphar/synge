@@ -1,3 +1,4 @@
 # Compressed Docs
 *.gz
-.~*
+*.1
+*.3
