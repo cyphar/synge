@@ -72,7 +72,7 @@ void bake_args(int argc, char ***argv) {
 
 	int i;
 	for(i = 1; i < argc; i++) {
-		if(!strcmp((*argv)[i], "-m") || !strcmp((*argv)[i], "-mode") || !strcmp((*argv)[i], "--mode")) {
+		if(argc > i + 1 && (!strcmp((*argv)[i], "-m") || !strcmp((*argv)[i], "-mode") || !strcmp((*argv)[i], "--mode"))) {
 				i++;
 
 				if(!strcasecmp((*argv)[i], "radians"))
