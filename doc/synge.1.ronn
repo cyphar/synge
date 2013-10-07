@@ -196,10 +196,10 @@ Therefore, our hypothetical mathematician can simply write the original expressi
 The following is a table of the values that can be put together and implied multiplication will occur.
 
       N C F B V E
-    N X * * * * *	Number
+    N - * * * * *	Number
     C * - * * * *	Constant
-    F * * X * * *	Function
-    B * * * X * *	Block
+    F * * - * * *	Function
+    B * * * * * *	Block
     V * * * * X X	Variable
     E * * * * X X	Expression
 
