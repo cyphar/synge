@@ -1,0 +1,264 @@
+synge(1) -- a very powerful and intuitive computation engine
+============================================================
+
+The following document is the user documentation for **Synge**, a very powerful and intuitive computation engine.
+This document is written from an end-user perspective, explaining how to use **Synge** (with little care for the actual inner workings).
+Developers (or geeks in general) should consult **synge**(3).
+
+## OVERVIEW
+
+****Synge**** is a very powerful and intuitive computation library (or engine).
+This engine is used by several programs (interfaces), and provides a stable and consistent calculation experience between these interfaces.
+**Synge** has been designed with a dual goal of simplicity for the end-user and power for the power-user.
+
+## NUMBERS
+
+The simplest element in **Synge** is the number.
+All numbers in **Synge** are decimal numbers, with arbitrary precision (allowing for essentially unlimited precision).
+Numbers can be positive or negative, when preceded by + or – (numbers are, by default, positive).
+
+**Synge** can process numbers in several bases.
+The first two characters define the base of the number.
+If the number starts with 0, it is a “special base” number.
+If the next character is x, d or b, the number is base 16, base 10 and base 2 (respectively). If the next character is a digit between 0-7, the number is base 8.
+Otherwise, the number is base 10.
+
+Here are a few examples:
+
+    Input		Output		Description
+    42			42			Number
+    -42			-42			Negative Number
+    +42			42			Positive Number
+    0x2A		42			Hexadecimal Number
+    0x2a		42			Hexadecimal Number
+    0d42		42			Decimal Number
+    0b10		2			Binary Number
+    010			8			Octal Number
+    08			8			Decimal Number
+    0b2			Error		Invalid Number
+    +0xA		10			Signed Hexadecimal Number
+    -0b10		-2			Signed Binary Number
+    +0d42		42			Signed Decimal Number
+    -010		-8			Signed Octal Number
+
+## BASIC OPERATORS
+
+**Synge** supports the most basic of operators, which can be used on any type of “arguments”.
+The following is a list of the most basic operators ([argN] refers to the Nth argument).
+
+    Template			Description
+    - [arg1]			Gives the negative of [arg1]
+    + [arg1]			Doesn't change [arg1]
+    ! [arg1]			Gives the boolean not (complement) of [arg1]
+    ~ [arg1]			Gives the binary not (complement) of [arg1]
+    [arg1] + [arg2]		Gives sum of [arg1] and [arg2]
+    [arg1] - [arg2]		Gives difference of [arg1] and [arg2]
+    [arg1] / [arg2]		Gives the quotient of [arg1] and [arg2]
+    [arg1] // [arg2]	Gives the integral (whole number) quotient as above
+    [arg1] % [arg2]		Gives the remainder from the division of [arg1] by [arg2]
+    [arg1] ^ [arg2]		Raises [arg1] to the [arg2]th index
+    [arg1] # [arg2]		Gives the binary exclusive or (xor) of [arg1] and [arg2]
+    [arg1] | [arg2]		Gives the binary or of [arg1] and [arg2]
+    [arg1] & [arg2]		Gives the binary and of [arg1] and [arg2]
+    ( [arg1] )			Changes the order of operations and makes [arg1] a “block”.
+    [arg1] > [arg2]		Gives 1 iff [arg1] is greater than [arg2], 0 otherwise
+    [arg1] >= [arg2]	Gives 1 iff [arg1] is greater than or equal to [arg2], 0 otherwise
+    [arg1] < [arg2]		Gives 1 iff [arg1] is less than [arg2], 0 otherwise
+    [arg1] <= [arg2]	Gives 1 iff [arg1] is less than or equal to [arg2], 0 otherwise
+    [arg1] == [arg2]	Gives 1 iff [arg1] is equal to [arg2], 0 otherwise
+    [arg1] != [arg2]	Gives 1 iff [arg1] is not equal to [arg2], 0 otherwise
+
+## BUILTINS
+
+**Synge** supplies several builtin functions, constants and functionality which is (usually) more than enough for most users.
+The following is a list of all builtin functions which **Synge** provides. These functions can take any type of arguments.
+
+    Prototype		Description
+    abs(n)			Absolute value of n
+    sqrt(n)			Square root of n
+    cbrt(n)			Cubic root of n
+    round(n)		Round n away from 0
+    ceil(n)			Round n toward positive infinity
+    floor(n)		Round n toward negative infinity
+    log(n)			Base 2 logarithm of n
+    ln(n)			Natural logarithm of n
+    log10(n)		Base 10 logarithm of n
+    rand(n)			Generate a random number between 0 and n
+    randi(n)		Generate a random integer between 0 and n
+    fact(n)			Factorial of the integer n
+    sum(n)			Gives sum of all integers up to n
+    bool(n)			Returns 0 if n is falseish, 1 otherwise
+    deg2rad(n)		Convert n degrees to radians
+    deg2grad(n)		Convert n degrees to gradians
+    rad2deg(n)		Convert n radians to degrees
+    rad2grad(n)		Convert n radians to gradians
+    grad2deg(n)		Convert n gradians to degrees
+    grad2rad(n)		Convert n gradians to radians
+    sinh(n)			Hyperbolic sine of n
+    cosh(n)			Hyperbolic cosine of n
+    tanh(n)			Hyperbolic tangent of n
+    asinh(n)		Inverse hyperbolic sine of n
+    acosh(n)		Inverse hyperbolic cosine of n
+    atanh(n)		Inverse hyperbolic tangent of n
+    sin(n)			Sine of n
+    cos(n)			Cosine of n
+    tan(n)			Tangent of n
+    asin(n)			Inverse sine of n
+    acos(n)			Inverse cosine of n
+    atan(n)			Inverse tangent of n
+
+
+The trigonometric functions correctly convert the input and output to the correct angle mode (see settings).
+
+The following is a list of builtin constants (and expressions) which **Synge** provides.
+These are immutable, meaning that any attempt to change them will cause **Synge** to raise an error, as trying to change a constant is an illogical behaviour.
+
+    Word		Description
+    pi			The ratio of a circles circumference to its diameter
+    e			Euler's number, base of the natural logarithm
+    phi			The golden mean
+    true		Standard true value (as used internally by **Synge**)
+    false		Standard false value (as used internally by **Synge**)
+    life		The answer to life, the universe and everything
+    ans			The last successfully calculated expression's answer
+    _			The last successfully calculated expression (not containing a '_')
+
+## VARIABLES
+
+Variables can be though of as “labelled boxes”, where the new value is first calculated, and then is “put into the box”.
+Variables aren't the same as pronumerals or equations in mathematics (even though they use the same definition operator).
+
+The following is a list of variable operators, where `[word]` is a variable identifier (see the definitions), `[exp]` is an expression to be “put into the box” and `[op]` is any operator, as defined in basic operators.
+
+    Template				Description
+    [word] = [exp]			Assign [word] to [exp]
+    [word] [op]= [exp]		Shorthand for [word] = [word] [op] ([exp])
+    :: [word]				Deletes word and gives old value
+    ++ [word]				Add 1 to [word], and give the new value
+    -- [word]				Minus 1 from [word], and give the new value
+    [word] ++				Give old value, then add 1 to [word]
+    [word] --				Give old value, then minus 1 from [word]
+
+
+It should be noted that variables are subject to rolling back in the case of errors (see errors for more detail).
+
+## EXPRESSIONS
+
+Expressions are essentially user-defined functions.
+In an attempt to make the complexity of functions easier to use to an average user, **Synge** has removed much of the programmatic functionality of “functions”.
+The result are “user expressions”, where there are no arguments or local scope.
+They can be thought of as user-defined shorthand for long expressions, which are replaced by **Synge** when it reads them in (they have other functions, but that is the general gist).
+
+It is important to note the following features and limitations of **Synge** expressions:
+
+* First of all, **Synge** expressions are evaluated recursively.
+  This means that **Synge** essentially takes the value of the expression, copies it and runs **Synge** on that expression, taking the result and giving it as the value of the expression.
+
+* Secondly, there is an imposed limit on the number of times **Synge** will call itself.
+  This is due to memory, time and other constraints by the computer.
+  This should hardly ever bother normal users, since the value is guaranteed to always be greater than 1000.
+
+* Finally, errors are suppressed when defining an expression.
+  This is so that it is easier to define a large expression, and then define the variables and expressions it calls, in any order.
+  This means that no output when defining an expression means an error occurred, but it has been intentionally suppressed.
+
+The following is a list of expression operators, where `[word]` is an expression identifier and `[exp]` is the expression to be “saved” as the `[word]`.
+
+    Template			Description
+    [word] := [exp]		Set [word] to [exp]
+    :: [word]			Delete [word], and give value (if any)
+
+
+It should be noted that expressions are subject to rolling back in the case of errors (see errors for more detail).
+
+## CONDITIONALS
+
+Conditionals are a very programmatic practice, where one section of an expression will be evaluated if a certain condition is true, otherwise another section of an expression would be evaluated.
+This means that **Synge** conditionals are “short-cutted”, meaning that the non-true section of the conditional isn't even evaluated or checked.
+
+The following is the **Synge** conditional template, where `[cond]` is any expression, `[if]` is the expression which will be executed if `[cond]` is **not** 0 and `[else]` is the expression which will be executed if `[cond]` **is** 0.
+
+    Template					Description
+    [cond] ? [if] : [else]		A tertiary conditional
+
+
+It should be noted that both the `[if]` and `[else]` blocks are mandatory.
+It should also be noted that the unused block will not cause an error (unless it is empty), even if you think it should.
+
+## IMPLIED MULTIPLICATION
+
+For a very long time, users with mathematical background have had problems with using standard calculators.
+They are used to writing expressions with “implied multiplication”, where there are certain well-defined rules about how to concisely express multiplication.
+Usually, mathematicians would have to mentally translate the expression `2x – (3pi – 4sin(45))(3x – 2)^2` to `2*x – (3*pi – 4*sin(45))*(3*x – 2)^2`. Why?
+
+**Synge** understands most of these rules, and treats coefficients correctly.
+Therefore, our hypothetical mathematician can simply write the original expression, and it will give the correct output.
+The following is a table of the values that can be put together and implied multiplication will occur.
+
+      N C F B V E
+    N X * * * * *	Number
+    C * - * * * *	Constant
+    F * * X * * *	Function
+    B * * * X * *	Block
+    V * * * * X X	Variable
+    E * * * * X X	Expression
+
+    *: Works
+    -: Only works in odd cases
+    X: Doesn't work
+
+
+Note: a “block” is a part of an expression surrounded with parenthesis, like this: `(x - 3)`
+
+## ERRORS
+
+**Synge** gives control over the level of information in errors, with each level giving different levels of technical information.
+
+It should be noted that **Synge** implements a “traceback”, where you can get a snapshot of what the calling expressions and conditionals caused the error, on a call-by-call basis. This is akin to Python traceback.
+
+The following describes the overall format of each level of error, where `[type]` is the general type of error, `[desc]` is a description of the error,
+`[cond]` is `<if>` or `<else>` condition, `[pos]` is the position in the particular string (from where the line of traceback was “called” from),
+`[exp]` is the expression identifier of a calling expression and `[mod]` is the module the program was run from (usually `<main>`).
+
+    Template									Description
+    [type]: [desc]								Simple, giving the least information.
+    [type]: [desc] @ [pos]						Give at least the position information.
+    Synge Traceback (most recent call last):	Full traceback, the whole shebang.
+      Module [mod]								...
+      [cond] condition, at [pos]				...
+      Function [exp], at [pos]					...
+    [type]: [desc] @ [pos]						...
+
+
+It should be noted that certain events (specifically the setting and updating of variable and expression values) will be reverted (aka rolled back) in the case of an error.
+This is to ensure that **Synge**'s state will always be a “good” state, rather than a borked one, where only half of an expression was evaluated.
+
+## SETTINGS
+
+**Synge** has the ability to set several different properties, mostly referring to the way **Synge** acts when computing expressions.
+The specifics of setting these values should be found in the documentation specific to that interface to **Synge**.
+
+The following is a list of **Synge**'s settings, their values and descriptions.
+The values starting with a '*' are the default option (although, this can be changed by the interface).
+
+    Setting		Options								Description
+    mode		*degrees | radians | gradians		The angle mode for trigonometric functions
+    error		simple | *position | traceback		The type of errors
+    strict		*strict | flexible					The strictness of Synge when following the grammar
+    precision	<number> | *dynamic					The decimal places of precision given by Synge
+
+
+## DEFINITIONS
+
+The following are EBNF definitions for the **Synge** syntax (outside of what was expressed in the above tables).
+
+    letter = “a” | “A” | “b” | “B” | “c” | ... | “y” | “Y” | “z” | “Z” | “_” | ' | “
+    variable_identifier = <letter> { <letter> }
+    expression_identifier = <letter> { <letter> }
+
+
+In other words: variable identifiers and expression identifiers are a sequence (where `length >= 1`) of letters, apostrophes and double-quotes.
+
+## SEE ALSO
+
+**synge-cli**(1), **synge-gtk**(1), **synge-eval**(1)

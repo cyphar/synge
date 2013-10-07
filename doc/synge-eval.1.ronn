@@ -1,0 +1,40 @@
+synge-eval - a scripting interface to synge(1)
+==============================================
+
+The following document is the user documentation for **Synge Eval**, a scripting interface to **synge**(1).
+For general documentation about Synge itself, consult **synge**(1).
+This document is written from an end-user perspective, explaining how to use **Synge Eval** (with little care for the actual inner workings).
+Developers (or geeks in general) should consult **synge-eval**(3).
+
+## OVERVIEW ##
+
+The **Synge Eval** interface is not for general use.
+It is a non-interactive interface, designed for use in scripts and other non-interactive backend and testing uses.
+Only the minimum useful functionality is implemented by **Synge Eval**.
+**Synge Eval** should not be used for everyday use, as usually new features to **Synge** aren't implemented unless they have a scripting purpose.
+
+## SYNOPSIS ##
+
+**synge-eval** [<-mRVh>] <expression>[_s_]
+
+## OPTIONS ##
+
+    -m [mode], --mode [mode]	Sets angle mode to [mode]
+    -R, --no-random				Make random functions predictable
+    -S, --no-skip				Print ignorable errors
+    -V, --version				Print version information
+    -h, --help					Print help page
+
+## SPECIFICS ##
+
+The expressions are evaluated in the order supplied to **Synge Eval**.
+All expressions are evaluated, and errors do not halt the program's execution.
+Any inputs that look like options (e.g. `-m`) will be treated as options, not expressions.
+
+## DEFAULTS ##
+
+**Synge Eval** does not modify any of the defaults described in **synge**(1), except when specified in a command-line argument.
+
+## SEE ALSO ##
+
+**synge**(1), **synge-gtk**(1), **synge-eval**(1)

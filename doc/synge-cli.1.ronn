@@ -1,0 +1,57 @@
+synge-cli - a command-line interface to synge(1)
+================================================
+
+The following document is the user documentation for **Synge CLI**, a simple command line user interface to **synge**(1).
+For general documentation about Synge itself, consult **synge**(1).
+This document is written from an end-user perspective, explaining how to use **Synge CLI** (with little care for the actual inner workings).
+Developers (or geeks in general) should consult **synge-cli**(3).
+
+## SYNOPSIS ##
+
+**synge-cli** <ignored arguments>
+
+## OVERVIEW ##
+
+The **Synge CLI** interface is the most basic interface to Synge, designed to give maximum control to the user.
+The interface is in the form of a `read-eval-print` loop, which will take one line of input, evaluate it and then print the result of the computation.
+
+## STATE ##
+
+Synge CLI allows you to very simply list information about the current state of **Synge**, as well as the list of available builtins.
+
+    Argument (:list [argument])		Description
+    functions						Print a list of builtin functions and descriptions
+    constants						Print a list of builtin constants and descriptions
+    variables						Print a list of variables and their values
+    expressions						Print a list of expressions and their values
+
+## META ##
+
+**Synge CLI** can give you information about itself, by running the following commands:
+
+    Command			Description
+    : version		Print version information
+    : license		Print license and copyright information
+    : warranty		Print warranty information
+
+## SETTINGS ##
+
+**Synge CLI** supports all of the settings Synge provides, and can retrieve current settings.
+The following is a table of the templates of both commands, where `[setting]` is the name of the setting (as described in **synge**(1)) and `[value]` is the new value of the setting (as described in **synge**(1)).
+
+    Template					Description
+    : get [setting]				Print the value of a setting
+    : set [setting] [value]		Set the value of a setting. Nonsensical settings will be ignored.
+
+## DEFAULTS ##
+
+The following is a list of the default settings set each time **Synge CLI** starts.
+
+    Settings		Default Value
+    mode			degrees
+    error			traceback
+    strictness		strict
+    precision		dynamic
+
+## SEE ALSO ##
+**synge**(1), **synge-gtk**(1), **synge-eval**(1)
