@@ -163,6 +163,19 @@ EVAL_IDIR	= $(INCLUDE_DIR)/eval
 # Test directories
 TEST_DIR	= tests
 
+# Documentation
+DOC_DIR		= doc
+DOC_SRC		= $(wildcard $(DOC_DIR)/*.ronn)
+DOCS		= $(DOC_SRC:.ronn=)
+DOCS_COMP	= $(addsuffix .gz,$(DOCS))
+DOCS1		= $(filter %1.gz,$(DOCS_COMP))
+DOCS3		= $(filter %3.gz,$(DOCS_COMP))
+
+# Man magic
+MAN_DIR		?= /usr/share/man
+MAN1		= $(MAN_DIR)/man1
+MAN3		= $(MAN_DIR)/man3
+
 WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
 
 SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
@@ -191,14 +204,14 @@ CLI_DEPS	+=
 GTK_DEPS	+= $(wildcard $(GTK_SDIR)/*.h) $(GTK_SDIR)/ui.glade $(GTK_SDIR)/bakeui.py
 EVAL_DEPS	+=
 
-TO_CLEAN	= $(NAME_CORE) $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CORE) $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL)
+TO_CLEAN	= $(NAME_CORE) $(EXEC_CLI) $(EXEC_GTK) $(EXEC_EVAL) $(GTK_SDIR)/xmlui.h $(ICON_CORE) $(ICON_CLI) $(ICON_GTK) $(ICON_EVAL) $(DOCS_COMP) $(DOCS)
 
 VALGRIND	= valgrind --leak-check=full --show-reachable=yes
 PREFIX		?= /usr
 INSTALL_BIN	= $(PREFIX)/bin
 INSTALL_LIB = $(PREFIX)/lib
 
-.PHONY: all final xmlui debug clean install uninstall test mtest unix-pre unix-post windows-pre windows-post
+.PHONY: all doc final xmlui debug clean install uninstall test mtest unix-pre unix-post windows-pre windows-post
 
 ######################
 # PRODUCTION SECTION #
@@ -289,6 +302,14 @@ mtest: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 		LD_LIBRARY_PATH=. $(PYTHON) $(TEST_DIR)/test.py "$(VALGRIND) $(EXEC_PREFIX)$(EXEC_EVAL) -R -S"; \
 	fi
 
+#########################
+# DOCUMENTATION SECTION #
+#########################
+
+doc: $(DOC_SRC)
+	ronn -r $(DOC_SRC)
+	gzip -f $(DOCS)
+
 ###################
 # INSTALL SECTION #
 ###################
@@ -299,6 +320,7 @@ install:
 	make install-cli
 	make install-gtk
 	make install-eval
+	make install-doc
 
 # Install core library
 install-lib: $(NAME_CORE)
@@ -316,6 +338,11 @@ install-gtk: $(EXEC_GTK)
 install-eval: $(EXEC_EVAL)
 	cp $(EXEC_EVAL) $(INSTALL_BIN)/$(EXEC_EVAL)
 
+# Install documentation
+install-doc: doc
+	if [ -n "$(DOCS1)" ]; then cp -v $(DOCS1) $(MAN1); fi
+	if [ -n "$(DOCS3)" ]; then cp -v $(DOCS3) $(MAN3); fi
+
 #################
 # CLEAN SECTION #
 #################
@@ -330,6 +357,7 @@ uninstall:
 	make uninstall-cli
 	make uninstall-gtk
 	make uninstall-eval
+	make uninstall-doc
 
 # Uninstall core library
 uninstall-lib:
@@ -346,6 +374,11 @@ uninstall-gtk:
 # Uninstall eval wrapper
 uninstall-eval:
 	rm -f $(INSTALL_BIN)/$(EXEC_EVAL)
+
+# Uninstall documentation
+uninstall-doc:
+	if [ -n "$(DOCS1)" ]; then rm -f $(addprefix $(MAN1)/,$(notdir $(DOCS1))); fi
+	if [ -n "$(DOCS3)" ]; then rm -f $(addprefix $(MAN3)/,$(notdir $(DOCS3))); fi
 
 ################
 # MISC SECTION #
