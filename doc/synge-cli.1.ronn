@@ -53,5 +53,9 @@ The following is a list of the default settings set each time **Synge CLI** star
     strictness		strict
     precision		dynamic
 
+## COPYRIGHT ##
+
+**Synge CLI** (and the associated documentation) is Copyright (C) 2013 Cyphar, and is licensed under the MIT/X11 License.
+
 ## SEE ALSO ##
 **synge**(1), **synge-gtk**(1), **synge-eval**(1)

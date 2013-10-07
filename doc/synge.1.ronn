@@ -1,17 +1,17 @@
-synge(1) -- a very powerful and intuitive computation engine
-============================================================
+synge(1) - a very powerful and intuitive computation engine
+===========================================================
 
 The following document is the user documentation for **Synge**, a very powerful and intuitive computation engine.
 This document is written from an end-user perspective, explaining how to use **Synge** (with little care for the actual inner workings).
 Developers (or geeks in general) should consult **synge**(3).
 
-## OVERVIEW
+## OVERVIEW ##
 
 ****Synge**** is a very powerful and intuitive computation library (or engine).
 This engine is used by several programs (interfaces), and provides a stable and consistent calculation experience between these interfaces.
 **Synge** has been designed with a dual goal of simplicity for the end-user and power for the power-user.
 
-## NUMBERS
+## NUMBERS ##
 
 The simplest element in **Synge** is the number.
 All numbers in **Synge** are decimal numbers, with arbitrary precision (allowing for essentially unlimited precision).
@@ -41,7 +41,7 @@ Here are a few examples:
     +0d42		42			Signed Decimal Number
     -010		-8			Signed Octal Number
 
-## BASIC OPERATORS
+## BASIC OPERATORS ##
 
 **Synge** supports the most basic of operators, which can be used on any type of “arguments”.
 The following is a list of the most basic operators ([argN] refers to the Nth argument).
@@ -68,7 +68,7 @@ The following is a list of the most basic operators ([argN] refers to the Nth ar
     [arg1] == [arg2]	Gives 1 iff [arg1] is equal to [arg2], 0 otherwise
     [arg1] != [arg2]	Gives 1 iff [arg1] is not equal to [arg2], 0 otherwise
 
-## BUILTINS
+## BUILTINS ##
 
 **Synge** supplies several builtin functions, constants and functionality which is (usually) more than enough for most users.
 The following is a list of all builtin functions which **Synge** provides. These functions can take any type of arguments.
@@ -123,7 +123,7 @@ These are immutable, meaning that any attempt to change them will cause **Synge*
     ans			The last successfully calculated expression's answer
     _			The last successfully calculated expression (not containing a '_')
 
-## VARIABLES
+## VARIABLES ##
 
 Variables can be though of as “labelled boxes”, where the new value is first calculated, and then is “put into the box”.
 Variables aren't the same as pronumerals or equations in mathematics (even though they use the same definition operator).
@@ -142,7 +142,7 @@ The following is a list of variable operators, where `[word]` is a variable iden
 
 It should be noted that variables are subject to rolling back in the case of errors (see errors for more detail).
 
-## EXPRESSIONS
+## EXPRESSIONS ##
 
 Expressions are essentially user-defined functions.
 In an attempt to make the complexity of functions easier to use to an average user, **Synge** has removed much of the programmatic functionality of “functions”.
@@ -171,7 +171,7 @@ The following is a list of expression operators, where `[word]` is an expression
 
 It should be noted that expressions are subject to rolling back in the case of errors (see errors for more detail).
 
-## CONDITIONALS
+## CONDITIONALS ##
 
 Conditionals are a very programmatic practice, where one section of an expression will be evaluated if a certain condition is true, otherwise another section of an expression would be evaluated.
 This means that **Synge** conditionals are “short-cutted”, meaning that the non-true section of the conditional isn't even evaluated or checked.
@@ -185,7 +185,7 @@ The following is the **Synge** conditional template, where `[cond]` is any expre
 It should be noted that both the `[if]` and `[else]` blocks are mandatory.
 It should also be noted that the unused block will not cause an error (unless it is empty), even if you think it should.
 
-## IMPLIED MULTIPLICATION
+## IMPLIED MULTIPLICATION ##
 
 For a very long time, users with mathematical background have had problems with using standard calculators.
 They are used to writing expressions with “implied multiplication”, where there are certain well-defined rules about how to concisely express multiplication.
@@ -210,7 +210,7 @@ The following is a table of the values that can be put together and implied mult
 
 Note: a “block” is a part of an expression surrounded with parenthesis, like this: `(x - 3)`
 
-## ERRORS
+## ERRORS ##
 
 **Synge** gives control over the level of information in errors, with each level giving different levels of technical information.
 
@@ -233,7 +233,7 @@ The following describes the overall format of each level of error, where `[type]
 It should be noted that certain events (specifically the setting and updating of variable and expression values) will be reverted (aka rolled back) in the case of an error.
 This is to ensure that **Synge**'s state will always be a “good” state, rather than a borked one, where only half of an expression was evaluated.
 
-## SETTINGS
+## SETTINGS ##
 
 **Synge** has the ability to set several different properties, mostly referring to the way **Synge** acts when computing expressions.
 The specifics of setting these values should be found in the documentation specific to that interface to **Synge**.
@@ -248,7 +248,7 @@ The values starting with a '*' are the default option (although, this can be cha
     precision	<number> | *dynamic					The decimal places of precision given by Synge
 
 
-## DEFINITIONS
+## DEFINITIONS ##
 
 The following are EBNF definitions for the **Synge** syntax (outside of what was expressed in the above tables).
 
@@ -259,6 +259,10 @@ The following are EBNF definitions for the **Synge** syntax (outside of what was
 
 In other words: variable identifiers and expression identifiers are a sequence (where `length >= 1`) of letters, apostrophes and double-quotes.
 
-## SEE ALSO
+## COPYRIGHT ##
+
+**Synge** (and the associated documentation) is Copyright (C) 2013 Cyphar, and is licensed under the MIT/X11 License.
+
+## SEE ALSO ##
 
 **synge-cli**(1), **synge-gtk**(1), **synge-eval**(1)
