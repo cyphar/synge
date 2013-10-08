@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Synge-GTK: A GTK+ gui wrapper for Synge
+# Synge-GTK: A graphical interface for Synge
 # Copyright (c) 2013 Cyphar
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of

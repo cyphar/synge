@@ -1,5 +1,5 @@
-synge-cli - a command-line interface to synge(1)
-================================================
+synge-cli - a command-line interface for synge(1)
+=================================================
 
 The following document is the user documentation for **Synge CLI**, a simple command line user interface to **synge**(1).
 For general documentation about Synge itself, consult **synge**(1).

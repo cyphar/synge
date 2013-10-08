@@ -432,7 +432,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	return ecode;
 } /* synge_internal_compute_string() */
 
-/* public "exported" wrapper for above function */
+/* public "exported" interface for above function */
 error_code synge_compute_string(char *expression, synge_t *result) {
 	return synge_internal_compute_string(expression, result, SYNGE_MAIN, 0);
 } /* synge_compute_string() */

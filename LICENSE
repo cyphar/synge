@@ -1,8 +1,8 @@
 Synge: A shunting-yard calculation "engine"
 
-Synge-Cli: A command-line wrapper for Synge
-Synge-GTK: A GTK+ gui wrapper for Synge
-Synge-Eval: A simple evaluation wrapper for Synge
+Synge-Cli: A command-line interface for Synge
+Synge-GTK: A graphical interface for Synge
+Synge-Eval: A scripting interface for Synge
 
 Copyright (c) 2013 Cyphar
 
