@@ -26,18 +26,25 @@
 
 from sys import argv, exit
 from re import sub
+from codecs import open
 
 def main():
 	if len(argv) != 4:
 		exit(1)
 
-	xmlui = open(argv[2], "r").read().replace('"', '\\"').replace("\n", "")
-	xmlui = sub(">\s+?<", "><", xmlui)
+	xmlui = ""
+	template = ""
 
-	template = open(argv[1], "r").read()
-	final = template.replace("STRING_REPLACED_DURING_COMPILE_TIME", xmlui);
-	output = open(argv[3], "w")
-	output.write(final + "\n\n")
+	with open(argv[2], "r", "utf8") as f:
+		xmlui = f.read().replace('"', '\\"').replace("\n", "")
+		xmlui = sub(">\s+?<", "><", xmlui)
+
+	with open(argv[1], "r", "utf8") as f:
+		template = f.read()
+		final = template.replace("STRING_REPLACED_DURING_COMPILE_TIME", xmlui);
+
+	with open(argv[3], "w", "utf8") as f:
+		f.write(final + "\n\n")
 
 if __name__ == "__main__":
 	main()
