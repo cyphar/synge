@@ -340,8 +340,8 @@ install-eval: $(EXEC_EVAL)
 
 # Install documentation
 install-doc: doc
-	if [ -n "$(DOCS1)" ]; then cp -v $(DOCS1) $(MAN1); fi
-	if [ -n "$(DOCS3)" ]; then cp -v $(DOCS3) $(MAN3); fi
+	@if [ -n "$(DOCS1)" ]; then cp -v $(DOCS1) $(MAN1); fi
+	@if [ -n "$(DOCS3)" ]; then cp -v $(DOCS3) $(MAN3); fi
 
 #################
 # CLEAN SECTION #
@@ -377,8 +377,8 @@ uninstall-eval:
 
 # Uninstall documentation
 uninstall-doc:
-	if [ -n "$(DOCS1)" ]; then rm -f $(addprefix $(MAN1)/,$(notdir $(DOCS1))); fi
-	if [ -n "$(DOCS3)" ]; then rm -f $(addprefix $(MAN3)/,$(notdir $(DOCS3))); fi
+	@if [ -n "$(DOCS1)" ]; then rm -vf $(addprefix $(MAN1)/,$(notdir $(DOCS1))); fi
+	@if [ -n "$(DOCS3)" ]; then rm -vf $(addprefix $(MAN3)/,$(notdir $(DOCS3))); fi
 
 ################
 # MISC SECTION #
