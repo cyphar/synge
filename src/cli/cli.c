@@ -1,4 +1,4 @@
-/* Synge-Cli: A command-line wrapper for Synge
+/* Synge-CLI: A command-line interface for Synge
  * Copyright (C) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -66,7 +66,9 @@
 #define CLI_PROMPT			">>> "
 #define CLI_COMMAND_PREFIX	':'
 
-#define CLI_BANNER	"Synge-Cli " SYNGE_CLI_VERSION "\n" \
+#define SYNGE_CLI_LICENSE	"Synge-CLI: A command-line interface for Synge\n" SYNGE_LICENSE
+
+#define CLI_BANNER	"Synge-CLI " SYNGE_CLI_VERSION "\n" \
 			"Copyright (C) 2013 Cyphar\n" \
 			"This free software is licensed under the terms of the MIT License and is provided with ABSOLUTELY NO WARRANTY\n" \
 			"For more information, type ':version', ':license' and ':warranty'\n"
@@ -84,7 +86,7 @@ void cli_version(void) {
 
 	printf(	"%s"
 			"Synge:       %s\n"
-			"Synge-Cli:   %s\n"
+			"Synge-CLI:   %s\n"
 #if defined(SYNGE_REVISION)
 			"Revision:    " SYNGE_REVISION "\n"
 #endif

@@ -1,5 +1,5 @@
-synge-eval - a scripting interface to synge(1)
-==============================================
+synge-eval - a scripting interface for synge(1)
+===============================================
 
 The following document is the user documentation for **Synge Eval**, a scripting interface to **synge**(1).
 For general documentation about Synge itself, consult **synge**(1).

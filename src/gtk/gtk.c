@@ -1,4 +1,4 @@
-/* Synge-GTK: A GTK+ wrapper for Synge
+/* Synge-GTK: A graphical interface for Synge
  * Copyright (C) 2013 Cyphar
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -42,6 +42,8 @@
 #else
 #	define __EXPORT_SYMBOL
 #endif /* _WINDOWS */
+
+#define SYNGE_GTK_LICENSE	"Synge-GTK: A graphical interface for Synge\n" SYNGE_LICENSE
 
 #define GUI_MAX_PRECISION 10
 #define lenprintf(format, ...) (snprintf(NULL, 0, format, __VA_ARGS__))

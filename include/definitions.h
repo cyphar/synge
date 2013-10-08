@@ -25,10 +25,6 @@
 #ifndef SYNGE_DEF_H
 #define SYNGE_DEF_H
 
-#define SYNGE_CLI_LICENSE	"Synge-Cli: A command-line wrapper for Synge\n" SYNGE_LICENSE
-
-#define SYNGE_GTK_LICENSE	"Synge-GTK: A GTK+ wrapper for Synge\n" SYNGE_LICENSE
-
 #define SYNGE_LICENSE	"Synge: A shunting-yard calculation \"engine\"\n" \
 			"Copyright (c) 2013 Cyphar\n" \
 			"\n" \

@@ -2,7 +2,7 @@ Synge
 -----
 [![Build Status](https://travis-ci.org/cyphar/synge.png?branch=master)](https://travis-ci.org/cyphar/synge)
 
-A **Shunting Yard calculation eNGinE** with GTK+ and Command Line wrappers.
+A **Shunting Yard calculation eNGinE** with GTK+ and Command Line interfaces.
 
 ## Features ##
 * Multiple Precision Numbers (using MPFR + GMP)

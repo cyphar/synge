@@ -217,14 +217,14 @@ INSTALL_LIB = $(PREFIX)/lib
 # PRODUCTION SECTION #
 ######################
 
-# Compile "production" core and wrappers (w/ git-version)
+# Compile "production" core and interfaces (w/ git-version)
 all:
 	make $(NAME_CORE)
 	make $(NAME_CLI)
 	make $(NAME_GTK)
 	make $(NAME_EVAL)
 
-# Compile "final" core and wrappers (w/o git-version)
+# Compile "final" core and interfaces (w/o git-version)
 final:
 	make $(NAME_CORE) REV=0
 	make $(NAME_CLI)  REV=0
@@ -249,7 +249,7 @@ $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_POST)
 	rm *.o
 
-# Compile command-line wrapper
+# Compile command-line interface
 $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	make -B $(OS_PRE)
 	$(XCC) $(CLI_SRC) $(LINK_CLI) $(SHR_LFLAGS) $(CLI_LFLAGS) \
@@ -259,7 +259,7 @@ $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 	if [ -n $(DEBUG) ]; then strip $(EXEC_CLI); fi
 	make -B $(OS_POST)
 
-# Compile gui wrapper
+# Compile gui interface
 $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	make -B $(OS_PRE)
 	make -B xmlui
@@ -270,7 +270,7 @@ $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 	if [ -n $(DEBUG) ]; then strip $(EXEC_GTK); fi
 	make -B $(OS_POST)
 
-# Compile simple eval wrapper
+# Compile simple eval interface
 $(NAME_EVAL): $(NAME_CORE) $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 	make -B $(OS_PRE)
 	$(XCC) $(EVAL_SRC) $(LINK_EVAL) $(SHR_LFLAGS) $(EVAL_LFLAGS) \
@@ -314,7 +314,7 @@ doc: $(DOC_SRC)
 # INSTALL SECTION #
 ###################
 
-# Install both wrappers
+# Install both interfaces
 install:
 	make install-lib
 	make install-cli
@@ -326,15 +326,15 @@ install:
 install-lib: $(NAME_CORE)
 	cp $(NAME_CORE) $(INSTALL_LIB)/$(NAME_CORE)
 
-# Install cli wrapper
+# Install cli interface
 install-cli: $(EXEC_CLI)
 	cp $(EXEC_CLI) $(INSTALL_BIN)/$(EXEC_CLI)
 
-# Install gtk wrapper
+# Install gtk interface
 install-gtk: $(EXEC_GTK)
 	cp $(EXEC_GTK) $(INSTALL_BIN)/$(EXEC_GTK)
 
-# Install eval wrapper
+# Install eval interface
 install-eval: $(EXEC_EVAL)
 	cp $(EXEC_EVAL) $(INSTALL_BIN)/$(EXEC_EVAL)
 
@@ -351,7 +351,7 @@ install-doc: doc
 clean:
 	rm -f $(TO_CLEAN)
 
-# Uninstall both wrappers
+# Uninstall both interfaces
 uninstall:
 	make uninstall-lib
 	make uninstall-cli
@@ -363,15 +363,15 @@ uninstall:
 uninstall-lib:
 	rm -f $(INSTALL_LIB)/$(NAME_CORE)
 
-# Uninstall cli wrapper
+# Uninstall cli interface
 uninstall-cli:
 	rm -f $(INSTALL_BIN)/$(EXEC_CLI)
 
-# Uninstall gtk wrapper
+# Uninstall gtk interface
 uninstall-gtk:
 	rm -f $(INSTALL_BIN)/$(EXEC_GTK)
 
-# Uninstall eval wrapper
+# Uninstall eval interface
 uninstall-eval:
 	rm -f $(INSTALL_BIN)/$(EXEC_EVAL)
 
