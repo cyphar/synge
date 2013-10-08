@@ -7,7 +7,7 @@ Developers (or geeks in general) should consult **synge**(3).
 
 ## OVERVIEW ##
 
-****Synge**** is a very powerful and intuitive computation library (or engine).
+**Synge** is a very powerful and intuitive computation library (or engine).
 This engine is used by several programs (interfaces), and provides a stable and consistent calculation experience between these interfaces.
 **Synge** has been designed with a dual goal of simplicity for the end-user and power for the power-user.
 
@@ -15,11 +15,11 @@ This engine is used by several programs (interfaces), and provides a stable and 
 
 The simplest element in **Synge** is the number.
 All numbers in **Synge** are decimal numbers, with arbitrary precision (allowing for essentially unlimited precision).
-Numbers can be positive or negative, when preceded by + or – (numbers are, by default, positive).
+Numbers can be positive or negative, when preceded by + or - (numbers are, by default, positive).
 
 **Synge** can process numbers in several bases.
 The first two characters define the base of the number.
-If the number starts with 0, it is a “special base” number.
+If the number starts with 0, it is a "special base" number.
 If the next character is x, d or b, the number is base 16, base 10 and base 2 (respectively). If the next character is a digit between 0-7, the number is base 8.
 Otherwise, the number is base 10.
 
@@ -43,7 +43,7 @@ Here are a few examples:
 
 ## BASIC OPERATORS ##
 
-**Synge** supports the most basic of operators, which can be used on any type of “arguments”.
+**Synge** supports the most basic of operators, which can be used on any type of "arguments".
 The following is a list of the most basic operators ([argN] refers to the Nth argument).
 
     Template			Description
@@ -60,7 +60,7 @@ The following is a list of the most basic operators ([argN] refers to the Nth ar
     [arg1] # [arg2]		Gives the binary exclusive or (xor) of [arg1] and [arg2]
     [arg1] | [arg2]		Gives the binary or of [arg1] and [arg2]
     [arg1] & [arg2]		Gives the binary and of [arg1] and [arg2]
-    ( [arg1] )			Changes the order of operations and makes [arg1] a “block”.
+    ( [arg1] )			Changes the order of operations and makes [arg1] a "block".
     [arg1] > [arg2]		Gives 1 iff [arg1] is greater than [arg2], 0 otherwise
     [arg1] >= [arg2]	Gives 1 iff [arg1] is greater than or equal to [arg2], 0 otherwise
     [arg1] < [arg2]		Gives 1 iff [arg1] is less than [arg2], 0 otherwise
@@ -125,10 +125,10 @@ These are immutable, meaning that any attempt to change them will cause **Synge*
 
 ## VARIABLES ##
 
-Variables can be though of as “labelled boxes”, where the new value is first calculated, and then is “put into the box”.
+Variables can be though of as "labelled boxes", where the new value is first calculated, and then is "put into the box".
 Variables aren't the same as pronumerals or equations in mathematics (even though they use the same definition operator).
 
-The following is a list of variable operators, where `[word]` is a variable identifier (see the definitions), `[exp]` is an expression to be “put into the box” and `[op]` is any operator, as defined in basic operators.
+The following is a list of variable operators, where `[word]` is a variable identifier (see the definitions), `[exp]` is an expression to be "put into the box" and `[op]` is any operator, as defined in basic operators.
 
     Template				Description
     [word] = [exp]			Assign [word] to [exp]
@@ -145,8 +145,8 @@ It should be noted that variables are subject to rolling back in the case of err
 ## EXPRESSIONS ##
 
 Expressions are essentially user-defined functions.
-In an attempt to make the complexity of functions easier to use to an average user, **Synge** has removed much of the programmatic functionality of “functions”.
-The result are “user expressions”, where there are no arguments or local scope.
+In an attempt to make the complexity of functions easier to use to an average user, **Synge** has removed much of the programmatic functionality of "functions".
+The result are "user expressions", where there are no arguments or local scope.
 They can be thought of as user-defined shorthand for long expressions, which are replaced by **Synge** when it reads them in (they have other functions, but that is the general gist).
 
 It is important to note the following features and limitations of **Synge** expressions:
@@ -162,7 +162,7 @@ It is important to note the following features and limitations of **Synge** expr
   This is so that it is easier to define a large expression, and then define the variables and expressions it calls, in any order.
   This means that no output when defining an expression means an error occurred, but it has been intentionally suppressed.
 
-The following is a list of expression operators, where `[word]` is an expression identifier and `[exp]` is the expression to be “saved” as the `[word]`.
+The following is a list of expression operators, where `[word]` is an expression identifier and `[exp]` is the expression to be "saved" as the `[word]`.
 
     Template			Description
     [word] := [exp]		Set [word] to [exp]
@@ -174,7 +174,7 @@ It should be noted that expressions are subject to rolling back in the case of e
 ## CONDITIONALS ##
 
 Conditionals are a very programmatic practice, where one section of an expression will be evaluated if a certain condition is true, otherwise another section of an expression would be evaluated.
-This means that **Synge** conditionals are “short-cutted”, meaning that the non-true section of the conditional isn't even evaluated or checked.
+This means that **Synge** conditionals are "short-cutted", meaning that the non-true section of the conditional isn't even evaluated or checked.
 
 The following is the **Synge** conditional template, where `[cond]` is any expression, `[if]` is the expression which will be executed if `[cond]` is **not** 0 and `[else]` is the expression which will be executed if `[cond]` **is** 0.
 
@@ -188,8 +188,8 @@ It should also be noted that the unused block will not cause an error (unless it
 ## IMPLIED MULTIPLICATION ##
 
 For a very long time, users with mathematical background have had problems with using standard calculators.
-They are used to writing expressions with “implied multiplication”, where there are certain well-defined rules about how to concisely express multiplication.
-Usually, mathematicians would have to mentally translate the expression `2x – (3pi – 4sin(45))(3x – 2)^2` to `2*x – (3*pi – 4*sin(45))*(3*x – 2)^2`. Why?
+They are used to writing expressions with "implied multiplication", where there are certain well-defined rules about how to concisely express multiplication.
+Usually, mathematicians would have to mentally translate the expression `2x - (3pi - 4sin(45))(3x - 2)^2` to `2*x - (3*pi - 4*sin(45))*(3*x - 2)^2`. Why?
 
 **Synge** understands most of these rules, and treats coefficients correctly.
 Therefore, our hypothetical mathematician can simply write the original expression, and it will give the correct output.
@@ -208,16 +208,16 @@ The following is a table of the values that can be put together and implied mult
     X: Doesn't work
 
 
-Note: a “block” is a part of an expression surrounded with parenthesis, like this: `(x - 3)`
+Note: a "block" is a part of an expression surrounded with parenthesis, like this: `(x - 3)`
 
 ## ERRORS ##
 
 **Synge** gives control over the level of information in errors, with each level giving different levels of technical information.
 
-It should be noted that **Synge** implements a “traceback”, where you can get a snapshot of what the calling expressions and conditionals caused the error, on a call-by-call basis. This is akin to Python traceback.
+It should be noted that **Synge** implements a "traceback", where you can get a snapshot of what the calling expressions and conditionals caused the error, on a call-by-call basis. This is akin to Python traceback.
 
 The following describes the overall format of each level of error, where `[type]` is the general type of error, `[desc]` is a description of the error,
-`[cond]` is `<if>` or `<else>` condition, `[pos]` is the position in the particular string (from where the line of traceback was “called” from),
+`[cond]` is `<if>` or `<else>` condition, `[pos]` is the position in the particular string (from where the line of traceback was "called" from),
 `[exp]` is the expression identifier of a calling expression and `[mod]` is the module the program was run from (usually `<main>`).
 
     Template									Description
@@ -231,7 +231,7 @@ The following describes the overall format of each level of error, where `[type]
 
 
 It should be noted that certain events (specifically the setting and updating of variable and expression values) will be reverted (aka rolled back) in the case of an error.
-This is to ensure that **Synge**'s state will always be a “good” state, rather than a borked one, where only half of an expression was evaluated.
+This is to ensure that **Synge**'s state will always be a "good" state, rather than a borked one, where only half of an expression was evaluated.
 
 ## SETTINGS ##
 
@@ -252,7 +252,7 @@ The values starting with a '*' are the default option (although, this can be cha
 
 The following are EBNF definitions for the **Synge** syntax (outside of what was expressed in the above tables).
 
-    letter = “a” | “A” | “b” | “B” | “c” | ... | “y” | “Y” | “z” | “Z” | “_” | ' | “
+    letter = "a" | "A" | "b" | "B" | "c" | ... | "y" | "Y" | "z" | "Z" | "_" | ' | "
     variable_identifier = <letter> { <letter> }
     expression_identifier = <letter> { <letter> }
 
