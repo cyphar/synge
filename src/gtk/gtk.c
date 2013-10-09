@@ -225,10 +225,6 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 		free(newstr);
 		g_free(value);
 	}
-
-	/* close the function window */
-	gtk_widget_hide(GTK_WIDGET(func_window));
-
 } /* gui_add_function_to_expression() */
 
 void gtk_default_settings(void) {

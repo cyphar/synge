@@ -328,7 +328,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 
 		ohm_free(backup_var);
 
-		cheeky("YOU SHALL NOT PASS!");
+		cheeky("YOU SHALL NOT PASS!\n");
 		return to_error_code(TOO_DEEP, -1);
 	}
 
