@@ -1,6 +1,6 @@
 List of known bugs and limitations:
 
-  - The syntax of synge is _very_ flexible. Since we don't use ASTs, expressions like "+ 2 3" and "2 3 +" work.
+  - The syntax of synge is _very_ flexible. Since Synge doesn't use ASTs, there are no real rules about whether "+ 2 3" or "2 3 +" should work.
 
 List of "bugs" which are not to be fixed:
 
