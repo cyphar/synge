@@ -371,17 +371,23 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	error_code ecode = to_error_code(SUCCESS, -1);
 
 	/* generate infix stack */
-	if((ecode = synge_lex_string(string, &infix_stack)).code == SUCCESS)
-		/* convert to postfix (or RPN) stack */
-		if((ecode = synge_infix_parse(&infix_stack, &rpn_stack)).code == SUCCESS)
-			/* evaluate postfix (or RPN) stack */
-			if((ecode = synge_eval_rpnstack(&rpn_stack, result)).code == SUCCESS)
-				/* fix up negative zeros */
-				if(iszero(*result))
-					mpfr_abs(*result, *result, SYNGE_ROUND);
+	if(ecode.code == SUCCESS)
+		ecode = synge_lex_string(string, &infix_stack);
+
+	/* convert to postfix (or RPN) stack */
+	if(ecode.code == SUCCESS)
+		ecode = synge_infix_parse(&infix_stack, &rpn_stack);
+
+	/* evaluate postfix (or RPN) stack */
+	if(ecode.code == SUCCESS)
+		ecode = synge_eval_rpnstack(&rpn_stack, result);
 
 	/* measure depth, not length */
 	depth--;
+
+	/* fix up negative zeros */
+	if(iszero(*result))
+		mpfr_abs(*result, *result, SYNGE_ROUND);
 
 	/* is it a nan? */
 	if(mpfr_nan_p(*result))
@@ -544,16 +550,14 @@ void synge_reset_traceback(void) {
 
 synge_v synge_get_version(void) {
 	synge_v ret;
-
 	ret.version = SYNGE_VERSION;
+	ret.compiled = __TIME__ ", " __DATE__;
 
 #if defined(SYNGE_REVISION)
 	ret.revision = SYNGE_REVISION;
 #else
 	ret.revision = "<unknown>";
 #endif /* SYNGE_REVISION */
-
-	ret.compiled = __TIME__ ", " __DATE__;
 
 	return ret;
 } /* synge_version() */
