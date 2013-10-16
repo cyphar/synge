@@ -1,0 +1,4 @@
+The scripts/ direction contains end-user installation scripts for Synge.
+These are *usually* in a working state, and *will* contain all dependancies.
+
+* nt/ - Windows Installer Script (w/ wget)
