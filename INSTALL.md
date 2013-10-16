@@ -25,7 +25,7 @@ executables and dependencies from a dropbox share. This is the prefered method f
 #### Pre-built ####
 This method requires both an internet connection and administrative privileges.
 * Download the zip'd [repository](https://github.com/cyphar/synge/archive/master.zip)
-* Unzip it, and navigate to `win/`
+* Unzip it, and navigate to `scripts/nt/`
 * Run `windows.bat`, and press `i` (or run `windows.bat -i`)
 * Synge is now installed in `C:\Program Files\Synge`
 
