@@ -117,8 +117,8 @@ These are immutable, meaning that any attempt to change them will cause **Synge*
     pi			The ratio of a circles circumference to its diameter
     e			Euler's number, base of the natural logarithm
     phi			The golden mean
-    true		Standard true value (as used internally by **Synge**)
-    false		Standard false value (as used internally by **Synge**)
+    true		Standard true value (as used internally by Synge)
+    false		Standard false value (as used internally by Synge)
     life		The answer to life, the universe and everything
     ans			The last successfully calculated expression's answer
     _			The last successfully calculated expression (not containing a '_')
