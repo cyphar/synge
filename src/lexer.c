@@ -50,7 +50,7 @@ static function *get_func(char *val) {
 } /* get_func() */
 
 static bool valid_base_char(char digit, int base) {
-	char valid_digits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	char *valid_digits = "0123456789ABCDEF";
 
 	int i;
 	for(i = 0; i < base; i++)
@@ -225,6 +225,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 			if(top_stack(*infix_stack)) {
 				switch(top_stack(*infix_stack)->tp) {
 					case number:
+					case userword:
 					case rparen:
 						/* two numbers together have an impiled * (i.e 2::x is 2*::x) */
 						push_valstack("*", multop, false, NULL, pos, *infix_stack);
@@ -273,6 +274,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 					if(top_stack(*infix_stack)) {
 						switch(top_stack(*infix_stack)->tp) {
 							case number:
+							case userword:
 							case rparen:
 								push_valstack("*", multop, false, NULL, pos + 1, *infix_stack);
 								break;
@@ -350,6 +352,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 						/* make delops act more like numbers */
 						switch(top_stack(*infix_stack)->tp) {
 							case number:
+							case userword:
 							case rparen:
 								/* two numbers together have an impiled * (i.e 2::x is 2*::x) */
 								push_valstack("*", multop, false, NULL, pos, *infix_stack);
@@ -389,6 +392,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 						/* make pre-operators act just like normal numbers */
 						switch(top_stack(*infix_stack)->tp) {
 							case number:
+							case userword:
 							case rparen:
 								/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
 								push_valstack("*", multop, false, NULL, pos, *infix_stack);
@@ -425,6 +429,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 			if(top_stack(*infix_stack)) {
 				switch(top_stack(*infix_stack)->tp) {
 					case number:
+					case userword:
 					case rparen:
 						/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
 						push_valstack("*", multop, false, NULL, pos, *infix_stack);
@@ -446,6 +451,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 				/* make variables act more like numbers (and more like variables) */
 				switch(top_stack(*infix_stack)->tp) {
 					case number:
+					case userword:
 					case rparen:
 						/* two numbers together have an impiled * (i.e 2x is 2*x) */
 						push_valstack("*", multop, false, NULL, pos, *infix_stack);
