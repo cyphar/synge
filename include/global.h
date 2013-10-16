@@ -26,6 +26,9 @@
 #include "ohmic.h"
 #include "linked.h"
 
+#ifndef GLOBAL_H
+#define GLOBAL_H
+
 /* global state variables */
 extern int synge_started;
 extern gmp_randstate_t synge_state;
@@ -46,3 +49,5 @@ extern synge_settings active_settings;
 extern function func_list[];
 extern special_number constant_list[];
 extern operator op_list[];
+
+#endif /* GLOBAL_H */
