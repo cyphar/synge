@@ -3,5 +3,12 @@ synge-cli
 synge-gtk
 synge-eval
 
+# Compiled library
+libsynge.so
+synge.dll
+
+# Generic ignores
 *.o
+*.out
 *.so
+*~
