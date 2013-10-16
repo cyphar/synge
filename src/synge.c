@@ -549,14 +549,15 @@ void synge_reset_traceback(void) {
 } /* synge_reset_traceback() */
 
 synge_v synge_get_version(void) {
-	synge_v ret;
-	ret.version = SYNGE_VERSION;
-	ret.compiled = __TIME__ ", " __DATE__;
+	/* default "version" */
+	synge_v ret = {
+		.version = SYNGE_VERSION,
+		.compiled = __TIME__ ", " __DATE__,
+		.revision = "<unknown>"
+	};
 
 #if defined(SYNGE_REVISION)
 	ret.revision = SYNGE_REVISION;
-#else
-	ret.revision = "<unknown>";
 #endif /* SYNGE_REVISION */
 
 	return ret;

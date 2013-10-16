@@ -182,11 +182,11 @@ char *trim_spaces(char *str) {
 	return ret;
 } /* trim_spaces() */
 
-error_code to_error_code(int error, int position) {
+error_code to_error_code(int err, int pos) {
 	/* fill a struct with the given values */
 	error_code ret = {
-		error,
-		position
+		.code = err,
+		.position = pos
 	};
 	return ret;
 } /* to_error_code() */
