@@ -20,10 +20,10 @@
  * SOFTWARE.
  */
 
+#include <termios.h>
+
 #ifndef RAWLINE_H
 #define RAWLINE_H
-
-#include <termios.h>
 
 /* Define bools. */
 #if !defined(bool)

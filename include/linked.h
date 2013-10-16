@@ -27,7 +27,6 @@
 typedef struct link_t link_t;
 typedef struct link_iter link_iter;
 
-
 link_t *link_init(void);
 void link_free(link_t *);
 

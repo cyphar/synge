@@ -20,11 +20,11 @@
  * SOFTWARE.
  */
 
-#ifndef COMMON_H
-#define COMMON_H
-
 #include "synge.h"
 #include "stack.h"
+
+#ifndef COMMON_H
+#define COMMON_H
 
 /* value macros */
 #define str(x)					#x
