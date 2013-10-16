@@ -50,10 +50,10 @@ link_t *traceback_list = NULL;
 
 /* default settings */
 synge_settings active_settings = {
-	degrees, /* mode */
-	position, /* error level */
-	strict, /* strictness */
-	dynamic /* precision */
+	.mode = degrees,
+	.error = position,
+	.strict = strict,
+	.precision = dynamic
 };
 
 static int synge_rand(synge_t to, synge_t number, mpfr_rnd_t round) {
