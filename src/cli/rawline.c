@@ -195,6 +195,11 @@ static void _raw_mode(raw_t *raw, bool state) {
 static int _raw_del_char(raw_t *raw) {
 	assert(raw->safe, "raw_t structure not allocated");
 
+	/* if you try to delete the end of the line, move
+	 * the cursor back one character of input */
+	if(raw->line->cursor >= raw->line->line->len && raw->line->cursor > 0)
+		raw->line->cursor--;
+
 	/* deletion is invalid if there is no input string
 	 * or the cursor is past the end of the input */
 	if(!raw->line->line->len || raw->line->cursor >= raw->line->line->len)
@@ -882,13 +887,13 @@ char *raw_input(raw_t *raw, char *prompt) {
 									/* extended escape */
 									{
 										/* read next two byes of extended escape sequence */
-										char eseq[2];
-										if(read(raw->term->fd, eseq, 2) < 0)
+										char eseq;
+										if(read(raw->term->fd, &eseq, 1) < 0)
 											/* no extra characters */
 											break;
 
-										if(seq[1] == 51 && eseq[0] == 126)
-											/* delete */
+										/* delete */
+										if(seq[1] == 51 && eseq == 126)
 											err = _raw_delete(raw);
 									}
 									break;
