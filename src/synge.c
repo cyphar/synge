@@ -36,6 +36,8 @@
 #include "ohmic.h"
 #include "linked.h"
 
+#define SYNGE_HM_SIZE 42
+
 /* for windows, define strcasecmp and strncasecmp */
 #if defined(_WINDOWS)
 int strcasecmp(char *s1, char *s2) {
@@ -495,8 +497,8 @@ void synge_seed(unsigned int seed) {
 void synge_start(void) {
 	assert(synge_started == false, "synge mustn't be initialised");
 
-	variable_list = ohm_init(2, NULL);
-	expression_list = ohm_init(2, NULL);
+	variable_list = ohm_init(SYNGE_HM_SIZE, NULL);
+	expression_list = ohm_init(SYNGE_HM_SIZE, NULL);
 	traceback_list = link_init();
 
 	mpfr_init2(prev_answer, SYNGE_PRECISION);
