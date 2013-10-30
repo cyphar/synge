@@ -70,7 +70,7 @@ __EXPORT_SYMBOL void gui_compute_string(GtkWidget *widget, gpointer data) {
 	synge_t result;
 	mpfr_init2(result, SYNGE_PRECISION);
 
-	error_code ecode;
+	struct synge_err ecode;
 
 	char *text = (char *) gtk_entry_get_text(GTK_ENTRY(input));
 
@@ -154,7 +154,7 @@ __EXPORT_SYMBOL void gui_about_popup(GtkWidget *widget, gpointer data) {
 } /* gui_about_popup() */
 
 __EXPORT_SYMBOL void gui_toggle_mode(GtkWidget *widget, gpointer data) {
-	synge_settings new = synge_get_settings();
+	struct synge_settings new = synge_get_settings();
 
 	if(!strcasecmp(gtk_button_get_label(GTK_BUTTON(widget)), "degrees"))
 		new.mode = degrees;
@@ -178,7 +178,7 @@ __EXPORT_SYMBOL void gui_populate_function_list(void) {
 	GtkTreeIter iter;
 	GtkListStore *func_store;
 	GtkCellRenderer *cell;
-	function *tmp_function_list = synge_get_function_list();
+	struct synge_func *tmp_function_list = synge_get_function_list();
 
 	func_store = gtk_list_store_new(FUNCL_N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(func_tree), GTK_TREE_MODEL(func_store));
@@ -228,7 +228,7 @@ __EXPORT_SYMBOL void gui_add_function_to_expression(GtkWidget *widget, gpointer 
 } /* gui_add_function_to_expression() */
 
 void gtk_default_settings(void) {
-	synge_settings new = synge_get_settings();
+	struct synge_settings new = synge_get_settings();
 
 	new.error = simple;
 	new.strict = flexible;
@@ -276,7 +276,7 @@ int main(int argc, char **argv) {
 	gtk_window_set_type_hint(GTK_WINDOW(func_window), GDK_WINDOW_TYPE_HINT_DIALOG);
 #endif /* _UNIX */
 
-	synge_v core = synge_get_version();
+	struct synge_ver core = synge_get_version();
 	char *template = "Core: %s\n"
 					 "GUI: %s\n"
 #if defined(SYNGE_REVISION)

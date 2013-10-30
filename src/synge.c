@@ -112,7 +112,7 @@ static char *get_trace(struct link_t *link) {
 	return ret;
 } /* get_trace() */
 
-static char *get_error_type(error_code error) {
+static char *get_error_type(struct synge_err error) {
 	switch(error.code) {
 		case BASE_CHAR:
 			return "BaseError";
@@ -150,7 +150,7 @@ static char *get_error_type(error_code error) {
 	return "IHaveNoIdea";
 } /* get_error_type() */
 
-char *synge_error_msg(error_code error) {
+char *synge_error_msg(struct synge_err error) {
 	char *msg = NULL;
 
 	/* get correct printf string */
@@ -286,7 +286,7 @@ static int synge_call_type(char *caller) {
 	return FUNCTION;
 } /* synge_call_type() */
 
-error_code synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
+struct synge_err synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* "dynamically" resize hashmap to keep efficiency up */
@@ -367,10 +367,10 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	debug("expression '%s'\n", string);
 
 	/* initialise all local variables */
-	stack *rpn_stack = malloc(sizeof(stack)), *infix_stack = malloc(sizeof(stack));
+	struct stack *rpn_stack = malloc(sizeof(struct stack)), *infix_stack = malloc(sizeof(struct stack));
 	init_stack(rpn_stack);
 	init_stack(infix_stack);
-	error_code ecode = to_error_code(SUCCESS, -1);
+	struct synge_err ecode = to_error_code(SUCCESS, -1);
 
 	/* generate infix stack */
 	if(ecode.code == SUCCESS)
@@ -441,15 +441,15 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 } /* synge_internal_compute_string() */
 
 /* public "exported" interface for above function */
-error_code synge_compute_string(char *expression, synge_t *result) {
+struct synge_err synge_compute_string(char *expression, synge_t *result) {
 	return synge_internal_compute_string(expression, result, SYNGE_MAIN, 0);
 } /* synge_compute_string() */
 
-synge_settings synge_get_settings(void) {
+struct synge_settings synge_get_settings(void) {
 	return active_settings;
 } /* get_synge_settings() */
 
-void synge_set_settings(synge_settings new_settings) {
+void synge_set_settings(struct synge_settings new_settings) {
 	active_settings = new_settings;
 
 	/* sanitise precision */
@@ -457,7 +457,7 @@ void synge_set_settings(synge_settings new_settings) {
 		active_settings.precision = SYNGE_MAX_PRECISION;
 } /* set_synge_settings() */
 
-function *synge_get_function_list(void) {
+struct synge_func *synge_get_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
@@ -469,21 +469,23 @@ struct ohm_t *synge_get_expression_list(void) {
 	return expression_list;
 } /* synge_get_expression_list() */
 
-static int size_list(special_number *list) {
+static int size_list(struct synge_const *list) {
 	int i, len = 0;
 	for(i = 0; list[i].name != NULL; i++)
 		len++;
 	return len;
 } /* size_list() */
 
-word *synge_get_constant_list(void) {
+struct synge_word *synge_get_constant_list(void) {
 	int len = size_list(constant_list);
-	word *ret = malloc(len * sizeof(word));
+	struct synge_word *ret = malloc(len * sizeof(struct synge_word));
 
 	int i;
 	for(i = 0; i < len; i++) {
-		ret[i].name = constant_list[i].name;
-		ret[i].description = constant_list[i].description;
+		ret[i] = (struct synge_word) {
+			.name = constant_list[i].name,
+			.description = constant_list[i].description
+		};
 	}
 
 	return ret;
@@ -550,9 +552,9 @@ void synge_reset_traceback(void) {
 	free(tmp);
 } /* synge_reset_traceback() */
 
-synge_v synge_get_version(void) {
+struct synge_ver synge_get_version(void) {
 	/* default "version" */
-	synge_v ret = {
+	struct synge_ver ret = {
 		.version = SYNGE_VERSION,
 		.compiled = __TIME__ ", " __DATE__,
 		.revision = "<unknown>"

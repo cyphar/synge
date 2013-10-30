@@ -32,7 +32,7 @@
 #include "ohmic.h"
 #include "linked.h"
 
-void _print_stack(char *fname, stack *s) {
+void _print_stack(char *fname, struct stack *s) {
 #if defined(SYNGE_DEBUG)
 	int i, size = stack_size(s);
 	fprintf(stderr, "%s: ", fname);
@@ -99,9 +99,9 @@ void synge_clear(void *tofree) {
 	mpfr_clear(SYNGE_T(item));
 } /* synge_clear() */
 
-operator get_op(char *ch) {
+struct synge_op get_op(char *ch) {
 	int i;
-	operator ret = {NULL, op_none};
+	struct synge_op ret = {NULL, op_none};
 	for(i = 0; op_list[i].str != NULL; i++)
 		/* checks against part or entire string against the given list */
 		if(!strncmp(op_list[i].str, ch, strlen(op_list[i].str)))
@@ -112,8 +112,8 @@ operator get_op(char *ch) {
 	return ret;
 } /* get_op() */
 
-special_number get_special_num(char *s) {
-	special_number ret = {NULL, NULL, NULL};
+struct synge_const get_special_num(char *s) {
+	struct synge_const ret = {NULL, NULL, NULL};
 	int i;
 
 	for(i = 0; constant_list[i].name != NULL; i++)
@@ -182,9 +182,9 @@ char *trim_spaces(char *str) {
 	return ret;
 } /* trim_spaces() */
 
-error_code to_error_code(int err, int pos) {
+struct synge_err to_error_code(int err, int pos) {
 	/* fill a struct with the given values */
-	error_code ret = {
+	struct synge_err ret = {
 		.code = err,
 		.position = pos
 	};
