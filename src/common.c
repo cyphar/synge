@@ -38,7 +38,7 @@ void _print_stack(char *fname, struct stack *s) {
 	fprintf(stderr, "%s: ", fname);
 
 	for(i = 0; i < size; i++) {
-		s_content tmp = s->content[i];
+		struct stack_cont tmp = s->content[i];
 
 		if(!tmp.val)
 			continue;
