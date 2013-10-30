@@ -49,7 +49,7 @@ char *error_msg_container = NULL;
 struct link_t *traceback_list = NULL;
 
 /* default settings */
-synge_settings active_settings = {
+struct synge_settings active_settings = {
 	.mode = degrees,
 	.error = position,
 	.strict = strict,
@@ -118,7 +118,7 @@ static int synge_bool(synge_t to, synge_t check, mpfr_rnd_t round) {
 } /* synge_bool() */
 
 /* builtin function names, prototypes, descriptions and function pointers */
-function func_list[] = {
+struct synge_func func_list[] = {
 	{"abs",		"abs(n)",						"Absolute value of n",								mpfr_abs},
 	{"sqrt",	"sqrt(n)",						"Square root of n",									mpfr_sqrt},
 	{"cbrt",	"cbrt(n)",						"Cubic root of n",									mpfr_cbrt},
@@ -165,7 +165,7 @@ function func_list[] = {
 
 /* used for when a (char *) is needed, but needn't be freed and *
  * converts the string into switch-friendly enumeration values. */
-operator op_list[] = {
+struct synge_op op_list[] = {
 	{"+",	op_add},
 	{"-",	op_subtract},
 	{"*",	op_multiply},
@@ -283,7 +283,7 @@ static int synge_ans(synge_t num, mpfr_rnd_t round) {
 } /* synge_ans() */
 
 /* inbuilt constants (given using function pointers) */
-special_number constant_list[] = {
+struct synge_const constant_list[] = {
 	{"pi",				"The ratio of a circle's circumfrence to its diameter",				synge_pi},
 	{"phi",				"The golden ratio",													synge_phi},
 	{"e",				"The base of a natural logarithm",									synge_euler},

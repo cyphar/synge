@@ -25,35 +25,35 @@
 
 /* stack types */
 
-typedef struct __stack_content__ {
+struct stack_cont {
 	void *val;
 	int tp;
 	int tofree;
 	void (*freefunc)(void *);
 	int position;
-} s_content;
+};
 
-typedef struct __stack__ {
-	s_content *content;
+struct stack {
+	struct stack_cont *content;
 	int size;
 	int top;
-} stack;
+};
 
 /* stack function prototypes */
 
-void init_stack(stack *); /* initialize the stack */
+void init_stack(struct stack *); /* initialize the struct stack */
 
-void push_valstack(void *, int, int, void (*)(void *), int, stack *); /* push value and type to the top of the stack */
-void push_ststack(s_content, stack *); /* push struct to the top of the stack */
+void push_valstack(void *, int, int, void (*)(void *), int, struct stack *); /* push value and type to the top of the struct stack */
+void push_ststack(struct stack_cont, struct stack *); /* push struct to the top of the struct stack */
 
-s_content *pop_stack(stack *); /* pops the top value on the stack */
-s_content *top_stack(stack *); /* returns the top value on the stack */
+struct stack_cont *pop_stack(struct stack *); /* pops the top value on the struct stack */
+struct stack_cont *top_stack(struct stack *); /* returns the top value on the struct stack */
 
-void free_scontent(s_content *); /* frees and clears the stack content struct */
-void free_stack(stack *); /* frees and clears the stack */
+void free_stack_cont(struct stack_cont *); /* frees and clears the stack content struct */
+void free_stack(struct stack *); /* frees and clears the struct stack */
 
 /* frees several stack structures in one function call*/
-void ufree_stackm(stack **s, ...);
+void ufree_stackm(struct stack **s, ...);
 #define free_stackm(...) ufree_stackm(__VA_ARGS__, NULL)
 
 #define stack_size(x) ((x)->top + 1)

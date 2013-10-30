@@ -31,7 +31,7 @@
 #include "global.h"
 #include "stack.h"
 
-static bool op_precedes(s_type op1, s_type op2) {
+static bool op_precedes(int op1, int op2) {
 	/* returns whether or not op2 should precede op1 */
 	switch(op2) {
 		case ifop:
@@ -59,8 +59,8 @@ static bool op_precedes(s_type op1, s_type op2) {
 } /* op_precedes() */
 
 /* my implementation of Dijkstra's really cool shunting-yard algorithm */
-error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
-	stack *op_stack = malloc(sizeof(stack));
+struct synge_err synge_infix_parse(struct stack **infix_stack, struct stack **rpn_stack) {
+	struct stack *op_stack = malloc(sizeof(struct stack));
 
 	_debug("--\nParser\n--\n");
 
@@ -72,7 +72,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 	/* reorder stack, in reverse (since we are poping from a full stack and pushing to an empty one) */
 	for(i = 0; i < size; i++) {
 
-		s_content stackp = (*infix_stack)->content[i]; /* pointer to current stack item (to make the code more readable) */
+		struct stack_cont stackp = (*infix_stack)->content[i]; /* pointer to current stack item (to make the code more readable) */
 		int pos = stackp.position; /* shorthand for the position of errors */
 
 		switch(stackp.tp) {
@@ -95,7 +95,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 					/* keep popping and pushing until you find an lparen, which isn't to be pushed  */
 					int found = false;
 					while(stack_size(op_stack)) {
-						s_content *tmpstackp = pop_stack(op_stack);
+						struct stack_cont *tmpstackp = pop_stack(op_stack);
 						if(tmpstackp->tp == lparen) {
 							found = true;
 							break;
@@ -118,7 +118,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case delop:
 				{
 					i++;
-					s_content *tmpstackp = &(*infix_stack)->content[i];
+					struct stack_cont *tmpstackp = &(*infix_stack)->content[i];
 
 					/* ensure that you are pushing a setword */
 					if(i >= size || !isword(tmpstackp->tp)) {
@@ -133,7 +133,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case postmod:
 				{
 					if(top_stack(*rpn_stack) && top_stack(*rpn_stack)->tp == userword) {
-						s_content *pop = pop_stack(*rpn_stack);
+						struct stack_cont *pop = pop_stack(*rpn_stack);
 						push_valstack(pop->val, setword, true, NULL, pop->position, *rpn_stack);
 					}
 
@@ -144,7 +144,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case modop:
 				{
 					if(top_stack(*rpn_stack) && top_stack(*rpn_stack)->tp == userword) {
-						s_content *pop = pop_stack(*rpn_stack);
+						struct stack_cont *pop = pop_stack(*rpn_stack);
 						push_valstack(pop->val, setword, true, NULL, pop->position, *rpn_stack);
 					}
 				}
@@ -160,11 +160,13 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 			case expop:
 				/* reorder operators to be in the correct order of precedence */
 				while(stack_size(op_stack)) {
-					s_content *tmpstackp = top_stack(op_stack);
+					struct stack_cont *tmpstackp = top_stack(op_stack);
+
 					/* if the temporary item is an operator that precedes the current item, pop and push the temporary item onto the stack */
 					if(isop(tmpstackp->tp) && op_precedes(tmpstackp->tp, stackp.tp))
 						push_ststack(*pop_stack(op_stack), *rpn_stack);
-					else break;
+					else
+						break;
 				}
 				push_ststack(stackp, op_stack); /* finally, push the current item onto the stack */
 				break;
@@ -178,7 +180,7 @@ error_code synge_infix_parse(stack **infix_stack, stack **rpn_stack) {
 
 	/* re-reverse the stack again (so it's in the correct order) */
 	while(stack_size(op_stack)) {
-		s_content stackp = *pop_stack(op_stack);
+		struct stack_cont stackp = *pop_stack(op_stack);
 		int pos = stackp.position;
 
 		if(stackp.tp == lparen ||

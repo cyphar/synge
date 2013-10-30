@@ -43,11 +43,11 @@ extern char *error_msg_container;
 extern struct link_t *traceback_list;
 
 /* default settings */
-extern synge_settings active_settings;
+extern struct synge_settings active_settings;
 
 /* builtin lists */
-extern function func_list[];
-extern special_number constant_list[];
-extern operator op_list[];
+extern struct synge_func func_list[];
+extern struct synge_const constant_list[];
+extern struct synge_op op_list[];
 
 #endif /* GLOBAL_H */

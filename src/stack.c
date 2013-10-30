@@ -25,50 +25,62 @@
 
 #include "stack.h"
 
-void init_stack(stack *s) {
+void init_stack(struct stack *s) {
 	s->content = NULL;
 	s->size = 0;
 	s->top = -1;
 } /* init_stack() */
 
-void push_ststack(s_content con, stack *s) {
+void push_ststack(struct stack_cont con, struct stack *s) {
 	if(s->top + 1 >= s->size) /* if stack is full */
-		s->content = realloc(s->content, ++s->size * sizeof(s_content));
+		s->content = realloc(s->content, ++s->size * sizeof(struct stack_cont));
+
 	s->top++;
-	s->content[s->top].val = con.val;
-	s->content[s->top].tp = con.tp;
-	s->content[s->top].tofree = con.tofree;
-	s->content[s->top].freefunc = con.freefunc;
-	s->content[s->top].position = con.position;
+	s->content[s->top] = (struct stack_cont) {
+		.val = con.val,
+		.tp = con.tp,
+		.tofree = con.tofree,
+		.freefunc = con.freefunc,
+		.position = con.position
+	};
 } /* push_ststack() */
 
-void push_valstack(void *val, int tp, int tofree, void (*freefunc)(void *), int pos, stack *s) {
+void push_valstack(void *val, int tp, int tofree, void (*freefunc)(void *), int pos, struct stack *s) {
 	if(s->top + 1 >= s->size) /* if stack is full */
-		s->content = realloc(s->content, ++s->size * sizeof(s_content));
+		s->content = realloc(s->content, ++s->size * sizeof(struct stack_cont));
+
 	s->top++;
-	s->content[s->top].val = val;
-	s->content[s->top].tp = tp;
-	s->content[s->top].tofree = tofree;
-	s->content[s->top].freefunc = freefunc;
-	s->content[s->top].position = pos;
+	s->content[s->top] = (struct stack_cont) {
+		.val = val,
+		.tp = tp,
+		.tofree = tofree,
+		.freefunc = freefunc,
+		.position = pos
+	};
 } /* push_valstack() */
 
-s_content *pop_stack(stack *s) {
-	s_content *ret = NULL;
+struct stack_cont *pop_stack(struct stack *s) {
+	struct stack_cont *ret = NULL;
+
 	if(s->top > -1 && s->content)
 		ret = &s->content[s->top--];
+
 	return ret;
 } /* pop_stack() */
 
-s_content *top_stack(stack *s) {
-	s_content *ret = NULL;
+struct stack_cont *top_stack(struct stack *s) {
+	struct stack_cont *ret = NULL;
+
 	if(s->top > -1 && s->content)
 		ret = &(s->content[s->top]);
+
 	return ret;
 } /* top_stack() */
 
-void free_scontent(s_content *s) {
-	if(!s) return;
+void free_stack_cont(struct stack_cont *s) {
+	if(!s)
+		return;
+
 	if(s->tofree) {
 		if(s->freefunc && s->val)
 			s->freefunc(s->val);
@@ -76,22 +88,26 @@ void free_scontent(s_content *s) {
 		free(s->val);
 		s->val = NULL;
 	}
-	s->position = -1;
-} /* free_scontent() */
 
-void free_stack(stack *s) {
-	if(!s || !s->content) return;
+	s->position = -1;
+} /* free_stack_cont() */
+
+void free_stack(struct stack *s) {
+	if(!s || !s->content)
+		return;
+
 	int i;
 	for(i = 0; i < s->size; i++)
 		if(s->content[i].tofree)
-			free_scontent(&s->content[i]);
+			free_stack_cont(&s->content[i]);
+
 	free(s->content);
 	s->content = NULL;
 	s->size = 0;
 	s->top = -1;
 } /* free_stack() */
 
-void ufree_stackm(stack **s, ...) {
+void ufree_stackm(struct stack **s, ...) {
 	va_list ap;
 
 	va_start(ap, s);
@@ -99,6 +115,6 @@ void ufree_stackm(stack **s, ...) {
 		free_stack(*s);
 		free(*s);
 		*s = NULL;
-	} while((s = va_arg(ap, stack **)) != NULL);
+	} while((s = va_arg(ap, struct stack **)) != NULL);
 	va_end(ap);
 } /* safe_free_stack() */

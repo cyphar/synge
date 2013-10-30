@@ -48,7 +48,7 @@ static char *get_from_ch_list(char *ch, char **list) {
 	return strlen(ret) ? ret : 0;
 } /* get_from_ch_list() */
 
-static error_code set_variable(char *str, synge_t val) {
+static struct synge_err set_variable(char *str, synge_t val) {
 	assert(synge_started == true, "synge must be initialised");
 	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
@@ -77,7 +77,7 @@ static error_code set_variable(char *str, synge_t val) {
 	return to_error_code(SUCCESS, -1);
 } /* set_variable() */
 
-static error_code set_function(char *str, char *exp) {
+static struct synge_err set_function(char *str, char *exp) {
 	assert(synge_started == true, "synge must be initialised");
 	char *endptr = NULL, *s = get_word(str, SYNGE_WORD_CHARS, &endptr);
 
@@ -95,7 +95,7 @@ static error_code set_function(char *str, char *exp) {
 	return to_error_code(SUCCESS, -1);
 } /* set_function() */
 
-static error_code del_word(char *s, int pos) {
+static struct synge_err del_word(char *s, int pos) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* word types */
@@ -185,7 +185,7 @@ static void rad_to_settings(synge_t out, synge_t in) {
 	}
 } /* rad_to_settings() */
 
-static error_code eval_word(char *str, int pos, synge_t *result) {
+static struct synge_err eval_word(char *str, int pos, synge_t *result) {
 	if(ohm_search(variable_list, str, strlen(str) + 1)) {
 		synge_t *value = ohm_search(variable_list, str, strlen(str) + 1);
 		mpfr_set(*result, *value, SYNGE_ROUND);
@@ -194,7 +194,7 @@ static error_code eval_word(char *str, int pos, synge_t *result) {
 	else if(ohm_search(expression_list, str, strlen(str) + 1)) {
 		/* recursively evaluate a user function's value */
 		char *expression = ohm_search(expression_list, str, strlen(str) + 1);
-		error_code tmpecode = synge_internal_compute_string(expression, result, str, pos);
+		struct synge_err tmpecode = synge_internal_compute_string(expression, result, str, pos);
 
 		/* error was encountered */
 		if(!synge_is_success_code(tmpecode.code)) {
@@ -219,8 +219,8 @@ static error_code eval_word(char *str, int pos, synge_t *result) {
 	return to_error_code(SUCCESS, -1);
 } /* eval_word() */
 
-static error_code eval_expression(char *exp, char *caller, int pos, synge_t *result) {
-	error_code ret = synge_internal_compute_string(exp, result, caller, pos);
+static struct synge_err eval_expression(char *exp, char *caller, int pos, synge_t *result) {
+	struct synge_err ret = synge_internal_compute_string(exp, result, caller, pos);
 
 	/* error was encountered */
 	if(!synge_is_success_code(ret.code)) {
@@ -236,22 +236,22 @@ static error_code eval_expression(char *exp, char *caller, int pos, synge_t *res
 }
 
 /* evaluate an rpn stack */
-error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
-	stack *evalstack = malloc(sizeof(stack));
+struct synge_err synge_eval_rpnstack(struct stack **rpn, synge_t *output) {
+	struct stack *evalstack = malloc(sizeof(struct stack));
 	init_stack(evalstack);
 
 	_debug("--\nEvaluator\n--\n");
 
 	int i, tmp = 0, size = stack_size(*rpn);
 	synge_t *result = NULL, arg[3];
-	error_code ecode[2];
+	struct synge_err ecode[2];
 
 	/* initialise operators */
 	mpfr_inits2(SYNGE_PRECISION, arg[0], arg[1], arg[2], NULL);
 
 	for(i = 0; i < size; i++) {
 		/* shorthand variables */
-		s_content stackp = (*rpn)->content[i];
+		struct stack_cont stackp = (*rpn)->content[i];
 		int pos = stackp.position;
 
 		/* debugging */
@@ -304,7 +304,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 						return to_error_code(INVALID_LEFT_OPERAND, pos);
 					}
 
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* get word */
 					if(top_stack(evalstack)->tp != setword) {
@@ -315,7 +315,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					char *tmpstr = str_dup(top_stack(evalstack)->val);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* set variable or function */
 					switch(get_op(stackp.val).tp) {
@@ -376,7 +376,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 					/* get value to modify variable by */
 					mpfr_set(arg[1], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* get variable to modify */
 					if(top_stack(evalstack)->tp != setword) {
@@ -387,7 +387,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 					/* get variable name */
 					char *tmpstr = str_dup(top_stack(evalstack)->val);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* check if it really is a variable */
 					if(!ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)) {
@@ -575,7 +575,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					char *tmpstr = str_dup(top_stack(evalstack)->val);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* check if it really is a variable */
 					if(!ohm_search(variable_list, tmpstr, strlen(tmpstr) + 1)) {
@@ -640,7 +640,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					mpfr_init2(*result, SYNGE_PRECISION);
 
 					mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					switch(get_op(stackp.val).tp) {
 						case op_bnot:
@@ -682,7 +682,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					char *tmpstr = str_dup(top_stack(evalstack)->val);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* get value of word */
 					result = malloc(sizeof(synge_t));
@@ -746,7 +746,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* get the first (and, for now, only) argument */
 				mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-				free_scontent(pop_stack(evalstack));
+				free_stack_cont(pop_stack(evalstack));
 
 				/* does the input need to be converted? */
 				if(get_from_ch_list(FUNCTION(stackp.val)->name, angle_infunc_list)) /* convert settings angles to radians */
@@ -789,7 +789,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					char *tmpelse = str_dup(top_stack(evalstack)->val);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* get if value */
 					if(top_stack(evalstack)->tp != expression) {
@@ -800,7 +800,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					char *tmpif = str_dup(top_stack(evalstack)->val);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					/* get if condition */
 					if(top_stack(evalstack)->tp != number) {
@@ -812,12 +812,12 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 					}
 
 					mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-					free_scontent(pop_stack(evalstack));
+					free_stack_cont(pop_stack(evalstack));
 
 					result = malloc(sizeof(synge_t));
 					mpfr_init2(*result, SYNGE_PRECISION);
 
-					error_code tmpecode;
+					struct synge_err tmpecode;
 
 					/* set correct value */
 					if(!iszero(arg[0]))
@@ -863,7 +863,7 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* get argument */
 				mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-				free_scontent(pop_stack(evalstack));
+				free_stack_cont(pop_stack(evalstack));
 
 				result = malloc(sizeof(synge_t));
 				mpfr_init2(*result, SYNGE_PRECISION);
@@ -904,11 +904,11 @@ error_code synge_eval_rpnstack(stack **rpn, synge_t *output) {
 
 				/* get second argument */
 				mpfr_set(arg[1], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-				free_scontent(pop_stack(evalstack));
+				free_stack_cont(pop_stack(evalstack));
 
 				/* get first argument */
 				mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-				free_scontent(pop_stack(evalstack));
+				free_stack_cont(pop_stack(evalstack));
 
 				result = malloc(sizeof(synge_t));
 				mpfr_init2(*result, SYNGE_PRECISION);

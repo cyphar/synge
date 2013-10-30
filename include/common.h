@@ -86,22 +86,17 @@
 
 /* macros for casting void stack pointers */
 #define SYNGE_T(x) (*(synge_t *) x)
-#define FUNCTION(x) ((function *) x)
+#define FUNCTION(x) ((struct synge_func *) x)
 
-typedef struct {
-	char *alias;
-	char *function;
-} function_alias;
-
-typedef struct {
+struct synge_const {
 	char *name;
 	char *description;
 	/* an mpfr_* like function to set the value of the special number */
 	int (*value)();
-} special_number;
+};
 
 /* internal stack types */
-typedef enum {
+enum s_type {
 	number,
 
 	setop	=  1,
@@ -128,9 +123,9 @@ typedef enum {
 
 	lparen,
 	rparen,
-} s_type;
+};
 
-typedef struct operator {
+struct synge_op {
 	char *str;
 	enum {
 		op_add,
@@ -185,22 +180,22 @@ typedef struct operator {
 
 		op_none
 	} tp;
-} operator;
+};
 
 
 #define debug(...) do { _debug("%s: ", __func__); _debug(__VA_ARGS__); } while(0)
 void _debug(char *, ...);
 
 #define print_stack(stack) _print_stack((char *) __func__, stack)
-void _print_stack(char *, stack *);
+void _print_stack(char *, struct stack *);
 
 void cheeky(char *, ...);
-error_code to_error_code(int, int);
+struct synge_err to_error_code(int, int);
 
 synge_t *num_dup(synge_t);
 char *str_dup(char *);
-operator get_op(char *);
-special_number get_special_num(char *);
+struct synge_op get_op(char *);
+struct synge_const get_special_num(char *);
 
 void synge_clear(void *);
 char *get_word(char *, char *, char **);
@@ -215,9 +210,9 @@ int grad_to_rad(synge_t, synge_t, mpfr_rnd_t);
 int rad_to_deg(synge_t, synge_t, mpfr_rnd_t);
 int rad_to_grad(synge_t, synge_t, mpfr_rnd_t);
 
-error_code synge_lex_string(char *, stack **);
-error_code synge_infix_parse(stack **, stack **);
-error_code synge_eval_rpnstack(stack **, synge_t *);
-error_code synge_internal_compute_string(char *, synge_t *, char *, int);
+struct synge_err synge_lex_string(char *, struct stack **);
+struct synge_err synge_infix_parse(struct stack **, struct stack **);
+struct synge_err synge_eval_rpnstack(struct stack **, synge_t *);
+struct synge_err synge_internal_compute_string(char *, synge_t *, char *, int);
 
 #endif

@@ -82,7 +82,7 @@ typedef struct cli_command {
 } cli_command;
 
 void cli_version(void) {
-	synge_v core = synge_get_version();
+	struct synge_ver core = synge_get_version();
 
 	printf(	"%s"
 			"Synge:       %s\n"
@@ -115,7 +115,7 @@ void cli_print_list(char *s) {
 
 	/* TODO: Should be replaced with a struct lookup */
 	if(!strcmp(args, "functions")) {
-		function *function_list = synge_get_function_list();
+		struct synge_func *function_list = synge_get_function_list();
 
 		unsigned int i, longest = 0;
 
@@ -128,7 +128,7 @@ void cli_print_list(char *s) {
 			printf("%s%*s - %s%s\n", ANSI_INFO, longest, function_list[i].prototype, function_list[i].description, ANSI_CLEAR);
 	}
 	else if(!strcmp(args, "constants")) {
-		word *constant_list = synge_get_constant_list();
+		struct synge_word *constant_list = synge_get_constant_list();
 
 		unsigned int i, longest = 0;
 
@@ -199,7 +199,7 @@ char *itoa(int i) {
 } /* itoa() */
 
 void cli_print_settings(char *s) {
-	synge_settings current_settings = synge_get_settings();
+	struct synge_settings current_settings = synge_get_settings();
 
 	/* get argument */
 	while(isspace(*s) && *s)
@@ -259,7 +259,7 @@ void cli_print_settings(char *s) {
 } /* cli_print_settings() */
 
 void cli_set_settings(char *s) {
-	synge_settings new_settings = synge_get_settings();
+	struct synge_settings new_settings = synge_get_settings();
 
 	/* get argument */
 	while(isspace(*s) && *s)
@@ -443,7 +443,7 @@ int cli_str_empty(char *str) {
 } /* cli_str_empty() */
 
 void cli_default_settings(void) {
-	synge_settings new = synge_get_settings();
+	struct synge_settings new = synge_get_settings();
 
 	new.error = traceback;
 
@@ -459,7 +459,7 @@ int main(int argc, char **argv) {
 	synge_t result;
 	mpfr_init2(result, SYNGE_PRECISION);
 
-	error_code ecode;
+	struct synge_err ecode;
 #if defined(_UNIX)
 	/* rawline stuff */
 	struct raw_t *cli_raw = raw_new("exit");

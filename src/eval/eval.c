@@ -63,7 +63,7 @@
 "  -V, --version                Print version information\n" \
 "  -h, --help                   Print help information"
 
-synge_settings test_settings;
+struct synge_settings test_settings;
 
 int skip_ignorable = 1;
 
@@ -94,7 +94,7 @@ void bake_args(int argc, char ***argv) {
 			(*argv)[i] = NULL;
 		}
 		else if(!strcmp((*argv)[i], "-V") || !strcmp((*argv)[i], "-version") || !strcmp((*argv)[i], "--version")) {
-			synge_v core = synge_get_version();
+			struct synge_ver core = synge_get_version();
 
 			printf(	"Synge:       %s\n"
 					"Synge-Eval:  %s\n"
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
 	synge_t result;
 	mpfr_init2(result, SYNGE_PRECISION);
 
-	error_code ecode;
+	struct synge_err ecode;
 
 	int i;
 	for(i = 1; i < argc; i++) {

@@ -35,11 +35,11 @@
 #include "ohmic.h"
 #include "linked.h"
 
-static function *get_func(char *val) {
-	/* get the word version of the function */
-	function *ret = NULL;
+static struct synge_func *get_func(char *val) {
+	/* get the word version of the struct synge_func */
+	struct synge_func *ret = NULL;
 
-	/* find matching function in builtin function lists */
+	/* find matching struct synge_func in builtin struct synge_func lists */
 	int i;
 	for(i = 0; func_list[i].name != NULL; i++)
 		if(!strncmp(val, func_list[i].name, strlen(func_list[i].name)))
@@ -62,7 +62,7 @@ static bool valid_base_char(char digit, int base) {
 
 #define isstrop(str) (get_op(str).tp != op_none)
 
-static error_code synge_strtofr(synge_t *num, char *str, char **endptr) {
+static struct synge_err synge_strtofr(synge_t *num, char *str, char **endptr) {
 	/* NOTE: all signops are operators now, so ignore them here */
 	if(issignop(str)) {
 		*endptr = str;
@@ -131,7 +131,8 @@ static bool isnum(char *string) {
 	/* get synge_t number from string */
 	synge_t tmp;
 	mpfr_init2(tmp, SYNGE_PRECISION);
-	error_code tmpcode = synge_strtofr(&tmp, string, &endptr);
+
+	struct synge_err tmpcode = synge_strtofr(&tmp, string, &endptr);
 	mpfr_clears(tmp, NULL);
 
 	/* all cases where word is a number */
@@ -175,7 +176,7 @@ static char *get_expression_level(char *p, char end) {
 	return ret;
 } /* get_expression_level() */
 
-error_code synge_lex_string(char *string, stack **infix_stack) {
+struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
 
 	_debug("--\nLexer\n--\n");
@@ -203,14 +204,14 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 
 			/* if it is a "special" number */
 			if(word && get_special_num(word).name) {
-				special_number stnum = get_special_num(word);
+				struct synge_const stnum = get_special_num(word);
 				stnum.value(*num, SYNGE_ROUND);
 				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
 			}
 			else {
 				/* set value */
 				char *endptr = NULL;
-				error_code tmpcode = synge_strtofr(num, string + i, &endptr);
+				struct synge_err tmpcode = synge_strtofr(num, string + i, &endptr);
 
 				if(!synge_is_success_code(tmpcode.code)) {
 					mpfr_clear(*num);
@@ -246,7 +247,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 
 		else if(get_op(string+i).str) {
 			int oplen = strlen(get_op(string+i).str);
-			s_type type;
+			int type;
 
 			/* find and set type appropriate to operator */
 			switch(get_op(string+i).tp) {
@@ -423,7 +424,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 			tmpoffset += oplen;
 		}
 		else if(get_func(string+i)) {
-			char *endptr = NULL, *funcword = get_word(string+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the function word */
+			char *endptr = NULL, *funcword = get_word(string+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the struct synge_func word */
 
 			/* make functions act just like normal numbers */
 			if(top_stack(*infix_stack)) {
@@ -439,7 +440,7 @@ error_code synge_lex_string(char *string, stack **infix_stack) {
 				}
 			}
 
-			function *functionp = get_func(funcword); /* get the function pointer, name, etc. */
+			struct synge_func *functionp = get_func(funcword); /* get the struct synge_func pointer, name, etc. */
 			push_valstack(functionp, func, false, NULL, pos, *infix_stack);
 
 			tmpoffset = strlen(functionp->name); /* update iterator to correct offset */
