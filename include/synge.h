@@ -145,8 +145,8 @@ __EXPORT synge_settings synge_get_settings(void); /* returns active settings */
 __EXPORT void synge_set_settings(synge_settings); /* set active settings to given settings */
 
 __EXPORT function *synge_get_function_list(void); /* returns list of available builtin functions */
-__EXPORT ohm_t *synge_get_variable_list(void); /* returns list of variables */
-__EXPORT ohm_t *synge_get_expression_list(void); /* returns list of user functions */
+__EXPORT struct ohm_t *synge_get_variable_list(void); /* returns list of variables */
+__EXPORT struct ohm_t *synge_get_expression_list(void); /* returns list of user functions */
 __EXPORT word *synge_get_constant_list(void); /* returns list of builtin constants (must be freed) */
 
 __EXPORT char *synge_error_msg(error_code); /* returns a string which describes the error code (DO NOT FREE) */

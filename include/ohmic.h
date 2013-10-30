@@ -20,25 +20,14 @@
  * SOFTWARE.
  */
 
-#ifndef OHMIC_H
-#define OHMIC_H
-
-/* define symbol exports */
-#if defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
-#	ifdef BUILD_LIB
-#		define __EXPORT __declspec(dllexport)
-#	else
-#		define __EXPORT __declspec(dllimport)
-#	endif
-#else
-#	define __EXPORT
-#endif
+#ifndef __OHMIC_H__
+#define __OHMIC_H__
 
 /* opaque structures */
-typedef struct ohm_node ohm_node;
-typedef struct ohm_t ohm_t;
+struct ohm_node;
+struct ohm_t;
 
-typedef struct ohm_iter {
+struct ohm_iter {
 	void *key;
 	size_t keylen;
 
@@ -46,39 +35,38 @@ typedef struct ohm_iter {
 	size_t valuelen;
 
 	struct ohm_iter_internal {
-		ohm_t *hashmap;
-
-		ohm_node *node;
+		struct ohm_t *hashmap;
+		struct ohm_node *node;
 		int index;
 	} internal;
-} ohm_iter;
+};
 
 /* basic hashmap functionality */
-__EXPORT ohm_t *ohm_init(int, int (*)(void *, size_t));
-__EXPORT void ohm_free(ohm_t *);
+struct ohm_t *ohm_init(int, int (*)(void *, size_t));
+void ohm_free(struct ohm_t *);
 
-__EXPORT void *ohm_search(ohm_t *, void *, size_t);
+void *ohm_search(struct ohm_t *, void *, size_t);
 
-__EXPORT void *ohm_insert(ohm_t *, void *, size_t, void *, size_t);
-__EXPORT int ohm_remove(ohm_t *, void *, size_t);
+void *ohm_insert(struct ohm_t *, void *, size_t, void *, size_t);
+int ohm_remove(struct ohm_t *, void *, size_t);
 
-__EXPORT ohm_t *ohm_resize(ohm_t *, int);
+struct ohm_t *ohm_resize(struct ohm_t *, int);
 
 /* functions to iterate (correctly) through the hashmap */
-__EXPORT ohm_iter ohm_iter_init(ohm_t *);
-__EXPORT void ohm_iter_inc(ohm_iter *);
+struct ohm_iter ohm_iter_init(struct ohm_t *);
+void ohm_iter_inc(struct ohm_iter *);
 
 /* functions to copy, duplicate and merge hashmaps */
-__EXPORT ohm_t *ohm_dup(ohm_t *);
-__EXPORT void ohm_cpy(ohm_t *, ohm_t *);
+struct ohm_t *ohm_dup(struct ohm_t *);
+void ohm_cpy(struct ohm_t *, struct ohm_t *);
 
-__EXPORT void ohm_merge(ohm_t *, ohm_t *);
+void ohm_merge(struct ohm_t *, struct ohm_t *);
 
 /* functions to get items from opaque structures */
-__EXPORT int ohm_count(ohm_t *hm);
-__EXPORT int ohm_size(ohm_t *hm);
+int ohm_count(struct ohm_t *hm);
+int ohm_size(struct ohm_t *hm);
 
 /* default hashing function (modulo of djb2 hash -- not reccomended) */
-__EXPORT int ohm_hash(void *, size_t);
+int ohm_hash(void *, size_t);
 
-#endif /* OHMIC_H */
+#endif /* __OHMIC_H__ */

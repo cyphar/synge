@@ -143,10 +143,10 @@ void cli_print_list(char *s) {
 		free(constant_list);
 	}
 	else if(!strcmp(args, "expressions")) {
-		ohm_t *exps = synge_get_expression_list();
+		struct ohm_t *exps = synge_get_expression_list();
 
 		unsigned int longest = 0;
-		ohm_iter i = ohm_iter_init(exps);
+		struct ohm_iter i = ohm_iter_init(exps);
 
 		/* get longest word */
 		for(; i.key; ohm_iter_inc(&i))
@@ -158,10 +158,10 @@ void cli_print_list(char *s) {
 			printf("%s%*s - %s%s\n", ANSI_INFO, longest, (char *) i.key, (char *) i.value, ANSI_CLEAR);
 	}
 	else if(!strcmp(args, "variables")) {
-		ohm_t *vars = synge_get_variable_list();
+		struct ohm_t *vars = synge_get_variable_list();
 
 		unsigned int longest = 0;
-		ohm_iter i = ohm_iter_init(vars);
+		struct ohm_iter i = ohm_iter_init(vars);
 
 		/* get longest word */
 		for(; i.key; ohm_iter_inc(&i)) {

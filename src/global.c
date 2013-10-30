@@ -40,8 +40,8 @@ int synge_started = false;
 gmp_randstate_t synge_state;
 
 /* variables and functions */
-ohm_t *variable_list = NULL;
-ohm_t *expression_list = NULL;
+struct ohm_t *variable_list = NULL;
+struct ohm_t *expression_list = NULL;
 synge_t prev_answer;
 
 /* traceback */
