@@ -462,7 +462,7 @@ int main(int argc, char **argv) {
 	error_code ecode;
 #if defined(_UNIX)
 	/* rawline stuff */
-	raw_t *cli_raw = raw_new("exit");
+	struct raw_t *cli_raw = raw_new("exit");
 	raw_hist(cli_raw, true, 1000);
 #endif /* _UNIX */
 
