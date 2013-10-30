@@ -46,7 +46,7 @@ synge_t prev_answer;
 
 /* traceback */
 char *error_msg_container = NULL;
-link_t *traceback_list = NULL;
+struct link_t *traceback_list = NULL;
 
 /* default settings */
 synge_settings active_settings = {

@@ -29,7 +29,7 @@
 
 typedef struct link_node {
 	void *content;
-	int contentlen;
+	size_t contentlen;
 
 	struct link_node *prev;
 	struct link_node *next;
@@ -44,16 +44,16 @@ struct link_iter {
 	void *content;
 
 	struct link_iter_internal {
-		link_t *link;
+		struct link_t *link;
 		link_node *node;
 	} internal;
 };
 
 static void *pop_container = NULL;
 
-link_t *link_init(void) {
+struct link_t *link_init(void) {
 	/* allocate new link */
-	link_t *new = malloc(sizeof(link_t));
+	struct link_t *new = malloc(sizeof(struct link_t));
 
 	/* allocate first link and set length */
 	new->chain = malloc(sizeof(link_node));
@@ -69,7 +69,7 @@ link_t *link_init(void) {
 	return new;
 } /* link_init() */
 
-void link_free(link_t *link) {
+void link_free(struct link_t *link) {
 	if(!link) return;
 
 	/* initialise parent and current links */
@@ -106,7 +106,7 @@ void link_free(link_t *link) {
 	pop_container = NULL;
 } /* link_free() */
 
-link_node *link_node_get(link_t *link, int index) {
+link_node *link_node_get(struct link_t *link, int index) {
 	if(!link || index >= link->length || index < 0)
 		return NULL;
 
@@ -127,7 +127,7 @@ link_node *link_node_get(link_t *link, int index) {
 	return current;
 } /* link_node_get() */
 
-int link_insert(link_t *link, int pos, void *content, int contentlen) {
+int link_insert(struct link_t *link, int pos, void *content, size_t contentlen) {
 	if(pos >= link->length || pos < 0 || !content || contentlen < 1)
 		return 1;
 
@@ -152,7 +152,7 @@ int link_insert(link_t *link, int pos, void *content, int contentlen) {
 	return 0;
 } /* link_insert() */
 
-int link_remove(link_t *link, int pos) {
+int link_remove(struct link_t *link, int pos) {
 	if(!link || pos >= link->length || pos < 0)
 		return 1;
 
@@ -178,7 +178,7 @@ int link_remove(link_t *link, int pos) {
 	return 0;
 } /* link_remove() */
 
-void *link_get(link_t *link, int pos) {
+void *link_get(struct link_t *link, int pos) {
 	if(!link || pos >= link->length || pos < 0)
 		return NULL;
 
@@ -189,7 +189,7 @@ void *link_get(link_t *link, int pos) {
 	return current->content;
 } /* link_get() */
 
-void *link_pop(link_t *link, int pos) {
+void *link_pop(struct link_t *link, int pos) {
 	if(!link || pos >= link->length || pos < 0)
 		return NULL;
 
@@ -205,7 +205,7 @@ void *link_pop(link_t *link, int pos) {
 	return pop_container;
 } /* link_pop() */
 
-int link_truncate(link_t *link, int pos) {
+int link_truncate(struct link_t *link, int pos) {
 	if(!link || pos >= link->length || pos < 0)
 		return 1;
 
@@ -218,9 +218,9 @@ int link_truncate(link_t *link, int pos) {
 		return 1;
 
 	return 0;
-} /* link_truncate() */
+} /* struct link_truncate() */
 
-int link_shorten(link_t *link, int num) {
+int link_shorten(struct link_t *link, int num) {
 	if(!link || num >= link->length || num < 0)
 		return 1;
 
@@ -256,16 +256,16 @@ int link_shorten(link_t *link, int num) {
 	return 0;
 } /* link_shorten() */
 
-int link_length(link_t *link) {
+int link_length(struct link_t *link) {
 	return link->length;
 } /* link_length() */
 
-link_iter *link_iter_init(link_t *link) {
+struct link_iter *link_iter_init(struct link_t *link) {
 	if(!link)
 		return NULL;
 
 	/* allocate iterator */
-	link_iter *iter = malloc(sizeof(link_iter));
+	struct link_iter *iter = malloc(sizeof(struct link_iter));
 
 	/* set the iterator to first item */
 	iter->content = link->chain->content;
@@ -275,7 +275,7 @@ link_iter *link_iter_init(link_t *link) {
 	return iter;
 } /* link_iter_init() */
 
-int link_iter_next(link_iter *iter) {
+int link_iter_next(struct link_iter *iter) {
 	if(!iter)
 		return 1;
 
@@ -291,11 +291,11 @@ int link_iter_next(link_iter *iter) {
 	return 0;
 } /* link_iter_next() */
 
-void link_iter_free(link_iter *iter) {
-	/* interface to free iterator */
+void link_iter_free(struct link_iter *iter) {
+	/* wrapper to free iterator */
 	free(iter);
 } /* link_iter_free() */
 
-void *link_iter_content(link_iter *iter) {
+void *link_iter_content(struct link_iter *iter) {
 	return iter->content;
 } /* link_iter_content() */

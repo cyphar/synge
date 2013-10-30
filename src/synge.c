@@ -85,9 +85,9 @@ int synge_get_precision(synge_t num) {
 	return precision;
 } /* get_precision() */
 
-static char *get_trace(link_t *link) {
+static char *get_trace(struct link_t *link) {
 	char *ret = NULL, *current = NULL;
-	link_iter *ii = link_iter_init(link);
+	struct link_iter*ii = link_iter_init(link);
 
 	ret = malloc(1);
 	*ret = '\0';
