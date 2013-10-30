@@ -34,8 +34,8 @@ extern int synge_started;
 extern gmp_randstate_t synge_state;
 
 /* variables and functions */
-extern ohm_t *variable_list;
-extern ohm_t *expression_list;
+extern struct ohm_t *variable_list;
+extern struct ohm_t *expression_list;
 extern synge_t prev_answer;
 
 /* traceback */

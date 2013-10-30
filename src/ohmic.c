@@ -36,13 +36,13 @@ struct ohm_node {
 };
 
 struct ohm_t {
-	ohm_node **table;
+	struct ohm_node **table;
 	int count;
 	int size;
 	int (*hash)(void *, size_t);
 };
 
-ohm_t *ohm_init(int size, int (*hash_func)(void *, size_t)) {
+struct ohm_t *ohm_init(int size, int (*hash_func)(void *, size_t)) {
 	if(size < 1)
 		return NULL;
 
@@ -51,10 +51,10 @@ ohm_t *ohm_init(int size, int (*hash_func)(void *, size_t)) {
 		hash_func = ohm_hash;
 
 	/* allocate hashmap */
-	ohm_t *new_ohm = malloc(sizeof(ohm_t));
+	struct ohm_t *new_ohm = malloc(sizeof(struct ohm_t));
 
 	/* allocate and initialise all values */
-	new_ohm->table = malloc(sizeof(ohm_node *) * size);
+	new_ohm->table = malloc(sizeof(struct ohm_node *) * size);
 	new_ohm->size = size;
 	new_ohm->count = 0;
 
@@ -69,11 +69,11 @@ ohm_t *ohm_init(int size, int (*hash_func)(void *, size_t)) {
 	return new_ohm;
 } /* ohm_init() */
 
-void ohm_free(ohm_t *hashmap) {
+void ohm_free(struct ohm_t *hashmap) {
 	if(!hashmap)
 		return;
 
-	ohm_node *current_node, *parent_node;
+	struct ohm_node *current_node, *parent_node;
 
 	int i;
 	for(i = 0; i < hashmap->size; i++) {
@@ -98,7 +98,7 @@ void ohm_free(ohm_t *hashmap) {
 	free(hashmap);
 } /* ohm_free() */
 
-void *ohm_search(ohm_t *hashmap, void *key, size_t keylen) {
+void *ohm_search(struct ohm_t *hashmap, void *key, size_t keylen) {
 	if(!key || keylen < 1)
 		return NULL;
 
@@ -108,7 +108,7 @@ void *ohm_search(ohm_t *hashmap, void *key, size_t keylen) {
 		return NULL;
 
 	/* initialise start point for key search */
-	ohm_node *current_node = hashmap->table[index];
+	struct ohm_node *current_node = hashmap->table[index];
 
 	/* check all depth-wise matches */
 	while(current_node) {
@@ -125,7 +125,7 @@ void *ohm_search(ohm_t *hashmap, void *key, size_t keylen) {
 	return NULL; /* nothing found */
 } /* ohm_search() */
 
-void *ohm_insert(ohm_t *hashmap, void *key, size_t keylen, void *value, size_t valuelen) {
+void *ohm_insert(struct ohm_t *hashmap, void *key, size_t keylen, void *value, size_t valuelen) {
 	if(!key || keylen < 1 || !value || valuelen < 1)
 		return NULL;
 
@@ -135,7 +135,7 @@ void *ohm_insert(ohm_t *hashmap, void *key, size_t keylen, void *value, size_t v
 		return NULL;
 
 	/* initialise start point for key search */
-	ohm_node *parent_node = NULL, *current_node;
+	struct ohm_node *parent_node = NULL, *current_node;
 	current_node = hashmap->table[index];
 
 	/* try and replace any existing key */
@@ -165,7 +165,7 @@ void *ohm_insert(ohm_t *hashmap, void *key, size_t keylen, void *value, size_t v
 	}
 
 	/* need to make a new key */
-	current_node = malloc(sizeof(ohm_node));
+	current_node = malloc(sizeof(struct ohm_node));
 	current_node->next = NULL;
 
 	/* allocate and set key information */
@@ -188,7 +188,7 @@ void *ohm_insert(ohm_t *hashmap, void *key, size_t keylen, void *value, size_t v
 	return current_node->value;
 } /* ohm_insert() */
 
-int ohm_remove(ohm_t *hashmap, void *key, size_t keylen) {
+int ohm_remove(struct ohm_t *hashmap, void *key, size_t keylen) {
 	if(!key || keylen < 1)
 		return 1;
 
@@ -198,7 +198,7 @@ int ohm_remove(ohm_t *hashmap, void *key, size_t keylen) {
 		return 1;
 
 	/* initialise start point for key search */
-	ohm_node *parent_node = NULL, *current_node;
+	struct ohm_node *parent_node = NULL, *current_node;
 	current_node = hashmap->table[index];
 
 	/* try and delete any existing key */
@@ -233,13 +233,13 @@ int ohm_remove(ohm_t *hashmap, void *key, size_t keylen) {
 	return 1;
 } /* ohm_remove() */
 
-ohm_t *ohm_resize(ohm_t *old_hm, int size) {
+struct ohm_t *ohm_resize(struct ohm_t *old_hm, int size) {
 	if(!old_hm || size < 1)
 		return NULL;
 
 	/* initialise the iterables */
-	ohm_t *new_hm = ohm_init(size, old_hm->hash);
-	ohm_iter i = ohm_iter_init(old_hm);
+	struct ohm_t *new_hm = ohm_init(size, old_hm->hash);
+	struct ohm_iter i = ohm_iter_init(old_hm);
 
 	/* reinsert all of the keys (thus rehashing them) */
 	for(; i.key != NULL; ohm_iter_inc(&i))
@@ -250,8 +250,8 @@ ohm_t *ohm_resize(ohm_t *old_hm, int size) {
 	return new_hm;
 } /* ohm_resize() */
 
-ohm_iter ohm_iter_init(ohm_t *hashmap) {
-	ohm_iter ret;
+struct ohm_iter ohm_iter_init(struct ohm_t *hashmap) {
+	struct ohm_iter ret;
 
 	/* initialise at "zero" */
 	ret.internal.hashmap = hashmap;
@@ -264,12 +264,12 @@ ohm_iter ohm_iter_init(ohm_t *hashmap) {
 } /* ohm_iter_init() */
 
 /* depth-first node incrementor */
-void ohm_iter_inc(ohm_iter *i) {
+void ohm_iter_inc(struct ohm_iter *i) {
 	if(!i)
 		return;
 
 	/* get current node and index information */
-	ohm_t *hashmap = i->internal.hashmap;
+	struct ohm_t *hashmap = i->internal.hashmap;
 	int index = i->internal.index;
 
 	/* try to hop to next node down */
@@ -319,13 +319,13 @@ void ohm_iter_inc(ohm_iter *i) {
 	i->valuelen = i->internal.node->valuelen;
 } /* ohm_iter_inc() */
 
-ohm_t *ohm_dup(ohm_t *old_hm) {
+struct ohm_t *ohm_dup(struct ohm_t *old_hm) {
 	if(!old_hm)
 		return NULL;
 
 	/* initialise the iterables */
-	ohm_t *new_hm = ohm_init(old_hm->size, old_hm->hash);
-	ohm_iter i = ohm_iter_init(old_hm);
+	struct ohm_t *new_hm = ohm_init(old_hm->size, old_hm->hash);
+	struct ohm_iter i = ohm_iter_init(old_hm);
 
 	/* insert all of the keys into new hashmap */
 	for(; i.key != NULL; ohm_iter_inc(&i))
@@ -335,24 +335,24 @@ ohm_t *ohm_dup(ohm_t *old_hm) {
 	return new_hm;
 } /* ohm_dup() */
 
-void ohm_merge(ohm_t *to_hm, ohm_t *from_hm) {
+void ohm_merge(struct ohm_t *to_hm, struct ohm_t *from_hm) {
 	if(!to_hm || !from_hm)
 		return;
 
 	/* initialise iterable */
-	ohm_iter i = ohm_iter_init(from_hm);
+	struct ohm_iter i = ohm_iter_init(from_hm);
 
 	/* insert all keys to new hashmap */
 	for(; i.key != NULL; ohm_iter_inc(&i))
 		ohm_insert(to_hm, i.key, i.keylen, i.value, i.valuelen);
 } /* ohm_merge() */
 
-void ohm_cpy(ohm_t *to_hm, ohm_t *from_hm) {
+void ohm_cpy(struct ohm_t *to_hm, struct ohm_t *from_hm) {
 	if(!to_hm || !from_hm)
 		return;
 
 	/* delete everythin in target hashmap */
-	ohm_node *current_node, *parent_node;
+	struct ohm_node *current_node, *parent_node;
 
 	int i;
 	for(i = 0; i < to_hm->size; i++) {
@@ -396,10 +396,10 @@ int ohm_hash(void *key, size_t keylen) {
 	return abs(hash); /* a more poisson distribution method for max range probably exists, oh well. */
 } /* ohm_hash() */
 
-int ohm_count(ohm_t *hm) {
+int ohm_count(struct ohm_t *hm) {
 	return hm->count;
 } /* ohm_count() */
 
-int ohm_size(ohm_t *hm) {
+int ohm_size(struct ohm_t *hm) {
 	return hm->size;
 } /* ohm_size() */

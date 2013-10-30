@@ -294,11 +294,11 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	/* backup variable and function hashmaps are
 	 * used to "roll back" the maps to a known good
 	 * state if an error occurs */
-	ohm_t *backup_var = ohm_dup(variable_list);
-	ohm_t *backup_func = ohm_dup(expression_list);
+	struct ohm_t *backup_var = ohm_dup(variable_list);
+	struct ohm_t *backup_func = ohm_dup(expression_list);
 
 	/* duplicate all variables */
-	ohm_iter i = ohm_iter_init(variable_list);
+	struct ohm_iter i = ohm_iter_init(variable_list);
 	for(; i.key; ohm_iter_inc(&i)) {
 		synge_t new, *old = i.value;
 
@@ -320,7 +320,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	if(++depth >= SYNGE_MAX_DEPTH) {
 		ohm_free(backup_func);
 
-		ohm_iter ii = ohm_iter_init(backup_var);
+		struct ohm_iter ii = ohm_iter_init(backup_var);
 		for(; ii.key; ohm_iter_inc(&ii)) {
 			synge_t *val = ii.value;
 			mpfr_clear(*val);
@@ -396,7 +396,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 	/* if some error occured, revert variables and functions back to previous good state */
 	if(!synge_is_success_code(ecode.code) && !synge_is_ignore_code(ecode.code)) {
 		/* mpfr_clear variable list */
-		ohm_iter i = ohm_iter_init(variable_list);
+		struct ohm_iter i = ohm_iter_init(variable_list);
 		for(; i.key != NULL; ohm_iter_inc(&i))
 			mpfr_clear(i.value);
 
@@ -406,7 +406,7 @@ error_code synge_internal_compute_string(char *string, synge_t *result, char *ca
 
 	/* no error -- clear backup variable list */
 	else {
-		ohm_iter j = ohm_iter_init(backup_var);
+		struct ohm_iter j = ohm_iter_init(backup_var);
 		for(; j.key; ohm_iter_inc(&j))
 			mpfr_clear(j.value);
 	}
@@ -459,11 +459,11 @@ function *synge_get_function_list(void) {
 	return func_list;
 } /* get_synge_function_list() */
 
-ohm_t *synge_get_variable_list(void) {
+struct ohm_t *synge_get_variable_list(void) {
 	return variable_list;
 } /* synge_get_variable_list() */
 
-ohm_t *synge_get_expression_list(void) {
+struct ohm_t *synge_get_expression_list(void) {
 	return expression_list;
 } /* synge_get_expression_list() */
 
@@ -512,7 +512,7 @@ void synge_end(void) {
 	assert(synge_started == true, "synge must be initialised");
 
 	/* mpfr_free variables */
-	ohm_iter i = ohm_iter_init(variable_list);
+	struct ohm_iter i = ohm_iter_init(variable_list);
 	for(; i.key != NULL; ohm_iter_inc(&i))
 		mpfr_clear(i.value);
 
