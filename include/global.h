@@ -40,7 +40,7 @@ extern synge_t prev_answer;
 
 /* traceback */
 extern char *error_msg_container;
-extern link_t *traceback_list;
+extern struct link_t *traceback_list;
 
 /* default settings */
 extern synge_settings active_settings;

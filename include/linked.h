@@ -20,24 +20,24 @@
  * SOFTWARE.
  */
 
-#ifndef LINKED_H
-#define LINKED_H
+#ifndef __LINKED_H__
+#define __LINKED_H__
 
-/* opaque structures */
-typedef struct link_t link_t;
-typedef struct link_iter link_iter;
+/* external structures */
+struct link_t;
+struct link_iter;
 
-link_t *link_init(void);
-void link_free(link_t *);
+struct link_t *link_init(void);
+void link_free(struct link_t *);
 
-int link_insert(link_t *, int, void *, int);
+int link_insert(struct link_t *, int, void *, size_t);
 
 /* macros for appending and prepending content */
 #define link_append(link, content, len) link_insert(link, link_length(link) - 1, content, len)
 #define link_prepend(link, content, len) link_insert(link, 0, content, len)
 
-void *link_get(link_t *, int);
-void *link_pop(link_t *, int);
+void *link_get(struct link_t *, int);
+void *link_pop(struct link_t *, int);
 
 /* macros for getting first and last items */
 #define link_top(link) link_get(link, 0)
@@ -47,15 +47,13 @@ void *link_pop(link_t *, int);
 #define link_ptop(link) link_pop(link, 0)
 #define link_pend(link) link_pop(link, link_length(link) - 1)
 
-int link_shorten(link_t *, int);
-int link_truncate(link_t *, int);
+int link_shorten(struct link_t *, int);
+int link_truncate(struct link_t *, int);
 
-link_iter *link_iter_init(link_t *);
-int link_iter_next(link_iter *);
-void link_iter_free(link_iter *);
+struct link_iter *link_iter_init(struct link_t *);
+int link_iter_next(struct link_iter *);
+void link_iter_free(struct link_iter *);
 
-int link_length(link_t *);
-
-void *link_iter_content(link_iter *);
-
+int link_length(struct link_t *);
+void *link_iter_content(struct link_iter *);
 #endif
