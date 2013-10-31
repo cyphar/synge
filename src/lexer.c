@@ -42,8 +42,8 @@ static struct synge_func *get_func(char *val) {
 	/* find matching struct synge_func in builtin struct synge_func lists */
 	int i;
 	for(i = 0; func_list[i].name != NULL; i++)
-		if(!strncmp(val, func_list[i].name, strlen(func_list[i].name)))
-			if(!ret || strlen(func_list[i].name) > strlen(ret->name))
+		if((!ret || strlen(func_list[i].name) > strlen(ret->name)) && /* must find the longest string */
+			!strncmp(val, func_list[i].name, strlen(func_list[i].name)))
 				ret = &func_list[i];
 
 	return ret;
@@ -207,8 +207,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 				struct synge_const stnum = get_special_num(word);
 				stnum.value(*num, SYNGE_ROUND);
 				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
-			}
-			else {
+			} else {
 				/* set value */
 				char *endptr = NULL;
 				struct synge_err tmpcode = synge_strtofr(num, string + i, &endptr);
@@ -243,9 +242,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 				free(word);
 				return to_error_code(UNDEFINED, pos);
 			}
-		}
-
-		else if(get_op(string+i).str) {
+		} else if(get_op(string+i).str) {
 			int oplen = strlen(get_op(string+i).str);
 			int type;
 
@@ -422,8 +419,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 
 			/* update iterator */
 			tmpoffset += oplen;
-		}
-		else if(get_func(string+i)) {
+		} else if(get_func(string+i)) {
 			char *endptr = NULL, *funcword = get_word(string+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the struct synge_func word */
 
 			/* make functions act just like normal numbers */
@@ -445,8 +441,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 
 			tmpoffset = strlen(functionp->name); /* update iterator to correct offset */
 			free(funcword);
-		}
-		else if(word && strlen(word) > 0) {
+		} else if(word && strlen(word) > 0) {
 			/* is it a variable or user function? */
 			if(top_stack(*infix_stack)) {
 				/* make variables act more like numbers (and more like variables) */
@@ -471,8 +466,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 
 			push_valstack(stripped, userword, true, NULL, pos, *infix_stack);
 			tmpoffset = strlen(word); /* update iterator to correct offset */
-		}
-		else {
+		} else {
 			/* catchall -- unknown token */
 			free(word);
 			return to_error_code(UNKNOWN_TOKEN, pos);

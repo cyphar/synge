@@ -103,10 +103,8 @@ struct synge_op get_op(char *ch) {
 	int i;
 	struct synge_op ret = {NULL, op_none};
 	for(i = 0; op_list[i].str != NULL; i++)
-		/* checks against part or entire string against the given list */
-		if(!strncmp(op_list[i].str, ch, strlen(op_list[i].str)))
-			/* get longest match */
-			if(!ret.str || strlen(op_list[i].str) > strlen(ret.str))
+		if((!ret.str || strlen(op_list[i].str) > strlen(ret.str)) && /* longest match */
+			!strncmp(op_list[i].str, ch, strlen(op_list[i].str)))
 				ret = op_list[i];
 
 	return ret;
