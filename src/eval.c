@@ -38,14 +38,15 @@
 
 /* greedy finder */
 static char *get_from_ch_list(char *ch, char **list) {
+	char *ret = NULL;
+
 	int i;
-	char *ret = "";
 	for(i = 0; list[i] != NULL; i++)
 		/* checks against part or entire string against the given list */
-		if(!strcmp(list[i], ch) && strlen(ret) < strlen(list[i]))
+		if((!ret || strlen(ret) < strlen(list[i])) && !strcmp(list[i], ch))
 			ret = list[i];
 
-	return strlen(ret) ? ret : 0;
+	return ret;
 } /* get_from_ch_list() */
 
 static struct synge_err set_variable(char *str, synge_t val) {
@@ -189,9 +190,7 @@ static struct synge_err eval_word(char *str, int pos, synge_t *result) {
 	if(ohm_search(variable_list, str, strlen(str) + 1)) {
 		synge_t *value = ohm_search(variable_list, str, strlen(str) + 1);
 		mpfr_set(*result, *value, SYNGE_ROUND);
-	}
-
-	else if(ohm_search(expression_list, str, strlen(str) + 1)) {
+	} else if(ohm_search(expression_list, str, strlen(str) + 1)) {
 		/* recursively evaluate a user function's value */
 		char *expression = ohm_search(expression_list, str, strlen(str) + 1);
 		struct synge_err tmpecode = synge_internal_compute_string(expression, result, str, pos);
@@ -205,9 +204,7 @@ static struct synge_err eval_word(char *str, int pos, synge_t *result) {
 				/* return relative error code for all other error formats */
 				return to_error_code(tmpecode.code, pos);
 		}
-	}
-
-	else {
+	} else {
 		/* unknown variable or function */
 		return to_error_code(UNKNOWN_TOKEN, pos);
 	}
@@ -290,15 +287,13 @@ struct synge_err synge_eval_rpnstack(struct stack **rpn, synge_t *output) {
 					char *tmpexp = NULL;
 
 					/* get new value for word */
-					if(top_stack(evalstack)->tp == number)
+					if(top_stack(evalstack)->tp == number) {
 						/* variable value */
 						mpfr_set(arg[0], SYNGE_T(top_stack(evalstack)->val), SYNGE_ROUND);
-
-					else if(top_stack(evalstack)->tp == expression)
+					} else if(top_stack(evalstack)->tp == expression) {
 						/* function expression value */
 						tmpexp = str_dup(top_stack(evalstack)->val);
-
-					else {
+					} else {
 						free_stackm(&evalstack, rpn);
 						mpfr_clears(arg[0], arg[1], arg[2], NULL);
 						return to_error_code(INVALID_LEFT_OPERAND, pos);
