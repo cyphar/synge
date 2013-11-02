@@ -1,11 +1,9 @@
 Things to fix/implement:
 
 ALL:
-* Convert documenatation to a man-like format
 * General code clean-up (especially evaluation code)
 
 SYNGE:
-* Refactor helper functions
 * Refactor implied multiplication
 
 CLI:
