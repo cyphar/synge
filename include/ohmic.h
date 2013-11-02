@@ -23,9 +23,23 @@
 #ifndef __OHMIC_H__
 #define __OHMIC_H__
 
-/* opaque structures */
-struct ohm_node;
-struct ohm_t;
+/* hashmap structures */
+struct ohm_node {
+	void *key;
+	size_t keylen;
+
+	void *value;
+	size_t valuelen;
+
+	struct ohm_node *next;
+};
+
+struct ohm_t {
+	struct ohm_node **table;
+	int count;
+	int size;
+	int (*hash)(void *, size_t);
+};
 
 struct ohm_iter {
 	void *key;
@@ -61,10 +75,6 @@ struct ohm_t *ohm_dup(struct ohm_t *);
 void ohm_cpy(struct ohm_t *, struct ohm_t *);
 
 void ohm_merge(struct ohm_t *, struct ohm_t *);
-
-/* functions to get items from opaque structures */
-int ohm_count(struct ohm_t *hm);
-int ohm_size(struct ohm_t *hm);
 
 /* default hashing function (modulo of djb2 hash -- not reccomended) */
 int ohm_hash(void *, size_t);

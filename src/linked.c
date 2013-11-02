@@ -27,28 +27,6 @@
 
 #include "linked.h"
 
-typedef struct link_node {
-	void *content;
-	size_t contentlen;
-
-	struct link_node *prev;
-	struct link_node *next;
-} link_node;
-
-struct link_t {
-	link_node *chain;
-	int length;
-};
-
-struct link_iter {
-	void *content;
-
-	struct link_iter_internal {
-		struct link_t *link;
-		link_node *node;
-	} internal;
-};
-
 static void *pop_container = NULL;
 
 struct link_t *link_init(void) {
@@ -56,7 +34,7 @@ struct link_t *link_init(void) {
 	struct link_t *new = malloc(sizeof(struct link_t));
 
 	/* allocate first link and set length */
-	new->chain = malloc(sizeof(link_node));
+	new->chain = malloc(sizeof(struct link_node));
 	new->length = 1;
 
 	/* initialise everything else to zero */
@@ -73,7 +51,7 @@ void link_free(struct link_t *link) {
 	if(!link) return;
 
 	/* initialise parent and current links */
-	link_node *parent = NULL, *current = link->chain;
+	struct link_node *parent = NULL, *current = link->chain;
 
 	/* go to last link */
 	while(current && current->next)
@@ -106,12 +84,12 @@ void link_free(struct link_t *link) {
 	pop_container = NULL;
 } /* link_free() */
 
-link_node *link_node_get(struct link_t *link, int index) {
+struct link_node *link_node_get(struct link_t *link, int index) {
 	if(!link || index >= link->length || index < 0)
 		return NULL;
 
 	/* initialise current and next links */
-	link_node *current = link->chain;
+	struct link_node *current = link->chain;
 
 	/* find link to append new link to */
 	while(index && current) {
@@ -132,11 +110,11 @@ int link_insert(struct link_t *link, int pos, void *content, size_t contentlen) 
 		return 1;
 
 	/* find current link */
-	link_node *current = link_node_get(link, pos), *next = NULL;
+	struct link_node *current = link_node_get(link, pos), *next = NULL;
 
 	/* allocate new link information */
 	next = current->next;
-	current->next = malloc(sizeof(link_node));
+	current->next = malloc(sizeof(struct link_node));
 
 	/* allocate and copy content */
 	current->next->content = malloc(contentlen);
@@ -157,7 +135,7 @@ int link_remove(struct link_t *link, int pos) {
 		return 1;
 
 	/* find current link */
-	link_node *current = link_node_get(link, pos), *next = NULL, *prev = NULL;
+	struct link_node *current = link_node_get(link, pos), *next = NULL, *prev = NULL;
 
 	/* set previous and next links */
 	prev = current->prev;
@@ -183,7 +161,7 @@ void *link_get(struct link_t *link, int pos) {
 		return NULL;
 
 	/* find current link */
-	link_node *current = link_node_get(link, pos);
+	struct link_node *current = link_node_get(link, pos);
 
 	/* return the found content */
 	return current->content;
@@ -194,7 +172,7 @@ void *link_pop(struct link_t *link, int pos) {
 		return NULL;
 
 	/* find current link */
-	link_node *current = link_node_get(link, pos);
+	struct link_node *current = link_node_get(link, pos);
 
 	/* copy the link's content to a temporary variable */
 	pop_container = realloc(pop_container, current->contentlen);
@@ -226,7 +204,7 @@ int link_shorten(struct link_t *link, int num) {
 
 	/* initialise the current and parent links */
 	int left = num;
-	link_node *current = link->chain, *parent = link->chain->prev;
+	struct link_node *current = link->chain, *parent = link->chain->prev;
 
 	/* find the last link */
 	while(current && current->next)

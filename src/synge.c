@@ -89,7 +89,7 @@ int synge_get_precision(synge_t num) {
 
 static char *get_trace(struct link_t *link) {
 	char *ret = NULL, *current = NULL;
-	struct link_iter*ii = link_iter_init(link);
+	struct link_iter *ii = link_iter_init(link);
 
 	ret = malloc(1);
 	*ret = '\0';
@@ -97,7 +97,7 @@ static char *get_trace(struct link_t *link) {
 	int len = 0;
 	do {
 		/* get current function traceback information */
-		current = (char *) link_iter_content(ii);
+		current = (char *) ii->content;
 		if(!current)
 			continue;
 
@@ -288,10 +288,6 @@ static int synge_call_type(char *caller) {
 
 struct synge_err synge_internal_compute_string(char *string, synge_t *result, char *caller, int position) {
 	assert(synge_started == true, "synge must be initialised");
-
-	/* "dynamically" resize hashmap to keep efficiency up */
-	if(ohm_count(variable_list) > ohm_size(variable_list))
-		variable_list = ohm_resize(variable_list, ohm_size(variable_list) * 2);
 
 	/* backup variable and function hashmaps are
 	 * used to "roll back" the maps to a known good
