@@ -176,6 +176,20 @@ static char *get_expression_level(char *p, char end) {
 	return ret;
 } /* get_expression_level() */
 
+static void insert_mult(int pos, struct stack *infix_stack) {
+	if(top_stack(infix_stack)) {
+		switch(top_stack(infix_stack)->tp) {
+			case number: /* 2<> == 2*<> */
+			case userword: /* a<> == a*<> */
+			case rparen: /* )<> == )*<> */
+				push_valstack("*", multop, false, NULL, pos + 1, infix_stack);
+				break;
+			default:
+				break;
+		}
+	}
+} /* insert_mult() */
+
 struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
 
@@ -221,20 +235,8 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 				tmpoffset = endptr - (string + i); /* update iterator to correct offset */
 			}
 
-			/* implied multiplications just like variables */
-			if(top_stack(*infix_stack)) {
-				switch(top_stack(*infix_stack)->tp) {
-					case number:
-					case userword:
-					case rparen:
-						/* two numbers together have an impiled * (i.e 2::x is 2*::x) */
-						push_valstack("*", multop, false, NULL, pos, *infix_stack);
-						break;
-					default:
-						break;
-				}
-			}
-
+			/* implied multiplication just like variables */
+			insert_mult(pos, *infix_stack);
 			push_valstack(num, number, true, synge_clear, pos, *infix_stack); /* push given value */
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
@@ -269,17 +271,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 					type = lparen;
 
 					/* every open paren with no operator (and number) before it has an implied * */
-					if(top_stack(*infix_stack)) {
-						switch(top_stack(*infix_stack)->tp) {
-							case number:
-							case userword:
-							case rparen:
-								push_valstack("*", multop, false, NULL, pos + 1, *infix_stack);
-								break;
-							default:
-								break;
-						}
-					}
+					insert_mult(pos, *infix_stack);
 					break;
 				case op_rparen:
 					type = rparen;
@@ -346,19 +338,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 					break;
 				case op_del:
 					type = delop;
-					if(top_stack(*infix_stack)) {
-						/* make delops act more like numbers */
-						switch(top_stack(*infix_stack)->tp) {
-							case number:
-							case userword:
-							case rparen:
-								/* two numbers together have an impiled * (i.e 2::x is 2*::x) */
-								push_valstack("*", multop, false, NULL, pos, *infix_stack);
-								break;
-							default:
-								break;
-						}
-					}
+					insert_mult(pos, *infix_stack);
 					break;
 				case op_ca_add:
 				case op_ca_subtract:
@@ -385,20 +365,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 				case op_binv:
 				case op_bnot:
 					type = preop;
-
-					if(top_stack(*infix_stack)) {
-						/* make pre-operators act just like normal numbers */
-						switch(top_stack(*infix_stack)->tp) {
-							case number:
-							case userword:
-							case rparen:
-								/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
-								push_valstack("*", multop, false, NULL, pos, *infix_stack);
-								break;
-							default:
-								break;
-						}
-					}
+					insert_mult(pos, *infix_stack);
 					break;
 				case op_none:
 				default:
@@ -423,18 +390,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 			char *endptr = NULL, *funcword = get_word(string+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the struct synge_func word */
 
 			/* make functions act just like normal numbers */
-			if(top_stack(*infix_stack)) {
-				switch(top_stack(*infix_stack)->tp) {
-					case number:
-					case userword:
-					case rparen:
-						/* a number and a pre-opped numbers together have an impiled * (i.e 2~x is 2*~x) */
-						push_valstack("*", multop, false, NULL, pos, *infix_stack);
-						break;
-					default:
-						break;
-				}
-			}
+			insert_mult(pos, *infix_stack);
 
 			struct synge_func *functionp = get_func(funcword); /* get the struct synge_func pointer, name, etc. */
 			push_valstack(functionp, func, false, NULL, pos, *infix_stack);
@@ -443,19 +399,8 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 			free(funcword);
 		} else if(word && strlen(word) > 0) {
 			/* is it a variable or user function? */
-			if(top_stack(*infix_stack)) {
-				/* make variables act more like numbers (and more like variables) */
-				switch(top_stack(*infix_stack)->tp) {
-					case number:
-					case userword:
-					case rparen:
-						/* two numbers together have an impiled * (i.e 2x is 2*x) */
-						push_valstack("*", multop, false, NULL, pos, *infix_stack);
-						break;
-					default:
-						break;
-				}
-			}
+			insert_mult(pos, *infix_stack);
+
 			char *stripped = trim_spaces(word);
 
 			/* improvise an empty string */

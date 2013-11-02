@@ -4,7 +4,6 @@ ALL:
 * General code clean-up (especially evaluation code)
 
 SYNGE:
-* Refactor implied multiplication
 
 CLI:
 + Getopt command line options for cli
