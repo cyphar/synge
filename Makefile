@@ -245,7 +245,7 @@ $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	$(XCC) $(LINK_CORE) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
-	if [ -z $(DEBUG) ]; then strip $(NAME_CORE); fi
+	if [ $(DEBUG) -ne 1 ]; then strip $(NAME_CORE); fi
 	make -B $(OS_POST)
 	rm *.o
 
@@ -256,7 +256,7 @@ $(NAME_CLI): $(NAME_CORE) $(SHR_SRC) $(CLI_SRC) $(SHR_DEPS) $(CLI_DEPS)
 		$(SHR_CFLAGS) $(CLI_CFLAGS) -o $(EXEC_CLI) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	if [ -z $(DEBUG) ]; then strip $(EXEC_CLI); fi
+	if [ $(DEBUG) -ne 1 ]; then strip $(EXEC_CLI); fi
 	make -B $(OS_POST)
 
 # Compile gui interface
@@ -267,7 +267,7 @@ $(NAME_GTK): $(NAME_CORE) $(SHR_SRC) $(GTK_SRC) $(SHR_DEPS) $(GTK_DEPS)
 		$(SHR_CFLAGS) $(GTK_CFLAGS) -o $(EXEC_GTK) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	if [ -z $(DEBUG) ]; then strip $(EXEC_GTK); fi
+	if [ $(DEBUG) -ne 1 ]; then strip $(EXEC_GTK); fi
 	make -B $(OS_POST)
 
 # Compile simple eval interface
@@ -277,7 +277,7 @@ $(NAME_EVAL): $(NAME_CORE) $(SHR_SRC) $(EVAL_SRC) $(SHR_DEPS) $(EVAL_DEPS)
 		$(SHR_CFLAGS) $(EVAL_CFLAGS) -o $(EXEC_EVAL) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
-	if [ -z $(DEBUG) ]; then strip $(EXEC_EVAL); fi
+	if [ $(DEBUG) -ne 1 ]; then strip $(EXEC_EVAL); fi
 	make -B $(OS_POST)
 
 ################
