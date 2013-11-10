@@ -176,8 +176,8 @@ static char *get_expression_level(char *p, char end) {
 	return ret;
 } /* get_expression_level() */
 
-static void insert_mult(int pos, struct stack *infix_stack) {
-	if(top_stack(infix_stack)) {
+static void insert_mult(int pos, struct stack *infix_stack, int tp) {
+	if(top_stack(infix_stack) && tp != top_stack(infix_stack)->tp) {
 		switch(top_stack(infix_stack)->tp) {
 			case number: /* 2<> == 2*<> */
 			case userword: /* a<> == a*<> */
@@ -236,7 +236,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 			}
 
 			/* implied multiplication just like variables */
-			insert_mult(pos, *infix_stack);
+			insert_mult(pos, *infix_stack, number);
 			push_valstack(num, number, true, synge_clear, pos, *infix_stack); /* push given value */
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
@@ -271,7 +271,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 					type = lparen;
 
 					/* every open paren with no operator (and number) before it has an implied * */
-					insert_mult(pos, *infix_stack);
+					insert_mult(pos, *infix_stack, lparen);
 					break;
 				case op_rparen:
 					type = rparen;
@@ -338,7 +338,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 					break;
 				case op_del:
 					type = delop;
-					insert_mult(pos, *infix_stack);
+					insert_mult(pos, *infix_stack, delop);
 					break;
 				case op_ca_add:
 				case op_ca_subtract:
@@ -365,7 +365,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 				case op_binv:
 				case op_bnot:
 					type = preop;
-					insert_mult(pos, *infix_stack);
+					insert_mult(pos, *infix_stack, preop);
 					break;
 				case op_none:
 				default:
@@ -390,7 +390,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 			char *endptr = NULL, *funcword = get_word(string+i, SYNGE_FUNCTION_CHARS, &endptr); /* find the struct synge_func word */
 
 			/* make functions act just like normal numbers */
-			insert_mult(pos, *infix_stack);
+			insert_mult(pos, *infix_stack, func);
 
 			struct synge_func *functionp = get_func(funcword); /* get the struct synge_func pointer, name, etc. */
 			push_valstack(functionp, func, false, NULL, pos, *infix_stack);
@@ -399,7 +399,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 			free(funcword);
 		} else if(word && strlen(word) > 0) {
 			/* is it a variable or user function? */
-			insert_mult(pos, *infix_stack);
+			insert_mult(pos, *infix_stack, userword);
 
 			char *stripped = trim_spaces(word);
 
