@@ -268,6 +268,7 @@ struct synge_err synge_eval_rpnstack(struct stack **rpn, synge_t *output) {
 
 		switch(stackp.tp) {
 			case number:
+			case constant:
 				/* just push it onto the final stack */
 				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, synge_clear, pos, evalstack);
 				break;
