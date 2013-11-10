@@ -124,21 +124,16 @@ static struct synge_err synge_strtofr(synge_t *num, char *str, char **endptr) {
 } /* synge_strtofr() */
 
 static bool isnum(char *string) {
-	/* get variable word */
-	char *endptr = NULL, *s = get_word(string, SYNGE_WORD_CHARS, &endptr);
-	endptr = NULL;
-
 	/* get synge_t number from string */
 	synge_t tmp;
 	mpfr_init2(tmp, SYNGE_PRECISION);
 
+	char *endptr = NULL;
 	struct synge_err tmpcode = synge_strtofr(&tmp, string, &endptr);
 	mpfr_clears(tmp, NULL);
 
 	/* all cases where word is a number */
-	int ret = ((s && get_special_num(s).name) || string != endptr || tmpcode.code == BASE_CHAR);
-	free(s);
-	return ret;
+	return string != endptr || tmpcode.code == BASE_CHAR;
 } /* isnum() */
 
 static char *get_expression_level(char *p, char end) {
@@ -180,6 +175,7 @@ static void insert_mult(int pos, struct stack *infix_stack, int tp) {
 	if(top_stack(infix_stack) && tp != top_stack(infix_stack)->tp) {
 		switch(top_stack(infix_stack)->tp) {
 			case number: /* 2<> == 2*<> */
+			case constant: /* pi<> == pi*<> */
 			case userword: /* a<> == a*<> */
 			case rparen: /* )<> == )*<> */
 				push_valstack("*", multop, false, NULL, pos + 1, infix_stack);
@@ -216,28 +212,38 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
 			mpfr_init2(*num, SYNGE_PRECISION);
 
-			/* if it is a "special" number */
-			if(word && get_special_num(word).name) {
-				struct synge_const stnum = get_special_num(word);
-				stnum.value(*num, SYNGE_ROUND);
-				tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
-			} else {
-				/* set value */
-				char *endptr = NULL;
-				struct synge_err tmpcode = synge_strtofr(num, string + i, &endptr);
+			/* set value */
+			char *endptr = NULL;
+			struct synge_err tmpcode = synge_strtofr(num, string + i, &endptr);
 
-				if(!synge_is_success_code(tmpcode.code)) {
-					mpfr_clear(*num);
-					free(num);
-					return to_error_code(tmpcode.code, pos);
-				}
-
-				tmpoffset = endptr - (string + i); /* update iterator to correct offset */
+			if(!synge_is_success_code(tmpcode.code)) {
+				mpfr_clear(*num);
+				free(num);
+				return to_error_code(tmpcode.code, pos);
 			}
+
+			tmpoffset = endptr - (string + i); /* update iterator to correct offset */
 
 			/* implied multiplication just like variables */
 			insert_mult(pos, *infix_stack, number);
 			push_valstack(num, number, true, synge_clear, pos, *infix_stack); /* push given value */
+
+			/* error detection (done per number to ensure numbers are 163% correct) */
+			if(mpfr_nan_p(*num)) {
+				free(word);
+				return to_error_code(UNDEFINED, pos);
+			}
+		} else if(word && get_special_num(word).name) {
+			synge_t *num = malloc(sizeof(synge_t)); /* allocate memory to be pushed onto the stack */
+			mpfr_init2(*num, SYNGE_PRECISION);
+
+			struct synge_const stnum = get_special_num(word);
+			stnum.value(*num, SYNGE_ROUND);
+			tmpoffset = strlen(stnum.name); /* update iterator to correct offset */
+
+			/* implied multiplication just like variables */
+			insert_mult(pos, *infix_stack, constant);
+			push_valstack(num, constant, true, synge_clear, pos, *infix_stack); /* push given value */
 
 			/* error detection (done per number to ensure numbers are 163% correct) */
 			if(mpfr_nan_p(*num)) {

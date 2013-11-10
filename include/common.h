@@ -77,8 +77,8 @@
 
 #define isparen(type) (type == lparen || type == rparen)
 #define isop(type) (type == addop || type == signop || type == multop || type == expop || type == compop || type == bitop || type == setop)
-#define isterm(type) (type == number || type == userword || type == setword || type == rparen || type == postmod || type == premod)
-#define isnumword(type) (type == number || type == userword || type == setword)
+#define isterm(type) (type == number || type == constant || type == userword || type == setword || type == rparen || type == postmod || type == premod)
+#define isnumword(type) (type == number || type == constant || type == userword || type == setword)
 #define isword(type) (type == userword || type == setword)
 
 /* get amount of memory needed to store a sprintf() -- including null terminator */
@@ -97,8 +97,6 @@ struct synge_const {
 
 /* internal stack types */
 enum s_type {
-	number,
-
 	setop	=  1,
 	modop	=  2,
 	compop	=  3,
@@ -110,6 +108,9 @@ enum s_type {
 	expop	=  9,
 	ifop	= 10,
 	elseop	= 11,
+
+	number,
+	constant,
 
 	/* not treated as operator in parsing */
 	delop,

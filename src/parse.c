@@ -77,8 +77,9 @@ struct synge_err synge_infix_parse(struct stack **infix_stack, struct stack **rp
 
 		switch(stackp.tp) {
 			case number:
+			case constant:
 				/* nothing to do, just push it onto the temporary stack */
-				push_valstack(num_dup(SYNGE_T(stackp.val)), number, true, synge_clear, pos, *rpn_stack);
+				push_valstack(num_dup(SYNGE_T(stackp.val)), stackp.tp, true, synge_clear, pos, *rpn_stack);
 				break;
 			case expression:
 			case userword:
