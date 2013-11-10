@@ -181,6 +181,15 @@ CASES = [
 	(["0.3sin(90)"],				["0.3"],			deg,	0,		"Implied Multiplication	"),
 	(["-2.1acos(0.5)"],				["-126"],			deg,	0,		"Implied Multiplication	"),
 
+	(["2life"],						["84"],				deg,	0,		"Implied Multiplication	"),
+	(["life2"],						["84"],				deg,	0,		"Implied Multiplication	"),
+	(["-life2"],					["-84"],			deg,	0,		"Implied Multiplication	"),
+	(["-2life"],					["-84"],			deg,	0,		"Implied Multiplication	"),
+	(["2.2life"],					["92.4"],			deg,	0,		"Implied Multiplication	"),
+	(["life2.2"],					["92.4"],			deg,	0,		"Implied Multiplication	"),
+	(["-life2.2"],					["-92.4"],			deg,	0,		"Implied Multiplication	"),
+	(["-2.2life"],					["-92.4"],			deg,	0,		"Implied Multiplication	"),
+
 	(["a=2", "-2a", "1a"],			["2", "-4", "2"],	0,	0,		"Implied Multiplication	"),
 	(["a=2", "-a2", "a1"],			["2", "-4", "2"],	0,	0,		"Implied Multiplication	"),
 
@@ -415,6 +424,12 @@ CASES = [
 	([""],							[error_get("empty")],		0,	0,		"Empty Expression Error	"),
 	([" "],							[error_get("empty")],		0,	0,		"Empty Expression Error	"),
 
+	(["42 3"],						[error_get("toomany")],			0,	0,		"Excess Tokens Error	"),
+	(["pi e"],						[error_get("toomany")],			0,	0,		"Excess Tokens Error	"),
+	(["a=3", "a a"],				["3", error_get("toomany")],	0,	0,		"Excess Tokens Error	"),
+	(["a:=3", "a a"],				["3", error_get("toomany")],	0,	0,		"Excess Tokens Error	"),
+	(["b=a:=3", "b a"],				["3", error_get("toomany")],	0,	0,		"Excess Tokens Error	"),
+
 	(["0s45"],						[error_get("token", 2)],	0,	0,		"Unknown Base Error	"),
 	(["0jk45"],						[error_get("token", 2)],	0,	0,		"Unknown Base Error	"),
 	(["0b5"],						[error_get("base", 1)],		0,	0,		"Base Character Error	"),
@@ -433,7 +448,7 @@ CASES = [
 	(["1/cos(90)"],					[error_get("zerodiv", 2)],	deg,	0,		"Zero Division Error	"),
 	(["1//sin(0)"],					[error_get("zerodiv", 2)],	deg,	0,		"Zero Division Error	"),
 
-	(["1%(2-(2^2/2))"],				[error_get("zeromod", 2)],	0,	0,		"Modulo by Zero Error	"),
+	(["1%(2-(2^2/2))"],				[error_get("zeromod", 2)],	0,	0,			"Modulo by Zero Error	"),
 	(["1%(cos(45) - sin(45))"],		[error_get("zeromod", 2)],	deg,	0,		"Modulo by Zero Error	"),
 
 	(["a=1", "ANS",                 "A"],
@@ -448,15 +463,15 @@ CASES = [
 	(["2+1-"],						[error_get("opvals", 4)],	0,	0,		"Token Number Error	"),
 	(["abs()"],						[error_get("funcvals", 1)],	0,	0,		"Token Number Error	"),
 
-	(["3?3"],						[error_get("elseop", 2)],	0,	0,		"Conditional Error	"),
-	(["3?:3"],						[error_get("ifblock", 2)],	0,	0,		"Conditional Error	"),
+	(["3?3"],						[error_get("elseop", 2)],	0,	0,			"Conditional Error	"),
+	(["3?:3"],						[error_get("ifblock", 2)],	0,	0,			"Conditional Error	"),
 	(["3?3:"],						[error_get("elseblock", 4)],	0,	0,		"Conditional Error	"),
 
 	(["2--"],						[error_get("assign", 2)],	0,	0,		"Assign Error		"),
 	(["--2"],						[error_get("assign", 1)],	0,	0,		"Assign Error		"),
 
-	(["f:=f", "f"],					[error_get("unknown", 2), error_get("delved", 1)],
-																0,	0,		"Recursion Error		"),
+	(["f:=f", "f"],					[error_get("unknown", 2),
+									error_get("delved", 1)],	0,	0,		"Recursion Error		"),
 
 	(["a:=b", "b:=c", "c:=a", "1+a"], [error_get("unknown", 2), error_get("unknown", 2), error_get("unknown", 2), error_get("delved", 3)],
 																0,	0,		"Recursion Error		"),
