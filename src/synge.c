@@ -129,6 +129,9 @@ static char *get_error_type(struct synge_err error) {
 		case OPERATOR_WRONG_ARGC:
 		case MISSING_IF:
 		case MISSING_ELSE:
+		case EMPTY_IF:
+		case EMPTY_ELSE:
+		case EMPTY_BODY:
 		case EMPTY_STACK:
 		case TOO_MANY_VALUES:
 		case INVALID_LEFT_OPERAND:
@@ -205,6 +208,9 @@ char *synge_error_msg(struct synge_err error) {
 			break;
 		case EMPTY_ELSE:
 			msg = "Missing else block for if";
+			break;
+		case EMPTY_BODY:
+			msg = "Missing function body";
 			break;
 		case TOO_MANY_VALUES:
 			msg = "Too many values in expression";
