@@ -156,7 +156,7 @@ char *synge_error_msg(struct synge_err error) {
 	/* get correct printf string */
 	switch(error.code) {
 		case BASE_CHAR:
-			cheeky("Base Z? Every base is base 10.");
+			cheeky("Base Z? Every base is base 10.\n");
 			msg = "Invalid base character";
 			break;
 		case DIVIDE_BY_ZERO:
@@ -168,11 +168,11 @@ char *synge_error_msg(struct synge_err error) {
 			msg = "Cannot modulo by zero";
 			break;
 		case UNMATCHED_LEFT_PARENTHESIS:
-			cheeky("(an unmatched left parenthesis creates tension that will stay with you all day");
+			cheeky("(an unmatched left parenthesis creates tension that will stay with you all day\n");
 			msg = "Missing closing bracket for opening bracket";
 			break;
 		case UNMATCHED_RIGHT_PARENTHESIS:
-			cheeky("Error: Smilies are not supported ;)");
+			cheeky("Error: Smilies are not supported ;)\n");
 			msg = "Missing opening bracket for closing bracket";
 			break;
 		case UNKNOWN_TOKEN:
@@ -185,7 +185,7 @@ char *synge_error_msg(struct synge_err error) {
 			msg = "Invalid right operand of assignment";
 			break;
 		case INVALID_DELETE:
-			cheeky("Error: delete(universe) is not a command.");
+			cheeky("Error: delete(universe) is not a command.\n");
 			msg = "Invalid word to delete";
 			break;
 		case FUNCTION_WRONG_ARGC:
