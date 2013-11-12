@@ -71,7 +71,7 @@ static struct synge_err synge_strtofr(synge_t *num, char *str, char **endptr) {
 
 	int base = 10;
 
-	/* all special bases begin with 0_ but 0. doesn't count */
+	/* all special bases begin with 0_ but 0. doesn't count. 0x+1 and 0+1 also need to be ignored. */
 	if(strlen(str) <= 2 || *str != '0' || isstrop(str + 1) || isstrop(str + 2)) {
 		/* default to decimal */
 		mpfr_strtofr(*num, str, endptr, base, SYNGE_ROUND);
@@ -171,6 +171,9 @@ static char *get_expression_level(char *p, char end) {
 	return ret;
 } /* get_expression_level() */
 
+/* add implied multiplication (in an infix stack), based on types
+ * of item to be added (tp) and the top item of infix_stack. see
+ * synge(1) to see what this means. */
 static void insert_mult(int pos, struct stack *infix_stack, int tp) {
 	if(top_stack(infix_stack) && tp != top_stack(infix_stack)->tp) {
 		switch(top_stack(infix_stack)->tp) {
@@ -186,6 +189,8 @@ static void insert_mult(int pos, struct stack *infix_stack, int tp) {
 	}
 } /* insert_mult() */
 
+/* this is a hand-written greedy lexer, not made using something sane like
+ * lex or yacc ... apparently that is a bad idea. meh. it works. */
 struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 	assert(synge_started == true, "synge must be initialised");
 
@@ -300,11 +305,11 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 				case op_if:
 					type = ifop;
 					{
-
 						/* get expression */
 						char *expr = get_expression_level(string + i + oplen, ':');
 						char *stripped = trim_spaces(expr);
 
+						/* empty expression -- catch it now */
 						if(!expr || !stripped) {
 							free(word);
 							free(expr);
@@ -325,6 +330,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 						char *expr = get_expression_level(string + i + oplen, '\0');
 						char *stripped = trim_spaces(expr);
 
+						/* empty expression -- catch it now */
 						if(!expr || !stripped) {
 							free(word);
 							free(expr);
@@ -362,7 +368,7 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 					break;
 				case op_ca_increment:
 				case op_ca_decrement:
-					/* a+++b === a++ + b (same as in C) and operators are left-weighted (always assume left) */
+					/* greedy lexer, like in C. In other words, a+++b === a++ + b. */
 					if(top_stack(*infix_stack) && !isop(top_stack(*infix_stack)->tp) && !isparen(top_stack(*infix_stack)->tp))
 						type = postmod;
 					else
@@ -378,8 +384,10 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 					free(word);
 					return to_error_code(UNKNOWN_TOKEN, pos);
 			}
+
 			push_valstack(get_op(string+i).str, type, false, NULL, pos, *infix_stack); /* push operator onto stack */
 
+			/* if we are setting a function, we need to save the expression as a string since we don't want to evaluate it. */
 			if(get_op(string+i).tp == op_func_set) {
 				char *func_expr = get_expression_level(string + i + oplen, '\0');
 				char *stripped = trim_spaces(func_expr);
