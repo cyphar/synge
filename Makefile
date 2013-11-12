@@ -27,7 +27,6 @@ ifeq ($(OS), Windows_NT)
 	UTF8		= 0
 	COLOUR		= 0
 
-	CORE_LFLAGS	= -lm -lgmp -lmpfr
 	GTK_LFLAGS	= -mwindows
 
 	EXEC_PREFIX	=
@@ -180,6 +179,7 @@ WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-var
 
 SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
 
+CORE_LFLAGS	+= -lm -lgmp -lmpfr
 CORE_CFLAGS	+= -DBUILD_LIB
 CORE_SFLAGS += -shared
 
