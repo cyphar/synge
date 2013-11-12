@@ -392,6 +392,14 @@ struct synge_err synge_lex_string(char *string, struct stack **infix_stack) {
 				char *func_expr = get_expression_level(string + i + oplen, '\0');
 				char *stripped = trim_spaces(func_expr);
 
+				/* empty expression -- catch it now */
+				if(!func_expr || !stripped) {
+					free(word);
+					free(func_expr);
+					free(stripped);
+					return to_error_code(EMPTY_BODY, pos);
+				}
+
 				push_valstack(stripped, expression, true, NULL, pos, *infix_stack);
 
 				tmpoffset = strlen(func_expr);
