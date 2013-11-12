@@ -52,6 +52,7 @@ errors = {
 		"elseop"	: "Missing else operator for if",
 		"ifblock"	: "Missing if block for else",
 		"elseblock"	: "Missing else block for if",
+		"funcblock"	: "Missing function body",
 		"toomany"	: "Too many values in expression",
 		"empty"		: "Expression was empty",
 		"undef"		: "Result is undefined",
@@ -423,6 +424,10 @@ CASES = [
 	# expected errors
 	([""],							[error_get("empty")],		0,	0,		"Empty Expression Error	"),
 	([" "],							[error_get("empty")],		0,	0,		"Empty Expression Error	"),
+
+	(["f:=", "f"],					[error_get("funcblock", 2), error_get("token", 1)],	0,	0,	"Function Body Error	"),
+	(["(f:=)", "f"],				[error_get("funcblock", 3), error_get("token", 1)],	0,	0,	"Function Body Error	"),
+	(["(f:=   )", "f"],				[error_get("funcblock", 3), error_get("token", 1)],	0,	0,	"Function Body Error	"),
 
 	(["42 3"],						[error_get("toomany")],			0,	0,		"Excess Tokens Error	"),
 	(["pi e"],						[error_get("toomany")],			0,	0,		"Excess Tokens Error	"),
