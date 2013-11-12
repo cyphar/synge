@@ -240,8 +240,7 @@ debug:
 # Compile core library
 $(NAME_CORE): $(CORE_SRC) $(CORE_DEPS)
 	make -B $(OS_PRE)
-	$(XCC) $(SHR_CFLAGS) $(CORE_CFLAGS) \
-		-c $(CORE_SRC) $(CORE_LFLAGS) \
+	$(XCC) $(SHR_CFLAGS) $(CORE_CFLAGS) -c $(CORE_SRC) \
 		$(SYNGE_FLAGS) \
 		$(WARNINGS)
 	$(XCC) $(LINK_CORE) *.o -o $(NAME_CORE) $(CORE_SFLAGS) $(CORE_LFLAGS)
