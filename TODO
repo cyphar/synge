@@ -4,6 +4,7 @@ ALL:
 * General code clean-up (especially evaluation code)
 
 SYNGE:
+* Remove singletons and global state
 
 CLI:
 + Getopt command line options for cli
