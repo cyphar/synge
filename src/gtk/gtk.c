@@ -249,8 +249,8 @@ int main(int argc, char **argv) {
 	gtk_builder_add_from_string(builder, SYNGE_GTK_XML_UI, -1, NULL);
 #else
 	if(!gtk_builder_add_from_file(builder, "synge-gtk.glade", NULL)) {
-		printf("Couldn't open synge-gtk.glade\n");
-		exit(0);
+		puts("Couldn't open synge-gtk.glade");
+		return 1;
 	}
 #endif /* SYNGE_BAKE && SYNGE_GIT_XML_UI */
 
@@ -263,8 +263,8 @@ int main(int argc, char **argv) {
 	gui_populate_function_list();
 
 	if(!gtk_builder_get_object(builder, "basewindow")) {
-		printf("Couldn't load base window\n");
-		exit(0);
+		puts("Couldn't load base window");
+		return 1;
 	}
 
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "basewindow"));
