@@ -24,15 +24,15 @@
 #define SYNGE_VERSION_H
 
 /* core version */
-#define SYNGE_VERSION 			"1.5.1"  /* ANSI string */
-#define BSYNGE_VERSION 			 1,5,1,0 /* binary (for resources) */
+#define SYNGE_VERSION 			"1.5.2"  /* ANSI string */
+#define BSYNGE_VERSION 			 1,5,2,0 /* binary (for resources) */
 
 /* cli version */
 #define SYNGE_CLI_VERSION 		"1.1.2"  /* ANSI string */
 #define BSYNGE_CLI_VERSION 		 1,1,2,0 /* binary (for resources) */
 
 /* gtk version */
-#define SYNGE_GTK_VERSION 		"1.0.2 [CONCEPT]" /* ANSI string */
+#define SYNGE_GTK_VERSION 		"1.0.2" /* ANSI string */
 #define BSYNGE_GTK_VERSION 		 1,0,2,0	  /* binary (for resources) */
 
 /* eval version */
