@@ -21,11 +21,6 @@
  */
 
 /*
- * To Compile:
- * cc <source files> src/eval/eval.c -lm -Isrc/ -std=c99
- *
- * Command-line Arguments:
- *
  * SYNPOSIS:
  *        ./synge-eval expression[s] [-m mode] [-RVh]
  *
@@ -70,6 +65,7 @@ int skip_ignorable = 1;
 void bake_args(int argc, char ***argv) {
 	test_settings = synge_get_settings();
 
+	/* TODO: consider using getopt (but need to fix "-(1+2)" problem...) */
 	int i;
 	for(i = 1; i < argc; i++) {
 		if(argc > i + 1 && (!strcmp((*argv)[i], "-m") || !strcmp((*argv)[i], "-mode") || !strcmp((*argv)[i], "--mode"))) {
