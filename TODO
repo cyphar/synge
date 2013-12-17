@@ -4,9 +4,11 @@ ALL:
 * General code clean-up (especially evaluation code)
 
 SYNGE:
++ Iteration?
 * Remove singletons and global state
 
 CLI:
++ Save state to a file
 + Getopt command line options for cli
 + Add help page
 
