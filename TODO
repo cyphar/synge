@@ -5,6 +5,7 @@ ALL:
 
 SYNGE:
 + Iteration?
++ Add setting to use exponent mode (%Re)
 * Remove singletons and global state
 
 CLI:
