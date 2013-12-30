@@ -55,10 +55,12 @@ static void *_raw_realloc(void *ptr, size_t size) {
  * need to use functions for these. */
 
 #define C_BELL				"\x7"		/* BEL -- Ring the terminal bell. */
-#define C_CUR_MOVE_COL		"\x1b[%dG"	/* CHA -- Move to absolute column <n> */
 #define C_LN_CLEAR_END		"\x1b[0K"	/* EL(0) -- Clear from cursor to EOL */
 
-/* Structures used both externally and internally by rawline. External structures end with _t. */
+#define C_CUR_MOVE_FORWARD	"\x1b[%dC"
+#define C_CUR_MOVE_BACK		"\x1b[%dD"
+
+/* Structures used internally by rawline. External structures end with _t. */
 
 struct _raw_str {
 	char *str; /* string representation */
@@ -69,6 +71,7 @@ struct _raw_line {
 	struct _raw_str *prompt; /* prompt "string" */
 	struct _raw_str *line; /* input line */
 	int cursor; /* cursor position in line (relative to end of prompt) */
+	int oldcursor; /* old cursor position in line (relative to end of prompt) */
 };
 
 struct _raw_term {
@@ -278,15 +281,24 @@ static int _raw_move_cur(struct raw_t *raw, int offset) {
 static void _raw_redraw(struct raw_t *raw, bool change) {
 	assert(raw->safe, "raw_t structure not allocated");
 
+	/* move to after the prompt */
+	if(raw->line->oldcursor)
+		printf(C_CUR_MOVE_BACK, raw->line->oldcursor);
+
 	/* redraw input string */
 	if(change) {
-		printf(C_CUR_MOVE_COL, raw->line->prompt->len + 1);
 		printf(C_LN_CLEAR_END);
 		printf("%s", raw->line->line->str);
+
+		if(raw->line->line->len)
+			printf(C_CUR_MOVE_BACK, raw->line->line->len);
 	}
 
 	/* update the cursor position */
-	printf(C_CUR_MOVE_COL, raw->line->cursor + raw->line->prompt->len + 1);
+	if(raw->line->cursor)
+		printf(C_CUR_MOVE_FORWARD, raw->line->cursor);
+
+	/* commit changes to tty */
 	fflush(stdout);
 } /* _raw_redraw() */
 
@@ -583,6 +595,7 @@ struct raw_t *raw_new(char *atexit) {
 	/* set the line to "" */
 	raw->line->line->str = _raw_strdup("");
 	raw->line->line->len = 0;
+	raw->line->oldcursor = 0;
 	raw->line->cursor = 0;
 
 	/* set up standard settings */
@@ -744,6 +757,9 @@ char *raw_input(struct raw_t *raw, char *prompt) {
 	raw->line->prompt->str = prompt;
 	raw->line->prompt->len = strlen(raw->line->prompt->str);
 
+	fputs(raw->line->prompt->str, stdout);
+	fflush(stdout);
+
 	/* make a copy of the history */
 	struct _raw_hist *hist = NULL;
 
@@ -757,9 +773,6 @@ char *raw_input(struct raw_t *raw, char *prompt) {
 		hist->len = raw->hist->len;
 	}
 
-	printf("%s", raw->line->prompt->str);
-	fflush(stdout);
-
 	/* set up state */
 	int enter = false;
 
@@ -767,6 +780,7 @@ char *raw_input(struct raw_t *raw, char *prompt) {
 	_raw_mode(raw, true);
 
 	do {
+		raw->line->oldcursor = raw->line->cursor;
 		int err = SUCCESS, move = false;
 
 		/* get first char */
@@ -777,8 +791,7 @@ char *raw_input(struct raw_t *raw, char *prompt) {
 		/* simple printable chars */
 		if(ch > 31 && ch < 127) {
 			err = _raw_insert(raw, ch);
-		}
-		else {
+		} else {
 			switch(ch) {
 				case 3: /* ctrl-c */
 					/* disable raw mode */
@@ -878,9 +891,24 @@ char *raw_input(struct raw_t *raw, char *prompt) {
 										/* no extra characters */
 										break;
 
-									/* delete */
-									if(seq[1] == 51 && eseq == 126)
-										err = _raw_delete(raw);
+									if(eseq == 126) {
+										switch(seq[1]) {
+											case 51: /* delete */
+												err = _raw_delete(raw);
+												break;
+											case 49: /* home */
+												raw->line->cursor = 0;
+												move = true;
+												break;
+											case 52: /* end */
+												raw->line->cursor = raw->line->line->len;
+												move = true;
+												break;
+											default:
+												err = BELL;
+												break;
+										}
+									}
 								}
 								break;
 							case 70: /* end */
@@ -922,7 +950,7 @@ char *raw_input(struct raw_t *raw, char *prompt) {
 	_raw_mode(raw, false);
 
 	/* print the enter newline */
-	printf("\n");
+	putc('\n', stdout);
 
 	/* free "temporary" history and point raw-> to it */
 	if(raw->settings->history) {
