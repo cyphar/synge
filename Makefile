@@ -164,9 +164,12 @@ TEST_DIR	= tests
 
 # Documentation
 DOC_DIR		= doc
+DOC_FLAGS	= --date="`date '+%Y-%m-%d'`" --organization="cyphar" --manual="User Commands"
 DOC_SRC		= $(wildcard $(DOC_DIR)/*.ronn)
+
 DOCS		= $(DOC_SRC:.ronn=)
 DOCS_COMP	= $(addsuffix .gz,$(DOCS))
+
 DOCS1		= $(filter %1.gz,$(DOCS_COMP))
 DOCS3		= $(filter %3.gz,$(DOCS_COMP))
 
@@ -306,7 +309,7 @@ mtest: $(NAME_EVAL) $(SHR_SRC) $(TEST_SRC) $(SHR_DEPS) $(TEST_DEPS)
 #########################
 
 doc: $(DOC_SRC)
-	ronn -r $(DOC_SRC)
+	ronn -r $(DOC_FLAGS) $(DOC_SRC)
 	gzip -f $(DOCS)
 
 ###################
