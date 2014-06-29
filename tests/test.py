@@ -421,6 +421,8 @@ CASES = [
 	(["life", "8-life", "8+life", "-life+8", "+life+8"],
 	 ["42",   "-34",    "50",     "-34",     "50"],				0,	0,		"Constant Signing	"),
 
+	(["a=4", "++a/2"], ["4", "2.5"],				    	0,	0,		"Regression Test		"),
+
 	# expected errors
 	([""],							[error_get("empty")],		0,	0,		"Empty Expression Error	"),
 	([" "],							[error_get("empty")],		0,	0,		"Empty Expression Error	"),

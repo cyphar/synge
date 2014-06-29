@@ -250,6 +250,7 @@ struct synge_err synge_eval_rpnstack(struct stack **rpn, synge_t *output) {
 		/* shorthand variables */
 		struct stack_cont stackp = (*rpn)->content[i];
 		int pos = stackp.position;
+		tmp = 0;
 
 		/* debugging */
 		switch(stackp.tp) {
