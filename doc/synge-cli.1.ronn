@@ -55,7 +55,7 @@ The following is a list of the default settings set each time **Synge CLI** star
 
 ## COPYRIGHT ##
 
-**Synge CLI** (and the associated documentation) is Copyright (C) 2013 Cyphar, and is licensed under the MIT/X11 License.
+**Synge-CLI** (and the associated documentation) is Copyright (C) 2013, 2016 Aleksa Sarai, and is licensed under the GPLv3 (or later) License. It makes use of some components (ohmic and rawline) which are licensed under the MPLv2.
 
 ## SEE ALSO ##
 **synge**(1), **synge-gtk**(1), **synge-eval**(1)

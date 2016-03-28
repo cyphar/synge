@@ -260,7 +260,7 @@ In other words: variable identifiers and expression identifiers are a sequence (
 
 ## COPYRIGHT ##
 
-**Synge** (and the associated documentation) is Copyright (C) 2013 Cyphar, and is licensed under the MIT/X11 License.
+**Synge** (and the associated documentation) is Copyright (C) 2013, 2016 Aleksa Sarai, and is licensed under the GPLv3 (or later) License. It makes use of some components (ohmic and linked) which are licensed under the MPLv2.
 
 ## SEE ALSO ##
 

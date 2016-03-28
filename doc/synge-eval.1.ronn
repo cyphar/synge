@@ -37,7 +37,7 @@ Any inputs that look like options (e.g. `-m`) will be treated as options, not ex
 
 ## COPYRIGHT ##
 
-**Synge Eval** (and the associated documentation) is Copyright (C) 2013 Cyphar, and is licensed under the MIT/X11 License.
+**Synge Eval** (and the associated documentation) is Copyright (C) 2013, 2016 Aleksa Sarai, and is licensed under the GPLv3 (or later) License.
 
 ## SEE ALSO ##
 

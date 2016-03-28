@@ -94,7 +94,7 @@ Dynamic Scoping:
 ([GPLv3 or later](https://www.gnu.org/licenses/gpl-3.0.en.html))
 
 ```
-Copyright (C) 2013 Aleksa Sarai
+Copyright (C) 2013, 2016 Aleksa Sarai
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

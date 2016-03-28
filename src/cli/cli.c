@@ -1,5 +1,5 @@
 /* Synge: A shunting-yard calculation "engine"
- * Copyright (C) 2013 Aleksa Sarai
+ * Copyright (C) 2013, 2016 Aleksa Sarai
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@
 #define SYNGE_CLI_LICENSE	"Synge-CLI: A command-line interface for Synge\n" SYNGE_LICENSE
 
 #define CLI_BANNER	"Synge-CLI " SYNGE_CLI_VERSION "\n" \
-			"Copyright (C) 2013, 2016 Cyphar\n" \
+			"Copyright (C) 2013, 2016 Aleksa Sarai\n" \
 			"This program comes with ABSOLUTELY NO WARRANTY; for details type ':warranty'.\n" \
 			"This is free software, and you are welcome to redistribute it\n" \
 			"under certain conditions; type ':license' for details.\n"
