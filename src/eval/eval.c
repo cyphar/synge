@@ -27,6 +27,7 @@
  *        -R, --no-random		Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)
  *        -S, --no-skip			Do not skip "ignorable" error messages
  *
+ *        -L, --license         Print license and warranty information
  *        -V, --version			Print version information
  *        -h, --help			Print help information
  */
@@ -50,8 +51,11 @@
 "  -R, --no-random              Make functions that depend on randomness predictable (FOR TESTING PURPOSES ONLY)\n" \
 "  -S, --no-skip                Do not skip 'ignorable' error messages\n" \
 "\n" \
+"  -L, --license                Print license and warranty information\n" \
 "  -V, --version                Print version information\n" \
 "  -h, --help                   Print help information"
+
+#define SYNGE_EVAL_LICENSE "Synge-Eval: A scripting interface for Synge\n" SYNGE_LICENSE
 
 struct synge_settings test_settings;
 
@@ -83,6 +87,11 @@ void bake_args(int argc, char ***argv) {
 		else if(!strcmp((*argv)[i], "-S") || !strcmp((*argv)[i], "-no-skip") || !strcmp((*argv)[i], "--no-skip")) {
 			skip_ignorable = 0;
 			(*argv)[i] = NULL;
+		}
+		else if(!strcmp((*argv)[i], "-L") || !strcmp((*argv)[i], "-license") || !strcmp((*argv)[i], "--license")) {
+			puts(SYNGE_EVAL_LICENSE "\n");
+			puts(SYNGE_WARRANTY);
+			exit(0);
 		}
 		else if(!strcmp((*argv)[i], "-V") || !strcmp((*argv)[i], "-version") || !strcmp((*argv)[i], "--version")) {
 			struct synge_ver core = synge_get_version();

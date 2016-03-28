@@ -62,9 +62,10 @@
 #define SYNGE_CLI_LICENSE	"Synge-CLI: A command-line interface for Synge\n" SYNGE_LICENSE
 
 #define CLI_BANNER	"Synge-CLI " SYNGE_CLI_VERSION "\n" \
-			"Copyright (C) 2013 Cyphar\n" \
-			"This free software is licensed under the terms of the MIT License and is provided with ABSOLUTELY NO WARRANTY\n" \
-			"For more information, type ':version', ':license' and ':warranty'\n"
+			"Copyright (C) 2013, 2016 Cyphar\n" \
+			"This program comes with ABSOLUTELY NO WARRANTY; for details type ':warranty'.\n" \
+			"This is free software, and you are welcome to redistribute it\n" \
+			"under certain conditions; type ':license' for details.\n"
 
 #define FLUSH_INPUT() do { while(getchar() != '\n'); } while(0) /* flush input buffer */
 

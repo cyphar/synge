@@ -284,7 +284,7 @@ int main(int argc, char **argv) {
 	sprintf(comments, template, core.version, SYNGE_GTK_VERSION);
 
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), comments);
-	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n" SYNGE_WARRANTY);
+	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_popup")), SYNGE_GTK_LICENSE "\n\n" SYNGE_WARRANTY);
 	free(comments);
 
 	gtk_widget_show(GTK_WIDGET(window));
