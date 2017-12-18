@@ -173,7 +173,7 @@ MAN_DIR		?= /usr/share/man
 MAN1		= $(MAN_DIR)/man1
 MAN3		= $(MAN_DIR)/man3
 
-WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros
+WARNINGS	+= -Wall -Wextra -Wno-overlength-strings -Wno-unused-parameter -Wno-variadic-macros -Wno-implicit-fallthrough
 
 SHR_CFLAGS	+= -ansi -I$(INCLUDE_DIR)/
 
